@@ -255,7 +255,7 @@ class IssueCredentialHandlerTest {
         assertEquals(200, response.getStatusCode());
         assertEquals(6, claimsSet.size());
         assertEquals("https://example.com/issuer", claimsSet.get("aud").asText());
-        assertEquals(claimsSet.get(JWTClaimNames.EXPIRATION_TIME).asText(), "1000");
+        assertEquals("1000", claimsSet.get(JWTClaimNames.EXPIRATION_TIME).asText());
 
         verify(mockAccessTokenService).revokeAccessToken(accessTokenItem.getAccessToken());
 

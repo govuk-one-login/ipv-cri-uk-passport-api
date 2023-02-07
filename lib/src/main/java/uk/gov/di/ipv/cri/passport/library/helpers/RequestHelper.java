@@ -18,7 +18,8 @@ import java.util.stream.Collectors;
 
 public class RequestHelper {
 
-    public static final String PASSPORT_SESSION_ID_HEADER = "passport_session_id";
+    public static final String PASSPORT_SESSION_ID_HEADER = "session_id";
+    public static final String PASSPORT_SESSION_ID_HEADER_AUTHORIZATION_COMPAT = "session-id";
     private static final Logger LOGGER = LoggerFactory.getLogger(RequestHelper.class);
 
     private RequestHelper() {}
@@ -55,6 +56,14 @@ public class RequestHelper {
             throws HttpResponseExceptionWithErrorBody {
         String ipvSessionId =
                 RequestHelper.getHeaderByKey(event.getHeaders(), PASSPORT_SESSION_ID_HEADER);
+
+        // Common Express sends session-id so if null try the auth compat key
+        if (ipvSessionId == null) {
+            ipvSessionId =
+                    RequestHelper.getHeaderByKey(
+                            event.getHeaders(), PASSPORT_SESSION_ID_HEADER_AUTHORIZATION_COMPAT);
+        }
+
         if (ipvSessionId == null) {
             LOGGER.error("{} not present in headers", PASSPORT_SESSION_ID_HEADER);
             throw new HttpResponseExceptionWithErrorBody(

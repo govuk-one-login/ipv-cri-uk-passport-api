@@ -9,6 +9,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import com.nimbusds.jose.JOSEException;
 import com.nimbusds.jose.JWSObject;
+import com.nimbusds.oauth2.sdk.AuthorizationCode;
 import com.nimbusds.oauth2.sdk.AuthorizationRequest;
 import com.nimbusds.oauth2.sdk.ErrorObject;
 import com.nimbusds.oauth2.sdk.OAuth2Error;
@@ -32,6 +33,7 @@ import uk.gov.di.ipv.cri.passport.library.domain.AuthParams;
 import uk.gov.di.ipv.cri.passport.library.domain.DcsPayload;
 import uk.gov.di.ipv.cri.passport.library.domain.DcsResponse;
 import uk.gov.di.ipv.cri.passport.library.domain.DcsSignedEncryptedResponse;
+import uk.gov.di.ipv.cri.passport.library.domain.responses.PassportSuccessResponse;
 import uk.gov.di.ipv.cri.passport.library.domain.verifiablecredential.ContraIndicators;
 import uk.gov.di.ipv.cri.passport.library.domain.verifiablecredential.CredentialSubject;
 import uk.gov.di.ipv.cri.passport.library.domain.verifiablecredential.Evidence;
@@ -48,6 +50,7 @@ import uk.gov.di.ipv.cri.passport.library.helpers.RequestHelper;
 import uk.gov.di.ipv.cri.passport.library.persistence.item.PassportCheckDao;
 import uk.gov.di.ipv.cri.passport.library.persistence.item.PassportSessionItem;
 import uk.gov.di.ipv.cri.passport.library.service.AuditService;
+import uk.gov.di.ipv.cri.passport.library.service.AuthorizationCodeService;
 import uk.gov.di.ipv.cri.passport.library.service.DcsCryptographyService;
 import uk.gov.di.ipv.cri.passport.library.service.PassportService;
 import uk.gov.di.ipv.cri.passport.library.service.PassportSessionService;
@@ -74,6 +77,7 @@ import static uk.gov.di.ipv.cri.passport.library.metrics.Definitions.LAMBDA_CHEC
 import static uk.gov.di.ipv.cri.passport.library.metrics.Definitions.LAMBDA_CHECK_PASSPORT_ATTEMPT_STATUS_VERIFIED_PREFIX;
 import static uk.gov.di.ipv.cri.passport.library.metrics.Definitions.LAMBDA_CHECK_PASSPORT_COMPLETED_ERROR;
 import static uk.gov.di.ipv.cri.passport.library.metrics.Definitions.LAMBDA_CHECK_PASSPORT_COMPLETED_OK;
+import static uk.gov.di.ipv.cri.passport.library.metrics.Definitions.LAMBDA_CHECK_PASSPORT_USER_REDIRECTED_ATTEMPTS_OVER_MAX;
 
 public class CheckPassportHandler
         implements RequestHandler<APIGatewayProxyRequestEvent, APIGatewayProxyResponseEvent> {
@@ -89,9 +93,9 @@ public class CheckPassportHandler
     public static final String REDIRECT_URI_PARAM = "redirect_uri";
     public static final String RESPONSE_TYPE_PARAM = "response_type";
     public static final String STATE_PARAM = "state";
+    public static final String CODE_PARAM = "code";
 
     public static final String RESULT = "result";
-    public static final String RESULT_FINISH = "finish";
     public static final String RESULT_RETRY = "retry";
 
     private final PassportService passportService;
@@ -100,21 +104,29 @@ public class CheckPassportHandler
     private final AuditService auditService;
 
     private final PassportSessionService passportSessionService;
+    private final AuthorizationCodeService authorizationCodeService;
     private final EventProbe eventProbe;
+
+    private final int MAX_ATTEMPTS;
 
     public CheckPassportHandler(
             PassportService passportService,
+            AuthorizationCodeService authorizationCodeService,
             ConfigurationService configurationService,
             DcsCryptographyService dcsCryptographyService,
             AuditService auditService,
             PassportSessionService passportSessionService,
             EventProbe eventProbe) {
         this.passportService = passportService;
+        this.authorizationCodeService = authorizationCodeService;
         this.configurationService = configurationService;
         this.dcsCryptographyService = dcsCryptographyService;
         this.auditService = auditService;
         this.passportSessionService = passportSessionService;
         this.eventProbe = eventProbe;
+
+        MAX_ATTEMPTS =
+                Integer.parseInt(configurationService.getSsmParameter(MAXIMUM_ATTEMPT_COUNT));
     }
 
     public CheckPassportHandler()
@@ -127,6 +139,10 @@ public class CheckPassportHandler
         this.auditService =
                 new AuditService(AuditService.getDefaultSqsClient(), configurationService);
         this.passportSessionService = new PassportSessionService(configurationService);
+        this.authorizationCodeService = new AuthorizationCodeService(configurationService);
+
+        MAX_ATTEMPTS =
+                Integer.parseInt(configurationService.getSsmParameter(MAXIMUM_ATTEMPT_COUNT));
     }
 
     @Override
@@ -154,7 +170,28 @@ public class CheckPassportHandler
             LogHelper.attachGovukSigninJourneyIdToLogs(
                     passportSessionItem.getGovukSigninJourneyId());
 
-            passportSessionService.incrementAttemptCount(passportSessionId);
+            // Use the updated passportSessionItem mapped from dynamodb which has the attempt count
+            // increased (and saved), - the item from getPassportSession has an unchanged value
+            passportSessionItem = passportSessionService.incrementAttemptCount(passportSessionId);
+
+            // Check we are not "now" above max_attempts to prevent doing another remote API call
+            if (passportSessionItem.getAttemptCount() > MAX_ATTEMPTS) {
+
+                // We do not treat this as a journey fail condition
+                // The user has had multiple attempts recorded, we attempt to redirect them on
+                LOGGER.warn(
+                        "Attempt count {} is over the max of {}",
+                        passportSessionItem.getAttemptCount(),
+                        MAX_ATTEMPTS);
+
+                eventProbe.counterMetric(LAMBDA_CHECK_PASSPORT_USER_REDIRECTED_ATTEMPTS_OVER_MAX);
+
+                APIGatewayProxyResponseEvent responseEvent =
+                        passportSuccessResponseEvent(passportSessionItem);
+
+                // Use the completed OK exit sequence
+                return lambdaCompletedOK(passportSessionItem, responseEvent);
+            }
 
             String userId = passportSessionItem.getUserId();
             var authParams = passportSessionItem.getAuthParams();
@@ -195,16 +232,16 @@ public class CheckPassportHandler
                             authorizationRequest.getClientID().getValue());
             passportService.persistDcsResponse(passportCheckDao);
 
-            auditService.sendAuditEvent(AuditEventTypes.IPV_PASSPORT_CRI_END, auditEventUser);
-
             passportSessionService.setLatestDcsResponseResourceId(
                     passportSessionId, passportCheckDao.getResourceId());
 
-            // Lambda Complete No Error
-            eventProbe.counterMetric(LAMBDA_CHECK_PASSPORT_COMPLETED_OK);
+            // This will be a retry or success response
+            APIGatewayProxyResponseEvent responseEvent =
+                    determineResponseEventFromDCSResponseAndAttemptCount(
+                            passportSessionItem, unwrappedDcsResponse);
 
-            return validateResponseAndAttemptCount(passportSessionId, unwrappedDcsResponse);
-
+            // Use the completed OK exit sequence
+            return lambdaCompletedOK(passportSessionItem, responseEvent);
         } catch (OAuthHttpResponseExceptionWithErrorBody e) {
             eventProbe.counterMetric(LAMBDA_CHECK_PASSPORT_COMPLETED_ERROR);
             return ApiGatewayResponseGenerator.proxyJsonResponse(
@@ -238,29 +275,66 @@ public class CheckPassportHandler
         }
     }
 
-    private APIGatewayProxyResponseEvent validateResponseAndAttemptCount(
-            String passportSessionId, DcsResponse unwrappedDcsResponse) {
+    private APIGatewayProxyResponseEvent determineResponseEventFromDCSResponseAndAttemptCount(
+            PassportSessionItem passportSessionItem, DcsResponse unwrappedDcsResponse) {
 
-        int attemptCount =
-                passportSessionService.getPassportSession(passportSessionId).getAttemptCount();
+        int attemptCount = passportSessionItem.getAttemptCount();
+
+        boolean maxAttemptsReached = (attemptCount >= MAX_ATTEMPTS);
+
+        // Retry condition
+        if (!unwrappedDcsResponse.isValid() && !maxAttemptsReached) {
+
+            LOGGER.info("Document not verified at attempt {}", attemptCount);
+            eventProbe.counterMetric(LAMBDA_CHECK_PASSPORT_ATTEMPT_STATUS_RETRY);
+
+            return ApiGatewayResponseGenerator.proxyJsonResponse(
+                    HttpStatus.SC_OK, Map.of(RESULT, RESULT_RETRY));
+        }
+
+        // Document verification has ended
 
         if (unwrappedDcsResponse.isValid()) {
+            LOGGER.info("Document verified at attempt {}", attemptCount);
             eventProbe.counterMetric(
                     LAMBDA_CHECK_PASSPORT_ATTEMPT_STATUS_VERIFIED_PREFIX + attemptCount);
-            return ApiGatewayResponseGenerator.proxyJsonResponse(
-                    HttpStatus.SC_OK, Map.of(RESULT, RESULT_FINISH));
-        }
-
-        if (attemptCount
-                >= Integer.parseInt(configurationService.getSsmParameter(MAXIMUM_ATTEMPT_COUNT))) {
+        } else {
+            LOGGER.info("Ending document verification after {} attempts", attemptCount);
             eventProbe.counterMetric(LAMBDA_CHECK_PASSPORT_ATTEMPT_STATUS_UNVERIFIED);
-            return ApiGatewayResponseGenerator.proxyJsonResponse(
-                    HttpStatus.SC_OK, Map.of(RESULT, RESULT_FINISH));
         }
 
-        eventProbe.counterMetric(LAMBDA_CHECK_PASSPORT_ATTEMPT_STATUS_RETRY);
+        AuthorizationCode authorizationCode = authorizationCodeService.generateAuthorizationCode();
+
+        authorizationCodeService.persistAuthorizationCode(
+                authorizationCode.getValue(), passportSessionItem.getPassportSessionId());
+
+        return passportSuccessResponseEvent(passportSessionItem);
+    }
+
+    private APIGatewayProxyResponseEvent passportSuccessResponseEvent(
+            PassportSessionItem passportSessionItem) {
+
+        String sessionId = passportSessionItem.getPassportSessionId();
+        String state = passportSessionItem.getAuthParams().getState();
+        String redirectURI = passportSessionItem.getAuthParams().getRedirectUri();
+
         return ApiGatewayResponseGenerator.proxyJsonResponse(
-                HttpStatus.SC_OK, Map.of(RESULT, RESULT_RETRY));
+                HttpStatus.SC_OK, new PassportSuccessResponse(sessionId, state, redirectURI));
+    }
+
+    // Method used to prevent completed ok paths diverging
+    private APIGatewayProxyResponseEvent lambdaCompletedOK(
+            PassportSessionItem passportSessionItem, APIGatewayProxyResponseEvent responseEvent)
+            throws SqsException {
+
+        AuditEventUser auditEventUser = AuditEventUser.fromPassportSessionItem(passportSessionItem);
+
+        auditService.sendAuditEvent(AuditEventTypes.IPV_PASSPORT_CRI_END, auditEventUser);
+
+        // Lambda Complete No Error
+        eventProbe.counterMetric(LAMBDA_CHECK_PASSPORT_COMPLETED_OK);
+
+        return responseEvent;
     }
 
     private AuditEvent createAuditEventRequestSent(

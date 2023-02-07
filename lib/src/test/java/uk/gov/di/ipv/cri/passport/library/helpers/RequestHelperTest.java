@@ -31,7 +31,7 @@ class RequestHelperTest {
     @Test
     void getPassportSessionIdShouldReturnSessionIdFromHeaders() throws Exception {
         var event = new APIGatewayProxyRequestEvent();
-        event.setHeaders(Map.of("passport_session_id", "qwertyuiop"));
+        event.setHeaders(Map.of("session_id", "qwertyuiop"));
 
         assertEquals("qwertyuiop", RequestHelper.getPassportSessionId(event));
     }
