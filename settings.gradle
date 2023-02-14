@@ -1,4 +1,4 @@
-rootProject.name = 'di-ipv-cri-uk-passport-back'
+rootProject.name = 'di-ipv-cri-uk-passport-api'
 include "lib",
 		"lambdas",
 		"lambdas:accesstoken",
