@@ -39,3 +39,8 @@ build
 # aws sam deploy ignores
 infrastructure/lambda/samconfig.toml
 .aws-sam
+
+# Ignore sub build folders
+integration/build
+lambdas/**/build
+lib/**/build

@@ -25,6 +25,8 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import uk.gov.di.ipv.cri.common.library.util.EventProbe;
 import uk.gov.di.ipv.cri.passport.library.auditing.AuditEventTypes;
 import uk.gov.di.ipv.cri.passport.library.auditing.AuditEventUser;
+import uk.gov.di.ipv.cri.passport.library.domain.AuthParams;
+import uk.gov.di.ipv.cri.passport.library.domain.responses.PassportSuccessResponse;
 import uk.gov.di.ipv.cri.passport.library.error.ErrorResponse;
 import uk.gov.di.ipv.cri.passport.library.exceptions.JarValidationException;
 import uk.gov.di.ipv.cri.passport.library.exceptions.RecoverableJarValidationException;
@@ -44,14 +46,13 @@ import java.util.Arrays;
 import java.util.Base64;
 import java.util.Collections;
 import java.util.Date;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
-import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 import static uk.gov.di.ipv.cri.passport.library.helpers.fixtures.TestFixtures.EC_PRIVATE_KEY_1;
@@ -62,9 +63,11 @@ import static uk.gov.di.ipv.cri.passport.library.metrics.Definitions.LAMBDA_INIT
 @ExtendWith(MockitoExtension.class)
 class InitialiseSessionHandlerTest {
 
-    public static final ObjectMapper OBJECT_MAPPER = new ObjectMapper();
-    private static final Map<String, String> TEST_EVENT_HEADERS =
-            Map.of("passport_session_id", "test-session-id", "client_id", "TEST");
+    private static final ObjectMapper OBJECT_MAPPER = new ObjectMapper();
+    private static final String TEST_CLIENT_ID = "test-client-id";
+    private static final String PASSPORT_SESSION_ID = "test-session-id";
+    private static final String TEST_USER_ID = "test-user-id";
+    private static final String TEST_GOVUK_SIGNIN_JOURNEY_ID = "test-govuk-signin-journey-id";
 
     @Mock private JarValidator jarValidator;
 
@@ -112,21 +115,22 @@ class InitialiseSessionHandlerTest {
         when(jarValidator.decryptJWE(any(JWEObject.class))).thenReturn(signedJWT);
         when(jarValidator.validateRequestJwt(any(), anyString()))
                 .thenReturn(signedJWT.getJWTClaimsSet());
-        PassportSessionItem passportSessionItem = new PassportSessionItem();
-        passportSessionItem.setUserId("test-user-id");
-        passportSessionItem.setPassportSessionId("test-session-id");
-        passportSessionItem.setGovukSigninJourneyId("test-govuk-id");
+
+        PassportSessionItem passportSessionItem = createGeneratePassportSessionItem();
         when(passportSessionService.generatePassportSession(any())).thenReturn(passportSessionItem);
 
         var event = new APIGatewayProxyRequestEvent();
-        event.setHeaders(TEST_EVENT_HEADERS);
-        event.setBody(JWE_OBJECT_STRING);
+        event.setBody(createRawSessionRequestBodyWith(TEST_CLIENT_ID, JWE_OBJECT_STRING));
 
         var response = underTest.handleRequest(event, context);
+
+        PassportSuccessResponse responseBody =
+                OBJECT_MAPPER.readValue(response.getBody(), new TypeReference<>() {});
 
         verify(mockEventProbe).counterMetric(LAMBDA_INITIALISE_SESSION_COMPLETED_OK);
 
         assertEquals(200, response.getStatusCode());
+        assertNotNull(responseBody);
         verify(auditService)
                 .sendAuditEvent(
                         AuditEventTypes.IPV_PASSPORT_CRI_START,
@@ -134,38 +138,9 @@ class InitialiseSessionHandlerTest {
     }
 
     @Test
-    void shouldReturnClaimsAsJsonFromJWT() throws Exception {
-        when(jarValidator.decryptJWE(any(JWEObject.class))).thenReturn(signedJWT);
-        when(jarValidator.validateRequestJwt(any(), anyString()))
-                .thenReturn(signedJWT.getJWTClaimsSet());
-        when(passportSessionService.generatePassportSession(any()))
-                .thenReturn(new PassportSessionItem());
-
-        var event = new APIGatewayProxyRequestEvent();
-        event.setHeaders(TEST_EVENT_HEADERS);
-        event.setBody(JWE_OBJECT_STRING);
-
-        var response = underTest.handleRequest(event, context);
-
-        verify(mockEventProbe).counterMetric(LAMBDA_INITIALISE_SESSION_COMPLETED_OK);
-
-        Map<String, Object> claims =
-                OBJECT_MAPPER.readValue(response.getBody(), new TypeReference<>() {});
-
-        Map<String, Object> sharedClaims =
-                OBJECT_MAPPER.convertValue(claims.get("shared_claims"), new TypeReference<>() {});
-        assertEquals(Arrays.asList("01/01/1980", "02/01/1980"), sharedClaims.get("dateOfBirths"));
-        assertEquals(
-                Collections.singletonList("123 random street, M13 7GE"),
-                sharedClaims.get("addresses"));
-        assertEquals(Arrays.asList("Daniel", "Dan", "Danny"), sharedClaims.get("givenNames"));
-    }
-
-    @Test
     void shouldReturn400IfMissingJWT() throws JsonProcessingException {
         var event = new APIGatewayProxyRequestEvent();
-        event.setHeaders(TEST_EVENT_HEADERS);
-        event.setBody(null);
+        event.setBody(createRawSessionRequestBodyWith(TEST_CLIENT_ID, null));
 
         var response = underTest.handleRequest(event, context);
 
@@ -189,8 +164,7 @@ class InitialiseSessionHandlerTest {
                 .thenThrow(new ParseException("Failed to parse jwt claim set", 0));
 
         var event = new APIGatewayProxyRequestEvent();
-        event.setHeaders(TEST_EVENT_HEADERS);
-        event.setBody(JWE_OBJECT_STRING);
+        event.setBody(createRawSessionRequestBodyWith(TEST_CLIENT_ID, JWE_OBJECT_STRING));
 
         var response = underTest.handleRequest(event, context);
 
@@ -205,18 +179,10 @@ class InitialiseSessionHandlerTest {
 
     @Test
     void shouldReturn400IfFailedToParseJWTClaimSetWhenGeneratingSession()
-            throws JsonProcessingException, JarValidationException, ParseException {
-        when(jarValidator.decryptJWE(any(JWEObject.class))).thenReturn(signedJWT);
-        JWTClaimsSet myMock = mock(JWTClaimsSet.class);
-        when(myMock.getJSONObjectClaim(anyString()))
-                .thenThrow(new ParseException("Failed to parse jwt claim set", 0));
-        when(jarValidator.validateRequestJwt(any(), anyString())).thenReturn(myMock);
-        when(passportSessionService.generatePassportSession(any()))
-                .thenReturn(new PassportSessionItem());
+            throws JsonProcessingException {
 
         var event = new APIGatewayProxyRequestEvent();
-        event.setHeaders(TEST_EVENT_HEADERS);
-        event.setBody(JWE_OBJECT_STRING);
+        event.setBody(createRawSessionRequestBodyWith(TEST_CLIENT_ID, "BAD JWT STRING"));
 
         var response = underTest.handleRequest(event, context);
 
@@ -232,9 +198,7 @@ class InitialiseSessionHandlerTest {
     @Test
     void shouldReturn400IfClientIdIsNotSet() throws JsonProcessingException {
         var event = new APIGatewayProxyRequestEvent();
-        Map<String, String> noClientId = new HashMap<>(TEST_EVENT_HEADERS);
-        noClientId.remove("client_id");
-        event.setHeaders(noClientId);
+        event.setBody(createRawSessionRequestBodyWith(null, JWE_OBJECT_STRING));
 
         var response = underTest.handleRequest(event, context);
 
@@ -255,8 +219,7 @@ class InitialiseSessionHandlerTest {
                 .thenThrow(new JarValidationException(OAuth2Error.INVALID_REQUEST_OBJECT));
 
         var event = new APIGatewayProxyRequestEvent();
-        event.setHeaders(TEST_EVENT_HEADERS);
-        event.setBody(JWE_OBJECT_STRING);
+        event.setBody(createRawSessionRequestBodyWith(TEST_CLIENT_ID, JWE_OBJECT_STRING));
 
         var response = underTest.handleRequest(event, context);
 
@@ -282,8 +245,7 @@ class InitialiseSessionHandlerTest {
                                 null));
 
         var event = new APIGatewayProxyRequestEvent();
-        event.setHeaders(TEST_EVENT_HEADERS);
-        event.setBody(JWE_OBJECT_STRING);
+        event.setBody(createRawSessionRequestBodyWith(TEST_CLIENT_ID, JWE_OBJECT_STRING));
 
         var response = underTest.handleRequest(event, context);
 
@@ -307,8 +269,7 @@ class InitialiseSessionHandlerTest {
                                 "xyz"));
 
         var event = new APIGatewayProxyRequestEvent();
-        event.setHeaders(TEST_EVENT_HEADERS);
-        event.setBody(JWE_OBJECT_STRING);
+        event.setBody(createRawSessionRequestBodyWith(TEST_CLIENT_ID, JWE_OBJECT_STRING));
 
         var response = underTest.handleRequest(event, context);
 
@@ -334,5 +295,28 @@ class InitialiseSessionHandlerTest {
         httpErrorResponse.setContentType(ContentType.APPLICATION_JSON.getType());
         httpErrorResponse.setContent(responseBody);
         return ErrorObject.parse(httpErrorResponse);
+    }
+
+    private PassportSessionItem createGeneratePassportSessionItem() throws ParseException {
+        PassportSessionItem passportSessionItem = new PassportSessionItem();
+        passportSessionItem.setAttemptCount(0);
+        passportSessionItem.setUserId(TEST_USER_ID);
+        passportSessionItem.setPassportSessionId(PASSPORT_SESSION_ID);
+        passportSessionItem.setGovukSigninJourneyId(TEST_GOVUK_SIGNIN_JOURNEY_ID);
+        passportSessionItem.setAuthParams(new AuthParams());
+        passportSessionItem.getAuthParams().setClientId("TEST_CLIENT_ID");
+        passportSessionItem.getAuthParams().setState("TEST_STATE");
+        passportSessionItem.getAuthParams().setRedirectUri("http:://example.com");
+
+        return passportSessionItem;
+    }
+
+    private String createRawSessionRequestBodyWith(String clientId, String jwt)
+            throws JsonProcessingException {
+        RawSessionRequest rawSessionRequest = new RawSessionRequest();
+        rawSessionRequest.setClientId(clientId);
+        rawSessionRequest.setRequestJWT(jwt);
+
+        return OBJECT_MAPPER.writeValueAsString(rawSessionRequest);
     }
 }

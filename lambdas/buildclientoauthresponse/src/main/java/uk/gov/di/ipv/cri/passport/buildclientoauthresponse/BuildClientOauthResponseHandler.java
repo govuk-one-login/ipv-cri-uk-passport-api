@@ -5,9 +5,11 @@ import com.amazonaws.services.lambda.runtime.RequestHandler;
 import com.amazonaws.services.lambda.runtime.events.APIGatewayProxyRequestEvent;
 import com.amazonaws.services.lambda.runtime.events.APIGatewayProxyResponseEvent;
 import com.nimbusds.oauth2.sdk.AuthorizationCode;
+import com.nimbusds.oauth2.sdk.AuthorizationSuccessResponse;
 import com.nimbusds.oauth2.sdk.ErrorObject;
 import com.nimbusds.oauth2.sdk.OAuth2Error;
-import com.nimbusds.oauth2.sdk.util.StringUtils;
+import com.nimbusds.oauth2.sdk.ResponseType;
+import com.nimbusds.oauth2.sdk.id.State;
 import org.apache.http.HttpStatus;
 import org.apache.http.client.utils.URIBuilder;
 import org.apache.logging.log4j.LogManager;
@@ -16,11 +18,10 @@ import software.amazon.lambda.powertools.logging.CorrelationIdPathConstants;
 import software.amazon.lambda.powertools.logging.Logging;
 import software.amazon.lambda.powertools.metrics.Metrics;
 import uk.gov.di.ipv.cri.common.library.util.EventProbe;
-import uk.gov.di.ipv.cri.passport.buildclientoauthresponse.domain.ClientDetails;
-import uk.gov.di.ipv.cri.passport.buildclientoauthresponse.domain.ClientResponse;
 import uk.gov.di.ipv.cri.passport.library.auditing.AuditEventTypes;
 import uk.gov.di.ipv.cri.passport.library.auditing.AuditEventUser;
 import uk.gov.di.ipv.cri.passport.library.config.ConfigurationService;
+import uk.gov.di.ipv.cri.passport.library.error.CommonExpressOAuthError;
 import uk.gov.di.ipv.cri.passport.library.exceptions.HttpResponseExceptionWithErrorBody;
 import uk.gov.di.ipv.cri.passport.library.exceptions.SqsException;
 import uk.gov.di.ipv.cri.passport.library.helpers.ApiGatewayResponseGenerator;
@@ -86,35 +87,46 @@ public class BuildClientOauthResponseHandler
             LogHelper.attachGovukSigninJourneyIdToLogs(
                     passportSessionItem.getGovukSigninJourneyId());
 
+            // It is valid to reach here via prove another way with zero (or more) attempts made
             if (passportSessionItem.getAttemptCount() == 0) {
-                LOGGER.info(
-                        "No passport details attempt has been made - returning Access Denied response");
 
-                ClientResponse clientResponse = generateClientErrorResponse(passportSessionItem);
+                String customOAuth2ErrorDescription = "No passport details attempt has been made";
+
+                LOGGER.info(
+                        "{} {}", customOAuth2ErrorDescription, "returning Access Denied response");
 
                 auditService.sendAuditEvent(AuditEventTypes.IPV_PASSPORT_CRI_END, auditEventUser);
 
-                eventProbe.counterMetric(LAMBDA_BUILD_CLIENT_OAUTH_RESPONSE_COMPLETED_ERROR);
+                // Due to directing prove another way users here - this is not recorded as an error
+                // No specific metric added, as this lambda will be replaced with the common auth
+                // lambda
+                eventProbe.counterMetric(LAMBDA_BUILD_CLIENT_OAUTH_RESPONSE_COMPLETED_OK);
 
+                // CommonExpressOAuthError needed to place the OAuth2Error in the correct place for
+                // common-express
+                // and ensuring the OAuth2 "error" field matches the OAuth2 standard
                 return ApiGatewayResponseGenerator.proxyJsonResponse(
-                        HttpStatus.SC_OK, clientResponse);
+                        HttpStatus.SC_FORBIDDEN,
+                        new CommonExpressOAuthError(
+                                OAuth2Error.ACCESS_DENIED, customOAuth2ErrorDescription));
             }
 
+            // TODO - this generates a new authcode but should be fetching the exisiting one.
+            // Left as is to avoid a cascade of changes in Session, Auth and Token Services.
             AuthorizationCode authorizationCode =
                     authorizationCodeService.generateAuthorizationCode();
 
             authorizationCodeService.persistAuthorizationCode(
                     authorizationCode.getValue(), passportSessionId);
 
-            ClientResponse clientResponse =
-                    generateClientSuccessResponse(
-                            passportSessionItem, authorizationCode.getValue());
+            AuthorizationSuccessResponse response =
+                    generateAuthorizationSuccessResponse(passportSessionItem, authorizationCode);
 
             auditService.sendAuditEvent(AuditEventTypes.IPV_PASSPORT_CRI_END, auditEventUser);
 
             eventProbe.counterMetric(LAMBDA_BUILD_CLIENT_OAUTH_RESPONSE_COMPLETED_OK);
 
-            return ApiGatewayResponseGenerator.proxyJsonResponse(HttpStatus.SC_OK, clientResponse);
+            return ApiGatewayResponseGenerator.proxyJsonResponse(HttpStatus.SC_OK, response);
         } catch (HttpResponseExceptionWithErrorBody e) {
             eventProbe.counterMetric(LAMBDA_BUILD_CLIENT_OAUTH_RESPONSE_COMPLETED_ERROR);
             return ApiGatewayResponseGenerator.proxyJsonResponse(
@@ -138,31 +150,24 @@ public class BuildClientOauthResponseHandler
         }
     }
 
-    private ClientResponse generateClientSuccessResponse(
-            PassportSessionItem passportSessionItem, String authorizationCode)
+    private AuthorizationSuccessResponse generateAuthorizationSuccessResponse(
+            PassportSessionItem passportSessionItem, AuthorizationCode authorizationCode)
             throws URISyntaxException {
-        URIBuilder redirectUri =
-                new URIBuilder(passportSessionItem.getAuthParams().getRedirectUri())
-                        .addParameter("code", authorizationCode);
 
-        if (StringUtils.isNotBlank(passportSessionItem.getAuthParams().getState())) {
-            redirectUri.addParameter("state", passportSessionItem.getAuthParams().getState());
-        }
+        URIBuilder redirectUriBuilder =
+                new URIBuilder(passportSessionItem.getAuthParams().getRedirectUri());
 
-        return new ClientResponse(new ClientDetails(redirectUri.build().toString()));
-    }
+        redirectUriBuilder.addParameter("response_type", ResponseType.CODE.toString());
+        redirectUriBuilder.addParameter("code", authorizationCode.getValue());
+        redirectUriBuilder.addParameter("state", passportSessionItem.getAuthParams().getState());
+        redirectUriBuilder.addParameter(
+                "client_id", passportSessionItem.getAuthParams().getClientId());
 
-    private ClientResponse generateClientErrorResponse(PassportSessionItem passportSessionItem)
-            throws URISyntaxException {
-        URIBuilder redirectUri =
-                new URIBuilder(passportSessionItem.getAuthParams().getRedirectUri())
-                        .addParameter("error", OAuth2Error.ACCESS_DENIED.getCode())
-                        .addParameter(
-                                "error_description", OAuth2Error.ACCESS_DENIED.getDescription());
-        if (StringUtils.isNotBlank(passportSessionItem.getAuthParams().getState())) {
-            redirectUri.addParameter("state", passportSessionItem.getAuthParams().getState());
-        }
-
-        return new ClientResponse(new ClientDetails(redirectUri.build().toString()));
+        return new AuthorizationSuccessResponse(
+                redirectUriBuilder.build(),
+                authorizationCode,
+                null,
+                new State(passportSessionItem.getAuthParams().getState()),
+                null);
     }
 }

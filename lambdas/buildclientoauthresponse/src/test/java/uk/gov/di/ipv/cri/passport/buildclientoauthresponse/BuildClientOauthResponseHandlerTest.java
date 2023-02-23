@@ -5,6 +5,7 @@ import com.amazonaws.services.lambda.runtime.events.APIGatewayProxyRequestEvent;
 import com.amazonaws.services.lambda.runtime.events.APIGatewayProxyResponseEvent;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.core.type.TypeReference;
+import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.nimbusds.oauth2.sdk.AuthorizationCode;
 import com.nimbusds.oauth2.sdk.OAuth2Error;
@@ -16,7 +17,6 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import uk.gov.di.ipv.cri.common.library.util.EventProbe;
-import uk.gov.di.ipv.cri.passport.buildclientoauthresponse.domain.ClientResponse;
 import uk.gov.di.ipv.cri.passport.library.auditing.AuditEventTypes;
 import uk.gov.di.ipv.cri.passport.library.auditing.AuditEventUser;
 import uk.gov.di.ipv.cri.passport.library.config.ConfigurationService;
@@ -33,6 +33,7 @@ import java.util.Date;
 import java.util.Map;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.ArgumentMatchers.eq;
@@ -44,12 +45,17 @@ import static uk.gov.di.ipv.cri.passport.library.metrics.Definitions.LAMBDA_BUIL
 
 @ExtendWith(MockitoExtension.class)
 class BuildClientOauthResponseHandlerTest {
-    private static final String PASSPORT_SESSION_ID_HEADER_NAME = "passport_session_id";
+    private static final String PASSPORT_SESSION_ID_HEADER_NAME = "session_id";
     private static final Map<String, String> TEST_EVENT_HEADERS =
             Map.of(PASSPORT_SESSION_ID_HEADER_NAME, "12345");
-    public static final String TEST_USER_ID = "test-user-id";
-    public static final String TEST_GOVUK_SIGNIN_JOURNEY_ID = "test-govuk-signin-journey-id";
-    public static final String TEST_PASSPORT_SESSION_ID = "test-passport-session-id";
+    private static final String TEST_USER_ID = "test-user-id";
+    private static final String TEST_GOVUK_SIGNIN_JOURNEY_ID = "test-govuk-signin-journey-id";
+    private static final String TEST_PASSPORT_SESSION_ID = "test-passport-session-id";
+
+    private static final String TEST_RESPONSE_TYPE = "code";
+    private static final String TEST_CLIENT_ID = "test_client_id";
+    private static final String TEST_STATE = "test-state";
+    private static final String TEST_REDIRECT_URI = "https://example.com";
 
     @Mock private Context context;
     @Mock private AuthorizationCodeService mockAuthorizationCodeService;
@@ -88,11 +94,11 @@ class BuildClientOauthResponseHandlerTest {
         event.setHeaders(TEST_EVENT_HEADERS);
 
         APIGatewayProxyResponseEvent response = handler.handleRequest(event, context);
+        assertNotNull(response.getBody());
 
         assertEquals(HttpStatus.SC_OK, response.getStatusCode());
 
-        ClientResponse responseBody =
-                objectMapper.readValue(response.getBody(), new TypeReference<>() {});
+        JsonNode node = objectMapper.readTree(response.getBody());
 
         verify(mockEventProbe).counterMetric(LAMBDA_BUILD_CLIENT_OAUTH_RESPONSE_COMPLETED_OK);
 
@@ -111,43 +117,18 @@ class BuildClientOauthResponseHandlerTest {
 
         String expectedRedirectUrl =
                 new URIBuilder("https://example.com")
-                        .addParameter("code", authorizationCode.toString())
-                        .addParameter("state", "test-state")
+                        .addParameter("response_type", TEST_RESPONSE_TYPE)
+                        .addParameter("code", authorizationCode.getValue())
+                        .addParameter("state", TEST_STATE)
+                        .addParameter("client_id", TEST_CLIENT_ID)
                         .build()
                         .toString();
 
-        assertEquals(expectedRedirectUrl, responseBody.getClient().getRedirectUrl());
-    }
-
-    @Test
-    void shouldReturn200WhenStateNotInSession() throws Exception {
-        when(mockAuthorizationCodeService.generateAuthorizationCode())
-                .thenReturn(authorizationCode);
-
-        PassportSessionItem passportSessionItem = generatePassportSessionItem();
-        passportSessionItem.getAuthParams().setState(null);
-        when(mockPassportSessionService.getPassportSession(anyString()))
-                .thenReturn(passportSessionItem);
-
-        APIGatewayProxyRequestEvent event = new APIGatewayProxyRequestEvent();
-        event.setHeaders(TEST_EVENT_HEADERS);
-
-        APIGatewayProxyResponseEvent response = handler.handleRequest(event, context);
-
-        verify(mockEventProbe).counterMetric(LAMBDA_BUILD_CLIENT_OAUTH_RESPONSE_COMPLETED_OK);
-
-        assertEquals(HttpStatus.SC_OK, response.getStatusCode());
-
-        ClientResponse responseBody =
-                objectMapper.readValue(response.getBody(), new TypeReference<>() {});
-
-        String expectedRedirectUrl =
-                new URIBuilder("https://example.com")
-                        .addParameter("code", authorizationCode.toString())
-                        .build()
-                        .toString();
-
-        assertEquals(expectedRedirectUrl, responseBody.getClient().getRedirectUrl());
+        assertEquals(expectedRedirectUrl, node.get("redirectionURI").textValue());
+        assertEquals(TEST_STATE, node.get("state").get("value").textValue());
+        assertEquals(
+                authorizationCode.getValue(),
+                node.get("authorizationCode").get("value").textValue());
     }
 
     @Test
@@ -219,8 +200,7 @@ class BuildClientOauthResponseHandlerTest {
     }
 
     @Test
-    void shouldReturnAccessDeniedResponseIfNoPassportAttemptHasBeenMade()
-            throws JsonProcessingException, SqsException, URISyntaxException {
+    void shouldReturn403IfNoPassportAttemptHasBeenMade() throws JsonProcessingException {
         PassportSessionItem passportSessionItem = generatePassportSessionItem();
         passportSessionItem.setAttemptCount(0);
         when(mockPassportSessionService.getPassportSession(anyString()))
@@ -232,30 +212,24 @@ class BuildClientOauthResponseHandlerTest {
 
         APIGatewayProxyResponseEvent response = handler.handleRequest(event, context);
 
-        verify(mockEventProbe).counterMetric(LAMBDA_BUILD_CLIENT_OAUTH_RESPONSE_COMPLETED_ERROR);
+        verify(mockEventProbe).counterMetric(LAMBDA_BUILD_CLIENT_OAUTH_RESPONSE_COMPLETED_OK);
 
-        assertEquals(HttpStatus.SC_OK, response.getStatusCode());
+        JsonNode responseBody = objectMapper.readTree(response.getBody());
 
-        ClientResponse responseBody =
-                objectMapper.readValue(response.getBody(), new TypeReference<>() {});
-
-        String expectedRedirectUrl =
-                new URIBuilder("https://example.com")
-                        .addParameter("error", OAuth2Error.ACCESS_DENIED.getCode())
-                        .addParameter(
-                                "error_description", OAuth2Error.ACCESS_DENIED.getDescription())
-                        .addParameter("state", "test-state")
-                        .build()
-                        .toString();
-
-        assertEquals(expectedRedirectUrl, responseBody.getClient().getRedirectUrl());
+        assertEquals(HttpStatus.SC_FORBIDDEN, response.getStatusCode());
+        JsonNode oauthError = responseBody.get("oauth_error");
+        assertNotNull(oauthError);
+        assertEquals(OAuth2Error.ACCESS_DENIED.getCode(), oauthError.get("error").asText());
+        assertEquals(
+                "No passport details attempt has been made",
+                oauthError.get("error_description").asText());
     }
 
     private PassportSessionItem generatePassportSessionItem() {
         PassportSessionItem item = new PassportSessionItem();
 
         AuthParams authParams =
-                new AuthParams("code", "ipv-core", "test-state", "https://example.com");
+                new AuthParams(TEST_RESPONSE_TYPE, TEST_CLIENT_ID, TEST_STATE, TEST_REDIRECT_URI);
 
         item.setAuthParams(authParams);
         item.setPassportSessionId(TEST_PASSPORT_SESSION_ID);

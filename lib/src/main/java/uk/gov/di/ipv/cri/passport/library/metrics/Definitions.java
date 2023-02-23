@@ -37,6 +37,10 @@ public class Definitions {
     public static final String LAMBDA_CHECK_PASSPORT_ATTEMPT_STATUS_UNVERIFIED =
             "lambda_check_passport_attempt_status_unverified";
 
+    // Users who have reached max attempts and have gone back to the form, but will be redirected
+    public static final String LAMBDA_CHECK_PASSPORT_USER_REDIRECTED_ATTEMPTS_OVER_MAX =
+            "lambda_check_passport_user_redirected_attempts_over_max";
+
     // FormDataParse
     public static final String FORM_DATA_PARSE_PASS = "form_data_parse_pass";
     public static final String FORM_DATA_PARSE_FAIL = "form_data_parse_fail";

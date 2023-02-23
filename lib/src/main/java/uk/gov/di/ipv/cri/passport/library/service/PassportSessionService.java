@@ -82,9 +82,14 @@ public class PassportSessionService {
         dataStore.update(passportSessionItem);
     }
 
-    public void incrementAttemptCount(String passportSessionID) {
+    public PassportSessionItem incrementAttemptCount(String passportSessionID) {
         PassportSessionItem passportSessionItem = dataStore.getItem(passportSessionID);
-        passportSessionItem.setAttemptCount(passportSessionItem.getAttemptCount() + 1);
+
+        int attempts = passportSessionItem.getAttemptCount() + 1;
+
+        passportSessionItem.setAttemptCount(attempts);
         dataStore.update(passportSessionItem);
+
+        return passportSessionItem;
     }
 }
