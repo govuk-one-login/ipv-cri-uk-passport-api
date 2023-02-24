@@ -5,7 +5,7 @@ on:
   pull_request:
     types: [opened, synchronize, reopened]
     paths:
-      - "deploy/template.yaml"
+      - "infrastructure/lambda/template.yaml"
       - ".github/workflows/checkov.yml"
 jobs:
   RunCheckov:
