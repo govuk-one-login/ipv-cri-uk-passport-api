@@ -76,7 +76,7 @@ class ConfigurationServiceTest {
     void shouldSetVCExpiryBasedOnParamValueAndParamUnits()
             throws NoSuchAlgorithmException, InvalidKeySpecException {
         environmentVariables.set("AWS_STACK_NAME", "passport-api-dev");
-        when(ssmProvider.get("/passport-api-dev/MaxVCJwtTtlMapping")).thenReturn("1000");
+        when(ssmProvider.get("/passport-api-dev/MaxJwtTtl")).thenReturn("1000");
         when(ssmProvider.get("/passport-api-dev/JwtTtlUnit")).thenReturn("HOURS");
 
         long vcExpiryTime = configurationService.getVcExpiryTime();
