@@ -29,7 +29,7 @@ import uk.gov.di.ipv.cri.passport.library.auditing.AuditExtensions;
 import uk.gov.di.ipv.cri.passport.library.auditing.AuditExtensionsVcEvidence;
 import uk.gov.di.ipv.cri.passport.library.auditing.AuditRestricted;
 import uk.gov.di.ipv.cri.passport.library.auditing.AuditRestrictedVcCredentialSubject;
-import uk.gov.di.ipv.cri.passport.library.config.ConfigurationService;
+import uk.gov.di.ipv.cri.passport.library.config.PassportConfigurationService;
 import uk.gov.di.ipv.cri.passport.library.domain.verifiablecredential.ContraIndicators;
 import uk.gov.di.ipv.cri.passport.library.domain.verifiablecredential.CredentialSubject;
 import uk.gov.di.ipv.cri.passport.library.domain.verifiablecredential.VerifiableCredential;
@@ -67,7 +67,7 @@ public class IssueCredentialHandler
 
     private final DcsPassportCheckService dcsPassportCheckService;
     private final AccessTokenService accessTokenService;
-    private final ConfigurationService configurationService;
+    private final PassportConfigurationService passportConfigurationService;
     private final AuditService auditService;
     private final PassportSessionService passportSessionService;
     private final JWSSigner kmsSigner;
@@ -76,12 +76,12 @@ public class IssueCredentialHandler
     public IssueCredentialHandler(
             DcsPassportCheckService dcsPassportCheckService,
             AccessTokenService accessTokenService,
-            ConfigurationService configurationService,
+            PassportConfigurationService passportConfigurationService,
             AuditService auditService,
             PassportSessionService passportSessionService,
             JWSSigner kmsSigner,
             EventProbe eventProbe) {
-        this.configurationService = configurationService;
+        this.passportConfigurationService = passportConfigurationService;
         this.dcsPassportCheckService = dcsPassportCheckService;
         this.accessTokenService = accessTokenService;
         this.auditService = auditService;
@@ -92,15 +92,16 @@ public class IssueCredentialHandler
 
     @ExcludeFromGeneratedCoverageReport
     public IssueCredentialHandler() {
-        this.configurationService = new ConfigurationService();
-        this.dcsPassportCheckService = new DcsPassportCheckService(configurationService);
-        this.accessTokenService = new AccessTokenService(configurationService);
+        this.passportConfigurationService = new PassportConfigurationService();
+        this.dcsPassportCheckService = new DcsPassportCheckService(passportConfigurationService);
+        this.accessTokenService = new AccessTokenService(passportConfigurationService);
         this.auditService =
-                new AuditService(AuditService.getDefaultSqsClient(), configurationService);
-        this.passportSessionService = new PassportSessionService(configurationService);
+                new AuditService(AuditService.getDefaultSqsClient(), passportConfigurationService);
+        this.passportSessionService = new PassportSessionService(passportConfigurationService);
         this.kmsSigner =
                 new KmsSigner(
-                        configurationService.getSsmParameter(VERIFIABLE_CREDENTIAL_SIGNING_KEY_ID));
+                        passportConfigurationService.getSsmParameter(
+                                VERIFIABLE_CREDENTIAL_SIGNING_KEY_ID));
         this.eventProbe = new EventProbe();
     }
 
@@ -227,7 +228,8 @@ public class IssueCredentialHandler
 
     private AuditEvent createAuditEvent(VerifiableCredential vc, AuditEventUser user) {
         CredentialSubject credentialSubject = vc.getCredentialSubject();
-        String componentId = configurationService.getSsmParameter(VERIFIABLE_CREDENTIAL_ISSUER);
+        String componentId =
+                passportConfigurationService.getSsmParameter(VERIFIABLE_CREDENTIAL_ISSUER);
         AuditEventTypes eventType = AuditEventTypes.IPV_PASSPORT_CRI_VC_ISSUED;
         AuditRestricted restricted =
                 new AuditRestrictedVcCredentialSubject(
@@ -236,7 +238,7 @@ public class IssueCredentialHandler
                         credentialSubject.getPassport());
         AuditExtensions extensions =
                 new AuditExtensionsVcEvidence(
-                        configurationService.getSsmParameter(VERIFIABLE_CREDENTIAL_ISSUER),
+                        passportConfigurationService.getSsmParameter(VERIFIABLE_CREDENTIAL_ISSUER),
                         vc.getEvidence());
         return new AuditEvent(eventType, componentId, user, restricted, extensions);
     }
@@ -248,12 +250,16 @@ public class IssueCredentialHandler
         JWTClaimsSet claimsSet =
                 new JWTClaimsSet.Builder()
                         .subject(passportCheck.getUserId())
-                        .issuer(configurationService.getSsmParameter(VERIFIABLE_CREDENTIAL_ISSUER))
-                        .audience(configurationService.getClientIssuer(passportCheck.getClientId()))
+                        .issuer(
+                                passportConfigurationService.getSsmParameter(
+                                        VERIFIABLE_CREDENTIAL_ISSUER))
+                        .audience(
+                                passportConfigurationService.getClientIssuer(
+                                        passportCheck.getClientId()))
                         .notBeforeTime(new Date(now.toEpochMilli()))
                         .claim(
                                 JWTClaimNames.EXPIRATION_TIME,
-                                configurationService.getVcExpiryTime())
+                                passportConfigurationService.getVcExpiryTime())
                         .claim(VC_CLAIM, verifiableCredential)
                         .build();
 

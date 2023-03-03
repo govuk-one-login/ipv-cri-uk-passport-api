@@ -23,7 +23,7 @@ import uk.gov.di.ipv.cri.common.library.util.EventProbe;
 import uk.gov.di.ipv.cri.passport.library.auditing.AuditEvent;
 import uk.gov.di.ipv.cri.passport.library.auditing.AuditEventTypes;
 import uk.gov.di.ipv.cri.passport.library.auditing.AuditEventUser;
-import uk.gov.di.ipv.cri.passport.library.config.ConfigurationService;
+import uk.gov.di.ipv.cri.passport.library.config.PassportConfigurationService;
 import uk.gov.di.ipv.cri.passport.library.domain.AuthParams;
 import uk.gov.di.ipv.cri.passport.library.domain.DcsPayload;
 import uk.gov.di.ipv.cri.passport.library.domain.DcsResponse;
@@ -109,7 +109,7 @@ class CheckPassportHandlerTest {
 
     @Mock Context context;
     @Mock PassportService passportService;
-    @Mock ConfigurationService mockConfigurationService;
+    @Mock PassportConfigurationService mockPassportConfigurationService;
     @Mock DcsCryptographyService dcsCryptographyService;
     @Mock PassportSessionService passportSessionService;
     @Mock AuthorizationCodeService mockAuthorizationCodeService;
@@ -125,14 +125,14 @@ class CheckPassportHandlerTest {
     void setUp() {
         authorizationCode = new AuthorizationCode();
 
-        when(mockConfigurationService.getSsmParameter(MAXIMUM_ATTEMPT_COUNT))
+        when(mockPassportConfigurationService.getSsmParameter(MAXIMUM_ATTEMPT_COUNT))
                 .thenReturn(String.valueOf(MAX_DOC_CHECK_ATTEMPTS));
 
         underTest =
                 new CheckPassportHandler(
                         passportService,
                         mockAuthorizationCodeService,
-                        mockConfigurationService,
+                        mockPassportConfigurationService,
                         dcsCryptographyService,
                         mockAuditService,
                         passportSessionService,
@@ -147,7 +147,7 @@ class CheckPassportHandlerTest {
         mockInitialSessionItem(0);
         mockIncrementAttemptCountSessionItem(1);
         mockDcsResponse(validDcsResponse);
-        when(mockConfigurationService.getSsmParameter(VERIFIABLE_CREDENTIAL_ISSUER))
+        when(mockPassportConfigurationService.getSsmParameter(VERIFIABLE_CREDENTIAL_ISSUER))
                 .thenReturn("test");
         when(mockAuthorizationCodeService.generateAuthorizationCode())
                 .thenReturn(authorizationCode);
@@ -194,7 +194,7 @@ class CheckPassportHandlerTest {
         mockInitialSessionItem(0);
         mockIncrementAttemptCountSessionItem(1);
         mockDcsResponse(validDcsResponse);
-        when(mockConfigurationService.getSsmParameter(VERIFIABLE_CREDENTIAL_ISSUER))
+        when(mockPassportConfigurationService.getSsmParameter(VERIFIABLE_CREDENTIAL_ISSUER))
                 .thenReturn("test");
         when(mockAuthorizationCodeService.generateAuthorizationCode())
                 .thenReturn(authorizationCode);
@@ -231,7 +231,7 @@ class CheckPassportHandlerTest {
         mockDcsResponse(validDcsResponse);
         when(mockAuthorizationCodeService.generateAuthorizationCode())
                 .thenReturn(authorizationCode);
-        when(mockConfigurationService.getSsmParameter(VERIFIABLE_CREDENTIAL_ISSUER))
+        when(mockPassportConfigurationService.getSsmParameter(VERIFIABLE_CREDENTIAL_ISSUER))
                 .thenReturn("test");
 
         APIGatewayProxyRequestEvent event =
@@ -283,7 +283,7 @@ class CheckPassportHandlerTest {
         mockInitialSessionItem(0);
         mockIncrementAttemptCountSessionItem(1);
         mockDcsResponse(invalidDcsResponse);
-        when(mockConfigurationService.getSsmParameter(VERIFIABLE_CREDENTIAL_ISSUER))
+        when(mockPassportConfigurationService.getSsmParameter(VERIFIABLE_CREDENTIAL_ISSUER))
                 .thenReturn("test");
 
         APIGatewayProxyRequestEvent event =
@@ -312,7 +312,7 @@ class CheckPassportHandlerTest {
         mockDcsResponse(invalidDcsResponse);
         when(mockAuthorizationCodeService.generateAuthorizationCode())
                 .thenReturn(authorizationCode);
-        when(mockConfigurationService.getSsmParameter(VERIFIABLE_CREDENTIAL_ISSUER))
+        when(mockPassportConfigurationService.getSsmParameter(VERIFIABLE_CREDENTIAL_ISSUER))
                 .thenReturn("test");
 
         APIGatewayProxyRequestEvent event =

@@ -21,7 +21,7 @@ import uk.gov.di.ipv.cri.common.library.util.EventProbe;
 import uk.gov.di.ipv.cri.passport.library.annotations.ExcludeFromGeneratedCoverageReport;
 import uk.gov.di.ipv.cri.passport.library.auditing.AuditEventTypes;
 import uk.gov.di.ipv.cri.passport.library.auditing.AuditEventUser;
-import uk.gov.di.ipv.cri.passport.library.config.ConfigurationService;
+import uk.gov.di.ipv.cri.passport.library.config.PassportConfigurationService;
 import uk.gov.di.ipv.cri.passport.library.domain.responses.PassportSuccessResponse;
 import uk.gov.di.ipv.cri.passport.library.error.ErrorResponse;
 import uk.gov.di.ipv.cri.passport.library.error.RedirectErrorResponse;
@@ -45,7 +45,7 @@ import static uk.gov.di.ipv.cri.passport.library.metrics.Definitions.LAMBDA_INIT
 public class InitialiseSessionHandler
         implements RequestHandler<APIGatewayProxyRequestEvent, APIGatewayProxyResponseEvent> {
 
-    private final ConfigurationService configurationService;
+    private final PassportConfigurationService passportConfigurationService;
     private final KmsRsaDecrypter kmsRsaDecrypter;
     private final JarValidator jarValidator;
     private final AuditService auditService;
@@ -60,13 +60,13 @@ public class InitialiseSessionHandler
     private final EventProbe eventProbe;
 
     public InitialiseSessionHandler(
-            ConfigurationService configurationService,
+            PassportConfigurationService passportConfigurationService,
             KmsRsaDecrypter kmsRsaDecrypter,
             JarValidator jarValidator,
             AuditService auditService,
             PassportSessionService passportSessionService,
             EventProbe eventProbe) {
-        this.configurationService = configurationService;
+        this.passportConfigurationService = passportConfigurationService;
         this.kmsRsaDecrypter = kmsRsaDecrypter;
         this.jarValidator = jarValidator;
         this.auditService = auditService;
@@ -76,13 +76,14 @@ public class InitialiseSessionHandler
 
     @ExcludeFromGeneratedCoverageReport
     public InitialiseSessionHandler() {
-        this.configurationService = new ConfigurationService();
+        this.passportConfigurationService = new PassportConfigurationService();
         this.kmsRsaDecrypter =
-                new KmsRsaDecrypter(configurationService.getSsmParameter(JAR_ENCRYPTION_KEY_ID));
-        this.jarValidator = new JarValidator(kmsRsaDecrypter, configurationService);
+                new KmsRsaDecrypter(
+                        passportConfigurationService.getSsmParameter(JAR_ENCRYPTION_KEY_ID));
+        this.jarValidator = new JarValidator(kmsRsaDecrypter, passportConfigurationService);
         this.auditService =
-                new AuditService(AuditService.getDefaultSqsClient(), configurationService);
-        this.passportSessionService = new PassportSessionService(configurationService);
+                new AuditService(AuditService.getDefaultSqsClient(), passportConfigurationService);
+        this.passportSessionService = new PassportSessionService(passportConfigurationService);
         eventProbe = new EventProbe();
     }
 
