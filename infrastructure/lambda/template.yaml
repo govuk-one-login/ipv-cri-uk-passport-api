@@ -295,13 +295,13 @@ Resources:
       RetentionInDays: 365
       KmsKeyId: !GetAtt LoggingKmsKey.Arn
 
-  # PublicUKPassportAPILogGroupSubscriptionFilter:
-  #   Type: AWS::Logs::SubscriptionFilter
-  #   Condition: IsNotDevEnvironment
-  #   Properties:
-  #     DestinationArn: "arn:aws:logs:eu-west-2:885513274347:destination:csls_cw_logs_destination_prodpython"
-  #     FilterPattern: ""
-  #     LogGroupName: !Ref PublicUKPassportAPILogGroup
+  PublicUKPassportAPILogGroupSubscriptionFilter:
+    Type: AWS::Logs::SubscriptionFilter
+    Condition: IsNotDevEnvironment
+    Properties:
+      DestinationArn: "arn:aws:logs:eu-west-2:885513274347:destination:csls_cw_logs_destination_prodpython"
+      FilterPattern: ""
+      LogGroupName: !Ref PublicUKPassportAPILogGroup
 
   PrivateUKPassportAPI:
     Type: AWS::Serverless::Api
@@ -356,13 +356,13 @@ Resources:
       RetentionInDays: 365
       KmsKeyId: !GetAtt LoggingKmsKey.Arn
 
-  # PrivateUKPassportAPILogGroupSubscriptionFilter:
-  #   Type: AWS::Logs::SubscriptionFilter
-  #   Condition: IsNotDevEnvironment
-  #   Properties:
-  #     DestinationArn: "arn:aws:logs:eu-west-2:885513274347:destination:csls_cw_logs_destination_prodpython"
-  #     FilterPattern: ""
-  #     LogGroupName: !Ref PrivateUKPassportAPILogGroup
+  PrivateUKPassportAPILogGroupSubscriptionFilter:
+    Type: AWS::Logs::SubscriptionFilter
+    Condition: IsNotDevEnvironment
+    Properties:
+      DestinationArn: "arn:aws:logs:eu-west-2:885513274347:destination:csls_cw_logs_destination_prodpython"
+      FilterPattern: ""
+      LogGroupName: !Ref PrivateUKPassportAPILogGroup
 
 ####################################################################
 #                                                                  #
@@ -433,13 +433,13 @@ Resources:
       LogGroupName: !Sub "/aws/lambda/${InitialiseSessionFunction}"
       RetentionInDays: 30
 
-  # InitialiseSessionFunctionLogGroupSubscriptionFilterCsls:
-  #   Type: AWS::Logs::SubscriptionFilter
-  #   Condition: IsNotDevEnvironment
-  #   Properties:
-  #     DestinationArn: "arn:aws:logs:eu-west-2:885513274347:destination:csls_cw_logs_destination_prodpython"
-  #     FilterPattern: ""
-  #     LogGroupName: !Ref InitialiseSessionFunctionLogGroup
+  InitialiseSessionFunctionLogGroupSubscriptionFilterCsls:
+    Type: AWS::Logs::SubscriptionFilter
+    Condition: IsNotDevEnvironment
+    Properties:
+      DestinationArn: "arn:aws:logs:eu-west-2:885513274347:destination:csls_cw_logs_destination_prodpython"
+      FilterPattern: ""
+      LogGroupName: !Ref InitialiseSessionFunctionLogGroup
 
   InitialiseSessionFunctionPermission:
     Type: AWS::Lambda::Permission
@@ -542,13 +542,13 @@ Resources:
       LogGroupName: !Sub "/aws/lambda/${CheckPassportFunction}"
       RetentionInDays: 30
 
-  # CheckPassportFunctionLogGroupSubscriptionFilterCsls:
-  #   Type: AWS::Logs::SubscriptionFilter
-  #   Condition: IsNotDevEnvironment
-  #   Properties:
-  #     DestinationArn: "arn:aws:logs:eu-west-2:885513274347:destination:csls_cw_logs_destination_prodpython"
-  #     FilterPattern: ""
-  #     LogGroupName: !Ref CheckPassportFunctionLogGroup
+  CheckPassportFunctionLogGroupSubscriptionFilterCsls:
+    Type: AWS::Logs::SubscriptionFilter
+    Condition: IsNotDevEnvironment
+    Properties:
+      DestinationArn: "arn:aws:logs:eu-west-2:885513274347:destination:csls_cw_logs_destination_prodpython"
+      FilterPattern: ""
+      LogGroupName: !Ref CheckPassportFunctionLogGroup
 
   CheckPassportFunctionPermission:
     Type: AWS::Lambda::Permission
@@ -621,13 +621,13 @@ Resources:
       LogGroupName: !Sub "/aws/lambda/${BuildClientOauthResponseFunction}"
       RetentionInDays: 30
 
-  # BuildClientOauthResponseFunctionLogGroupSubscriptionFilterCsls:
-  #   Type: AWS::Logs::SubscriptionFilter
-  #   Condition: IsNotDevEnvironment
-  #   Properties:
-  #     DestinationArn: "arn:aws:logs:eu-west-2:885513274347:destination:csls_cw_logs_destination_prodpython"
-  #     FilterPattern: ""
-  #     LogGroupName: !Ref BuildClientOauthResponseFunctionLogGroup
+  BuildClientOauthResponseFunctionLogGroupSubscriptionFilterCsls:
+    Type: AWS::Logs::SubscriptionFilter
+    Condition: IsNotDevEnvironment
+    Properties:
+      DestinationArn: "arn:aws:logs:eu-west-2:885513274347:destination:csls_cw_logs_destination_prodpython"
+      FilterPattern: ""
+      LogGroupName: !Ref BuildClientOauthResponseFunctionLogGroup
 
   BuildClientOauthResponseFunctionPermission:
     Type: AWS::Lambda::Permission
@@ -703,13 +703,13 @@ Resources:
       LogGroupName: !Sub "/aws/lambda/${AccessTokenFunction}"
       RetentionInDays: 30
 
-  # AccessTokenFunctionLogGroupSubscriptionFilterCsls:
-  #   Type: AWS::Logs::SubscriptionFilter
-  #   Condition: IsNotDevEnvironment
-  #   Properties:
-  #     DestinationArn: "arn:aws:logs:eu-west-2:885513274347:destination:csls_cw_logs_destination_prodpython"
-  #     FilterPattern: ""
-  #     LogGroupName: !Ref AccessTokenFunctionLogGroup
+  AccessTokenFunctionLogGroupSubscriptionFilterCsls:
+    Type: AWS::Logs::SubscriptionFilter
+    Condition: IsNotDevEnvironment
+    Properties:
+      DestinationArn: "arn:aws:logs:eu-west-2:885513274347:destination:csls_cw_logs_destination_prodpython"
+      FilterPattern: ""
+      LogGroupName: !Ref AccessTokenFunctionLogGroup
 
   AccessTokenFunctionPermission:
     Type: AWS::Lambda::Permission
@@ -796,13 +796,13 @@ Resources:
       LogGroupName: !Sub "/aws/lambda/${IssueCredentialFunction}"
       RetentionInDays: 30
 
-  # IssueCredentialFunctionLogGroupSubscriptionFilterCsls:
-  #   Type: AWS::Logs::SubscriptionFilter
-  #   Condition: IsNotDevEnvironment
-  #   Properties:
-  #     DestinationArn: "arn:aws:logs:eu-west-2:885513274347:destination:csls_cw_logs_destination_prodpython"
-  #     FilterPattern: ""
-  #     LogGroupName: !Ref IssueCredentialFunctionLogGroup
+  IssueCredentialFunctionLogGroupSubscriptionFilterCsls:
+    Type: AWS::Logs::SubscriptionFilter
+    Condition: IsNotDevEnvironment
+    Properties:
+      DestinationArn: "arn:aws:logs:eu-west-2:885513274347:destination:csls_cw_logs_destination_prodpython"
+      FilterPattern: ""
+      LogGroupName: !Ref IssueCredentialFunctionLogGroup
 
   IssueCredentialFunctionPermission:
     Type: AWS::Lambda::Permission
