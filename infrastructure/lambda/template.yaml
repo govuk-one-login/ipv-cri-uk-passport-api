@@ -1370,8 +1370,14 @@ Outputs:
     Description: "CloudFormation stack name"
     Value: !Sub "${AWS::StackName}"
 
-  PublicUKPassportAPIGatewayID:
+  UKPassportAPIGatewayID:
     Description: CRI UK Passport API Gateway ID
+    Value: !Sub "${PublicUKPassportAPI}"
+    Export:
+      Name: !Sub ${AWS::StackName}-PassportApiGatewayId
+
+  PublicUKPassportAPIGatewayID:
+    Description: CRI UK Passport Public API Gateway ID
     Value: !Sub "${PublicUKPassportAPI}"
     Export:
       Name: !Sub ${AWS::StackName}-PublicUKPassportAPIGatewayID
