@@ -1,8 +1,5 @@
 package uk.gov.di.ipv.cri.passport.library.service;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.github.tomakehurst.wiremock.junit5.WireMockRuntimeInfo;
 import com.github.tomakehurst.wiremock.junit5.WireMockTest;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -10,29 +7,15 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import software.amazon.lambda.powertools.parameters.SSMProvider;
-import uk.gov.di.ipv.cri.passport.library.config.PassportConfigurationService;
 import uk.org.webcompere.systemstubs.environment.EnvironmentVariables;
 import uk.org.webcompere.systemstubs.jupiter.SystemStub;
 import uk.org.webcompere.systemstubs.jupiter.SystemStubsExtension;
-import uk.org.webcompere.systemstubs.properties.SystemProperties;
 
-import java.security.NoSuchAlgorithmException;
-import java.security.PrivateKey;
-import java.security.spec.InvalidKeySpecException;
-import java.time.Clock;
-import java.time.OffsetDateTime;
-import java.util.HashMap;
-
-import static com.github.tomakehurst.wiremock.client.WireMock.getAllServeEvents;
-import static com.github.tomakehurst.wiremock.client.WireMock.ok;
-import static com.github.tomakehurst.wiremock.client.WireMock.post;
-import static com.github.tomakehurst.wiremock.client.WireMock.stubFor;
 import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.Mockito.when;
-import static uk.gov.di.ipv.cri.passport.library.config.ConfigurationVariable.PASSPORT_CRI_ENCRYPTION_KEY;
+import static uk.gov.di.ipv.cri.passport.library.config.ParameterStoreParameters.PASSPORT_CRI_ENCRYPTION_KEY;
 
-@WireMockTest(httpPort = PassportConfigurationService.LOCALHOST_PORT)
+@WireMockTest(httpPort = 8080)
 @ExtendWith(MockitoExtension.class)
 @ExtendWith(SystemStubsExtension.class)
 class PassportConfigurationServiceTest {
@@ -42,64 +25,34 @@ class PassportConfigurationServiceTest {
 
     @SystemStub private EnvironmentVariables environmentVariables;
 
-    @SystemStub private SystemProperties systemProperties;
+    @Mock private ClientFactoryService mockClientFactoryService;
+    @Mock SSMProvider mockSSMProvider;
 
-    @Mock SSMProvider ssmProvider;
-
-    @Mock SSMProvider ssmProviderWithDecryption;
+    private final String AWS_STACK_NAME = "passport-api-dev";
 
     private PassportConfigurationService passportConfigurationService;
 
     @BeforeEach
     void setUp() {
-        passportConfigurationService = new PassportConfigurationService(ssmProvider);
-        environmentVariables.set("IS_LOCAL", "true");
-        environmentVariables.set("AWS_ACCESS_KEY_ID", "ASDFGHJKL");
-        environmentVariables.set("AWS_SECRET_ACCESS_KEY", "1234567890987654321");
+        environmentVariables.set("AWS_REGION", "eu-west-2");
+        environmentVariables.set("AWS_STACK_NAME", AWS_STACK_NAME);
+
+        passportConfigurationService =
+                new PassportConfigurationService(mockSSMProvider, AWS_STACK_NAME);
     }
 
     @Test
-    void shouldLoadPrivateKeyFromParameterStore()
-            throws NoSuchAlgorithmException, InvalidKeySpecException {
-        environmentVariables.set("AWS_STACK_NAME", "passport-api-dev");
-        when(ssmProvider.withDecryption()).thenReturn(ssmProviderWithDecryption);
-        when(ssmProviderWithDecryption.get(
-                        "/passport-api-dev/DCS/JWE/EncryptionKeyForPassportToDecrypt"))
-                .thenReturn(TEST_PRIVATE_KEY);
+    void shouldLoadPrivateKeyFromParameterStore() {
 
-        PrivateKey underTest =
-                passportConfigurationService.getPrivateKey(PASSPORT_CRI_ENCRYPTION_KEY);
-        assertEquals("PKCS#8", underTest.getFormat());
-        assertEquals("RSA", underTest.getAlgorithm());
-    }
+        when(mockSSMProvider.withDecryption()).thenReturn(mockSSMProvider);
 
-    @Test
-    void shouldSetVCExpiryBasedOnParamValueAndParamUnits()
-            throws NoSuchAlgorithmException, InvalidKeySpecException {
-        environmentVariables.set("AWS_STACK_NAME", "passport-api-dev");
-        when(ssmProvider.get("/passport-api-dev/MaxJwtTtl")).thenReturn("1000");
-        when(ssmProvider.get("/passport-api-dev/JwtTtlUnit")).thenReturn("HOURS");
+        String parameterPath = String.format("/%s/%s", AWS_STACK_NAME, PASSPORT_CRI_ENCRYPTION_KEY);
 
-        long vcExpiryTime = passportConfigurationService.getVcExpiryTime();
-        OffsetDateTime dateTimeNow = OffsetDateTime.now(Clock.systemUTC());
-        assertEquals(vcExpiryTime, dateTimeNow.plusHours(1000).toEpochSecond());
-    }
+        when(mockSSMProvider.get(parameterPath)).thenReturn(TEST_PRIVATE_KEY);
 
-    @Test
-    void usesLocalSSMProviderWhenRunningLocally(WireMockRuntimeInfo wmRuntimeInfo)
-            throws JsonProcessingException {
-        stubFor(post("/").willReturn(ok()));
+        String privateKey =
+                passportConfigurationService.getEncryptedSsmParameter(PASSPORT_CRI_ENCRYPTION_KEY);
 
-        SSMProvider ssmProvider = new PassportConfigurationService().getSsmProvider();
-        assertThrows(NullPointerException.class, () -> ssmProvider.get("any-old-thing"));
-
-        HashMap requestBody =
-                new ObjectMapper()
-                        .readValue(
-                                getAllServeEvents().get(0).getRequest().getBodyAsString(),
-                                HashMap.class);
-
-        assertEquals("any-old-thing", requestBody.get("Name"));
-        assertEquals(false, requestBody.get("WithDecryption"));
+        assertEquals(TEST_PRIVATE_KEY, privateKey);
     }
 }

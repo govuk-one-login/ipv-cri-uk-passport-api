@@ -1,9 +1,6 @@
 rootProject.name = 'di-ipv-cri-uk-passport-api'
+
 include "lib",
 		"lambdas",
-		"lambdas:accesstoken",
-		"lambdas:issuecredential",
 		"lambdas:checkpassport",
-		"lambdas:buildclientoauthresponse",
-		"lambdas:initialisesession",
-		"integration-test"
+		"lambdas:issuecredential"

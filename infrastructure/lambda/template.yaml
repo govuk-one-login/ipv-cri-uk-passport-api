@@ -8,7 +8,7 @@ Parameters:
       The name of the stack that defines the VPC in which this container will
       run.
     Type: String
-    Default: "none"
+    Default: "cri-vpc"
   CodeSigningEnabled:
     Type: "String"
     Default: "false"
@@ -45,7 +45,6 @@ Parameters:
     Type: String
     Default: "common-cri-api"
 
-
 Conditions:
   EnforceCodeSigning: !Equals
     - !Ref  CodeSigningEnabled
@@ -56,11 +55,6 @@ Conditions:
   IsProdEnvironment: !Equals
     - !Ref Environment
     - production
-  IsStubEnvironment: !Or
-    - !Equals [ !Ref Environment, dev]
-    - !Equals [ !Ref Environment, build ]
-    - !Equals [ !Ref Environment, staging ]
-    - !Equals [ !Ref Environment, integration ]
   IsProdLikeEnvironment: !Or
     - !Equals [ !Ref Environment, staging ]
     - !Equals [ !Ref Environment, integration ]
@@ -70,7 +64,6 @@ Conditions:
     - dev
   IsNotDevEnvironment: !Not
     - Condition: IsDevEnvironment
-
   AddProvisionedConcurrency: !Not
     - !Equals
       - !FindInMap [ProvisionedConcurrency, Environment, !Ref 'Environment']
@@ -83,17 +76,20 @@ Conditions:
 
 Globals:
   Function:
-    # VpcConfig:
-    #   SecurityGroupIds:
-    #     - Fn::ImportValue:
-    #         !Sub "${VpcStackName}-AWSServicesEndpointSecurityGroupId"
-    #   SubnetIds:
-    #     - Fn::ImportValue:
-    #         !Sub "${VpcStackName}-PrivateSubnetIdA"
-    #     - Fn::ImportValue:
-    #         !Sub "${VpcStackName}-PrivateSubnetIdB"
-    #     - Fn::ImportValue:
-    #         !Sub "${VpcStackName}-PrivateSubnetIdC"
+    VpcConfig: !If
+      - IsNotDevEnvironment
+      - !Ref AWS::NoValue
+#        SecurityGroupIds:
+#          - Fn::ImportValue:
+#              !Sub "${VpcStackName}-AWSServicesEndpointSecurityGroupId"
+#        SubnetIds:
+#          - Fn::ImportValue:
+#              !Sub "${VpcStackName}-PrivateSubnetIdA"
+#          - Fn::ImportValue:
+#              !Sub "${VpcStackName}-PrivateSubnetIdB"
+#          - Fn::ImportValue:
+#              !Sub "${VpcStackName}-PrivateSubnetIdC"
+      - !Ref AWS::NoValue
     CodeSigningConfigArn: !If
       - EnforceCodeSigning
       - !Ref CodeSigningConfigArn
@@ -119,14 +115,6 @@ Globals:
 
 Mappings:
 
-  AuthCodeExpirySecondsMapping:
-    Environment:
-      dev: 600
-      build: 600
-      staging: 600
-      integration: 600
-      production: 600
-
   MaximumAttemptCountMapping:
     Environment:
       dev: 2
@@ -151,22 +139,6 @@ Mappings:
       integration: 1024
       production: 2048
 
-  SessionTtlMapping:
-    Environment:
-      dev: 7200 # 2 hours
-      build: 7200 # 2 hours
-      staging: 7200 # 2 hours
-      integration: 7200 # 2 hours
-      production: 7200 # 2 hours
-
-  AccessTokenReqJwtTtlMapping:
-    Environment:
-      dev: 7200 # 2 hours
-      build: 7200 # 2 hours
-      staging: 7200 # 2 hours
-      integration: 7200 # 2 hours
-      production: 7200 # 2 hours
-
   # VC Only
   MaxJwtTtlMapping:
     Environment:
@@ -184,87 +156,6 @@ Mappings:
       staging: MONTHS
       integration: MONTHS
       production: MONTHS
-
-  IPVCoreStubAuthenticationAlgMapping:
-    Environment:
-      dev: "ES256"
-      build: "ES256"
-      staging: "ES256"
-      integration: "ES256"
-
-  IPVCore1AuthenticationAlgMapping:
-    Environment:
-      staging: "ES256"
-      integration: "ES256"
-      production: "ES256"
-
-  IPVCoreStubAudienceMapping:
-    Environment:
-      dev: "https://review-p.dev.account.gov.uk"
-      build: "https://review-p.build.account.gov.uk"
-      staging: "https://review-p.staging.account.gov.uk"
-      integration: "https://review-p.integration.account.gov.uk"
-
-  IPVCore1AudienceMapping:
-    Environment:
-      staging: "https://review-p.staging.account.gov.uk"
-      integration: "https://review-p.integration.account.gov.uk"
-      production: "https://review-p.account.gov.uk"
-
-  IPVCoreStubIssuerMapping:
-    Environment:
-      dev: "https://di-ipv-core-stub.london.cloudapps.digital"
-      build: "https://di-ipv-core-stub.london.cloudapps.digital"
-      staging: "https://di-ipv-core-stub.london.cloudapps.digital"
-      integration: "https://di-ipv-core-stub.london.cloudapps.digital"
-
-  IPVCore1IssuerMapping:
-    Environment:
-      staging: "https://identity.staging.account.gov.uk"
-      integration: "https://identity.integration.account.gov.uk"
-      production: "https://identity.account.gov.uk"
-
-  IPVCoreStubPublicSigningJwkBase64Mapping:
-    Environment:
-      dev: "ewogICAgImt0eSI6ICJFQyIsCiAgICAidXNlIjogInNpZyIsCiAgICAiY3J2IjogIlAtMjU2IiwKICAgICJraWQiOiAiaXB2LWNvcmUtc3R1Yi0yLWZyb20tbWtqd2sub3JnIiwKICAgICJ4IjogImszOXVLYWNTdWtRQnJNWnJIRFRCVVpzbGl2cFhLRE5aVGc2aW5DSHdyTGMiLAogICAgInkiOiAiOEY4TG5RN3dHOWh4c1Q0YXgwQXR5N2lNR0l5aVlfWUdwM19xSVp6S28xQSIsCiAgICAiYWxnIjogIkVTMjU2Igp9"
-      build: "ewogICAgImt0eSI6ICJFQyIsCiAgICAidXNlIjogInNpZyIsCiAgICAiY3J2IjogIlAtMjU2IiwKICAgICJraWQiOiAiaXB2LWNvcmUtc3R1Yi0yLWZyb20tbWtqd2sub3JnIiwKICAgICJ4IjogImszOXVLYWNTdWtRQnJNWnJIRFRCVVpzbGl2cFhLRE5aVGc2aW5DSHdyTGMiLAogICAgInkiOiAiOEY4TG5RN3dHOWh4c1Q0YXgwQXR5N2lNR0l5aVlfWUdwM19xSVp6S28xQSIsCiAgICAiYWxnIjogIkVTMjU2Igp9"
-      staging: "ewogICAgImt0eSI6ICJFQyIsCiAgICAidXNlIjogInNpZyIsCiAgICAiY3J2IjogIlAtMjU2IiwKICAgICJraWQiOiAiaXB2LWNvcmUtc3R1Yi0yLWZyb20tbWtqd2sub3JnIiwKICAgICJ4IjogImszOXVLYWNTdWtRQnJNWnJIRFRCVVpzbGl2cFhLRE5aVGc2aW5DSHdyTGMiLAogICAgInkiOiAiOEY4TG5RN3dHOWh4c1Q0YXgwQXR5N2lNR0l5aVlfWUdwM19xSVp6S28xQSIsCiAgICAiYWxnIjogIkVTMjU2Igp9"
-      integration: "ewogICAgImt0eSI6ICJFQyIsCiAgICAidXNlIjogInNpZyIsCiAgICAiY3J2IjogIlAtMjU2IiwKICAgICJraWQiOiAiaXB2LWNvcmUtc3R1Yi0yLWZyb20tbWtqd2sub3JnIiwKICAgICJ4IjogImszOXVLYWNTdWtRQnJNWnJIRFRCVVpzbGl2cFhLRE5aVGc2aW5DSHdyTGMiLAogICAgInkiOiAiOEY4TG5RN3dHOWh4c1Q0YXgwQXR5N2lNR0l5aVlfWUdwM19xSVp6S28xQSIsCiAgICAiYWxnIjogIkVTMjU2Igp9"
-
-  IPVCore1PublicSigningJwkBase64Mapping:
-    Environment:
-      staging: "eyJrdHkiOiJFQyIsImNydiI6IlAtMjU2IiwieCI6ImtlMVRNRnFNb0Z5eHg1eXpOdFFRbGw0dk9yeHZUdFBKQ0huUzRqOHpoMlUiLCJ5IjoicURLX0g4QXpKS2FIbU1zaHg5TGp2LTB0ek5rV2EtSkVHUzJtZHRKUjFPQSJ9"
-      integration: "eyJrdHkiOiJFQyIsImNydiI6IlAtMjU2IiwieCI6IkJUUWdWQjU0RE9JcDU0eGRVSVg0SGtUX3pCdjZHdVdMV1RUTkdxMk15dEkiLCJ5IjoiTFFRamx5ZEtOMUhXZFJQcFBpalJObEJrbi1qaDgzZzBBUmIyNms2WVh1byJ9"
-      production: "eyJrdHkiOiJFQyIsImNydiI6IlAtMjU2IiwieCI6IlVQdlU1TlBtRUxyV2lXU01WZkREN0c4dTNFSllyeXFQSVo0Nlc5TUFsUmMiLCJ5Ijoicjc3RjItS1BocHZUSUdFV2d0NVNtYXZTdkJVSENxV1V4RDZSR19GSkhWayJ9"
-
-  IPVCoreStubRedirectURIMapping:
-    Environment:
-      dev: "http://localhost:8085/callback"
-      build: "https://di-ipv-core-stub.london.cloudapps.digital/callback"
-      staging: "https://di-ipv-core-stub.london.cloudapps.digital/callback"
-      integration: "https://di-ipv-core-stub.london.cloudapps.digital/callback"
-
-  IPVCore1RedirectURIMapping:
-    Environment:
-      staging: "https://identity.staging.account.gov.uk/credential-issuer/callback?id=ukPassport"
-      integration: "https://identity.integration.account.gov.uk/credential-issuer/callback?id=ukPassport"
-      production: "https://identity.account.gov.uk/credential-issuer/callback?id=ukPassport"
-
-  VerifiableCredentialIssuerMapping:
-    Environment:
-      dev: "https://review-p.dev.account.gov.uk"
-      build: "https://review-p.build.account.gov.uk"
-      staging: "https://review-p.staging.account.gov.uk"
-      integration: "https://review-p.integration.account.gov.uk"
-      production: "https://review-p.account.gov.uk"
-
-  PassportCriAudienceMapping:
-    Environment:
-      dev: "https://review-p.dev.account.gov.uk"
-      build: "https://review-p.build.account.gov.uk"
-      staging: "https://review-p.staging.account.gov.uk"
-      integration: "https://review-p.integration.account.gov.uk"
-      production: "https://review-p.account.gov.uk"
 
 Resources:
 
@@ -436,7 +327,8 @@ Resources:
                   aws:SourceVpce: !If
                     - CreateDevResources
                     - vpce-082cab7c78139eb54
-                    - !ImportValue cri-vpc-ApiGatewayVpcEndpointId
+                    - Fn::ImportValue:
+                        !Sub "${VpcStackName}-ExecuteApiGatewayEndpointId"
 
   PrivateUKPassportAPILogGroup:
     Type: AWS::Logs::LogGroup
@@ -455,83 +347,6 @@ Resources:
 
 ####################################################################
 #                                                                  #
-# Initialise Session Function                                      #
-#                                                                  #
-####################################################################
-
-  InitialiseSessionFunction:
-    Type: AWS::Serverless::Function
-    Properties:
-      # checkov:skip=CKV_AWS_115: We do not have enough data to allocate the concurrent execution allowance per function.
-      # checkov:skip=CKV_AWS_116: Lambdas invoked via API Gateway do not support Dead Letter Queues.
-      # checkov:skip=CKV_AWS_117: Lambdas will migrate to our own VPC in future work.
-      Handler: uk.gov.di.ipv.cri.passport.initialisesession.InitialiseSessionHandler::handleRequest
-      Runtime: java11
-      CodeUri: ../../lambdas/initialisesession
-      Environment:
-        # checkov:skip=CKV_AWS_173: These environment variables do not require encryption.
-        Variables:
-          POWERTOOLS_SERVICE_NAME: !Sub "${CriIdentifier}-initialisesession"
-          ENVIRONMENT: !Ref Environment
-          PASSPORT_BACK_SESSIONS_TABLE_NAME: !Select [ 1, !Split [ '/', !GetAtt SessionTable.Arn ] ]
-          SQS_AUDIT_EVENT_QUEUE_URL: !ImportValue AuditEventQueueUrl
-      Policies:
-        - DynamoDBCrudPolicy:
-            TableName: !Ref SessionTable
-        - SSMParameterReadPolicy:
-            ParameterName: !Sub "${AWS::StackName}/clients"
-        - SSMParameterReadPolicy:
-            ParameterName: !Sub "${AWS::StackName}/clients/*"
-        - SQSSendMessagePolicy:
-            QueueName: !ImportValue AuditEventQueueName
-        - KMSDecryptPolicy:
-            KeyId: !ImportValue core-infrastructure-CriDecryptionKey1Id
-        - Statement:
-            - Sid: auditEventQueueKmsEncryptionKeyPermission
-              Effect: Allow
-              Action:
-                - 'kms:Decrypt'
-                - 'kms:GenerateDataKey'
-              Resource:
-                - !ImportValue AuditEventQueueEncryptionKeyArn
-        - Statement:
-            - Effect: Allow
-              Action:
-                - ssm:GetParameter
-              Resource:
-                - !Sub "arn:aws:ssm:${AWS::Region}:${AWS::AccountId}:parameter/${AWS::StackName}/AuthRequestKmsEncryptionKeyId"
-                - !Sub "arn:aws:ssm:${AWS::Region}:${AWS::AccountId}:parameter/${AWS::StackName}/PassportCriAudience"
-                - !Sub "arn:aws:ssm:${AWS::Region}:${AWS::AccountId}:parameter/${AWS::StackName}/SessionTtl"
-      AutoPublishAlias: live
-      ProvisionedConcurrencyConfig:
-        !If
-        - AddProvisionedConcurrency
-        - ProvisionedConcurrentExecutions: !FindInMap [ProvisionedConcurrency, Environment, !Ref 'Environment']
-        - !Ref AWS::NoValue
-
-  InitialiseSessionFunctionLogGroup:
-    Type: AWS::Logs::LogGroup
-    Properties:
-      LogGroupName: !Sub "/aws/lambda/${InitialiseSessionFunction}"
-      RetentionInDays: 30
-
-  # InitialiseSessionFunctionLogGroupSubscriptionFilterCsls:
-  #   Type: AWS::Logs::SubscriptionFilter
-  #   Condition: IsNotDevEnvironment
-  #   Properties:
-  #     DestinationArn: "arn:aws:logs:eu-west-2:885513274347:destination:csls_cw_logs_destination_prodpython"
-  #     FilterPattern: ""
-  #     LogGroupName: !Ref InitialiseSessionFunctionLogGroup
-
-  InitialiseSessionFunctionPermission:
-    Type: AWS::Lambda::Permission
-    Properties:
-      Action: lambda:InvokeFunction
-      FunctionName: !GetAtt InitialiseSessionFunction.Arn
-      Principal: apigateway.amazonaws.com
-
-####################################################################
-#                                                                  #
 # Check Passport Function                                          #
 #                                                                  #
 ####################################################################
@@ -542,7 +357,7 @@ Resources:
       # checkov:skip=CKV_AWS_115: We do not have enough data to allocate the concurrent execution allowance per function.
       # checkov:skip=CKV_AWS_116: Lambdas invoked via API Gateway do not support Dead Letter Queues.
       # checkov:skip=CKV_AWS_117: Lambdas will migrate to our own VPC in future work.
-      Handler: uk.gov.di.ipv.cri.passport.checkpassport.CheckPassportHandler::handleRequest
+      Handler: uk.gov.di.ipv.cri.passport.checkpassport.handler.CheckPassportHandler::handleRequest
       Runtime: java11
       CodeUri: ../../lambdas/checkpassport
       Environment:
@@ -550,20 +365,17 @@ Resources:
         Variables:
           POWERTOOLS_SERVICE_NAME: !Sub "${CriIdentifier}-checkpassport"
           ENVIRONMENT: !Ref Environment
-          DCS_RESPONSE_TABLE_NAME: !Select [1, !Split ['/', !GetAtt DCSResponseTable.Arn]]
-          CRI_PASSPORT_ACCESS_TOKENS_TABLE_NAME: !Select [1, !Split ['/', !GetAtt AccessTokenTable.Arn]]
-          SQS_AUDIT_EVENT_QUEUE_URL: !ImportValue AuditEventQueueUrl
-          PASSPORT_BACK_SESSIONS_TABLE_NAME: !Ref SessionTable
-          CRI_PASSPORT_AUTH_CODES_TABLE_NAME: !Ref AuthCodesTable
       Policies:
-        - DynamoDBCrudPolicy:
-            TableName: !Ref DCSResponseTable
-        - DynamoDBCrudPolicy:
-            TableName: !Ref AccessTokenTable
-        - DynamoDBCrudPolicy:
-            TableName: !Ref SessionTable
-        - DynamoDBCrudPolicy:
-            TableName: !Ref AuthCodesTable
+        - DynamoDBWritePolicy:
+            TableName: !Sub "{{resolve:ssm:/${CommonStackName}/SessionTableName}}"
+        - DynamoDBReadPolicy:
+            TableName: !Sub "{{resolve:ssm:/${CommonStackName}/SessionTableName}}"
+        - DynamoDBReadPolicy:
+            TableName: !Sub "{{resolve:ssm:/${CommonStackName}/PersonIdentityTableName}}"
+        - DynamoDBWritePolicy:
+            TableName: !Sub "{{resolve:ssm:/${CommonStackName}/PersonIdentityTableName}}"
+        - DynamoDBWritePolicy:
+            TableName: !Ref DocumentCheckResultTable
         - SQSSendMessagePolicy:
             QueueName: !ImportValue AuditEventQueueName
         - Statement:
@@ -571,7 +383,8 @@ Resources:
               Action:
                 - ssm:GetParameter
               Resource:
-                - !Sub "arn:aws:ssm:${AWS::Region}:${AWS::AccountId}:parameter/${AWS::StackName}/verifiable-credential/issuer"
+                - !Sub "arn:aws:ssm:${AWS::Region}:${AWS::AccountId}:parameter/${AWS::StackName}/DocumentCheckResultTableName"
+                - !Sub "arn:aws:ssm:${AWS::Region}:${AWS::AccountId}:parameter/${AWS::StackName}/MaximumAttemptCount"
                 - !Sub "arn:aws:ssm:${AWS::Region}:${AWS::AccountId}:parameter/${AWS::StackName}/DCS/PostUrl"
                 - !Sub "arn:aws:ssm:${AWS::Region}:${AWS::AccountId}:parameter/${AWS::StackName}/DCS/HttpClient/TLSCert"
                 - !Sub "arn:aws:ssm:${AWS::Region}:${AWS::AccountId}:parameter/${AWS::StackName}/DCS/HttpClient/TLSKey"
@@ -582,8 +395,10 @@ Resources:
                 - !Sub "arn:aws:ssm:${AWS::Region}:${AWS::AccountId}:parameter/${AWS::StackName}/DCS/JWE/EncryptionCertForPassportToEncrypt"
                 - !Sub "arn:aws:ssm:${AWS::Region}:${AWS::AccountId}:parameter/${AWS::StackName}/DCS/JWE/SigningCertForPassportToVerify"
                 - !Sub "arn:aws:ssm:${AWS::Region}:${AWS::AccountId}:parameter/${AWS::StackName}/DCS/JWE/EncryptionKeyForPassportToDecrypt"
-                - !Sub "arn:aws:ssm:${AWS::Region}:${AWS::AccountId}:parameter/${AWS::StackName}/MaximumAttemptCount"
-                - !Sub "arn:aws:ssm:${AWS::Region}:${AWS::AccountId}:parameter/${AWS::StackName}/SessionTtl"
+                - !Sub "arn:aws:ssm:${AWS::Region}:${AWS::AccountId}:parameter/${CommonStackName}/SessionTableName"
+                - !Sub "arn:aws:ssm:${AWS::Region}:${AWS::AccountId}:parameter/${CommonStackName}/PersonIdentityTableName"
+                - !Sub "arn:aws:ssm:${AWS::Region}:${AWS::AccountId}:parameter/${CommonStackName}/SessionTtl"
+                - !Sub "arn:aws:ssm:${AWS::Region}:${AWS::AccountId}:parameter/${CommonStackName}/verifiable-credential/issuer"
         - Statement:
             - Effect: Allow
               Action:
@@ -628,153 +443,6 @@ Resources:
 
 ####################################################################
 #                                                                  #
-# Build Client Oauth Response Function                             #
-#                                                                  #
-####################################################################
-
-  BuildClientOauthResponseFunction:
-    Type: AWS::Serverless::Function
-    Properties:
-      # checkov:skip=CKV_AWS_115: We do not have enough data to allocate the concurrent execution allowance per function.
-      # checkov:skip=CKV_AWS_116: Lambdas invoked via API Gateway do not support Dead Letter Queues.
-      # checkov:skip=CKV_AWS_117: Lambdas will migrate to our own VPC in future work.
-      Handler: uk.gov.di.ipv.cri.passport.buildclientoauthresponse.BuildClientOauthResponseHandler::handleRequest
-      Runtime: java11
-      CodeUri: ../../lambdas/buildclientoauthresponse
-      Environment:
-        # checkov:skip=CKV_AWS_173: These environment variables do not require encryption.
-        Variables:
-          POWERTOOLS_SERVICE_NAME: !Sub "${CriIdentifier}-buildclientoauthresponse"
-          ENVIRONMENT: !Ref Environment
-          CRI_PASSPORT_AUTH_CODES_TABLE_NAME: !Ref AuthCodesTable
-          PASSPORT_BACK_SESSIONS_TABLE_NAME: !Ref SessionTable
-          SQS_AUDIT_EVENT_QUEUE_URL: !ImportValue AuditEventQueueUrl
-      Policies:
-        - DynamoDBCrudPolicy:
-            TableName: !Ref AuthCodesTable
-        - DynamoDBCrudPolicy:
-            TableName: !Ref SessionTable
-        - SQSSendMessagePolicy:
-            QueueName: !ImportValue AuditEventQueueName
-        - Statement:
-            - Sid: auditEventQueueKmsEncryptionKeyPermission
-              Effect: Allow
-              Action:
-                - 'kms:Decrypt'
-                - 'kms:GenerateDataKey'
-              Resource:
-                - !ImportValue AuditEventQueueEncryptionKeyArn
-        - Statement:
-            - Effect: Allow
-              Action:
-                - ssm:GetParameter
-              Resource:
-                - !Sub "arn:aws:ssm:${AWS::Region}:${AWS::AccountId}:parameter/${AWS::StackName}/SessionTtl"
-      AutoPublishAlias: live
-      ProvisionedConcurrencyConfig:
-        !If
-        - AddProvisionedConcurrency
-        - ProvisionedConcurrentExecutions: !FindInMap [ProvisionedConcurrency, Environment, !Ref 'Environment']
-        - !Ref AWS::NoValue
-
-  BuildClientOauthResponseFunctionLogGroup:
-    Type: AWS::Logs::LogGroup
-    Properties:
-      LogGroupName: !Sub "/aws/lambda/${BuildClientOauthResponseFunction}"
-      RetentionInDays: 30
-
-  # BuildClientOauthResponseFunctionLogGroupSubscriptionFilterCsls:
-  #   Type: AWS::Logs::SubscriptionFilter
-  #   Condition: IsNotDevEnvironment
-  #   Properties:
-  #     DestinationArn: "arn:aws:logs:eu-west-2:885513274347:destination:csls_cw_logs_destination_prodpython"
-  #     FilterPattern: ""
-  #     LogGroupName: !Ref BuildClientOauthResponseFunctionLogGroup
-
-  BuildClientOauthResponseFunctionPermission:
-    Type: AWS::Lambda::Permission
-    Properties:
-      Action: lambda:InvokeFunction
-      FunctionName: !GetAtt BuildClientOauthResponseFunction.Arn
-      Principal: apigateway.amazonaws.com
-
-####################################################################
-#                                                                  #
-# AccessToken Function                                             #
-#                                                                  #
-####################################################################
-
-  AccessTokenFunction:
-    Type: AWS::Serverless::Function
-    Properties:
-      # checkov:skip=CKV_AWS_115: We do not have enough data to allocate the concurrent execution allowance per function.
-      # checkov:skip=CKV_AWS_116: Lambdas invoked via API Gateway do not support Dead Letter Queues.
-      # checkov:skip=CKV_AWS_117: Lambdas will migrate to our own VPC in future work.
-      Handler: uk.gov.di.ipv.cri.passport.accesstoken.AccessTokenHandler::handleRequest
-      Runtime: java11
-      CodeUri: ../../lambdas/accesstoken
-      Environment:
-        # checkov:skip=CKV_AWS_173: These environment variables do not require encryption.
-        Variables:
-          POWERTOOLS_SERVICE_NAME: !Sub "${CriIdentifier}-accesstoken"
-          ENVIRONMENT: !Ref Environment
-          CRI_PASSPORT_AUTH_CODES_TABLE_NAME: !Select [1, !Split ['/', !GetAtt AuthCodesTable.Arn]]
-          CRI_PASSPORT_ACCESS_TOKENS_TABLE_NAME: !Select [1, !Split ['/', !GetAtt AccessTokenTable.Arn]]
-          CRI_PASSPORT_CLIENT_AUTH_JWT_IDS_TABLE_NAME: !Ref ClientAuthJwtIdsTable
-          PASSPORT_CRI_CLIENT_AUDIENCE: !Sub "/${AWS::StackName}/PassportCriAudience"
-          PASSPORT_BACK_SESSIONS_TABLE_NAME: !Ref SessionTable
-      Policies:
-        - DynamoDBCrudPolicy:
-            TableName: !Ref AuthCodesTable
-        - DynamoDBCrudPolicy:
-            TableName: !Ref AccessTokenTable
-        - DynamoDBCrudPolicy:
-            TableName: !Ref ClientAuthJwtIdsTable
-        - DynamoDBCrudPolicy:
-            TableName: !Ref SessionTable
-        - SSMParameterReadPolicy:
-            ParameterName: !Sub "${AWS::StackName}/clients"
-        - SSMParameterReadPolicy:
-            ParameterName: !Sub "${AWS::StackName}/clients/*"
-        - Statement:
-            - Effect: Allow
-              Action:
-                - ssm:GetParameter
-              Resource:
-                - !Sub "arn:aws:ssm:${AWS::Region}:${AWS::AccountId}:parameter/${AWS::StackName}/PassportCriAudience"
-                - !Sub "arn:aws:ssm:${AWS::Region}:${AWS::AccountId}:parameter/${AWS::StackName}/AccessTokenReqJwtTtl"
-                - !Sub "arn:aws:ssm:${AWS::Region}:${AWS::AccountId}:parameter/${AWS::StackName}/AuthCodeExpirySeconds"
-                - !Sub "arn:aws:ssm:${AWS::Region}:${AWS::AccountId}:parameter/${AWS::StackName}/SessionTtl"
-      AutoPublishAlias: live
-      ProvisionedConcurrencyConfig:
-        !If
-        - AddProvisionedConcurrency
-        - ProvisionedConcurrentExecutions: !FindInMap [ProvisionedConcurrency, Environment, !Ref 'Environment']
-        - !Ref AWS::NoValue
-
-  AccessTokenFunctionLogGroup:
-    Type: AWS::Logs::LogGroup
-    Properties:
-      LogGroupName: !Sub "/aws/lambda/${AccessTokenFunction}"
-      RetentionInDays: 30
-
-  # AccessTokenFunctionLogGroupSubscriptionFilterCsls:
-  #   Type: AWS::Logs::SubscriptionFilter
-  #   Condition: IsNotDevEnvironment
-  #   Properties:
-  #     DestinationArn: "arn:aws:logs:eu-west-2:885513274347:destination:csls_cw_logs_destination_prodpython"
-  #     FilterPattern: ""
-  #     LogGroupName: !Ref AccessTokenFunctionLogGroup
-
-  AccessTokenFunctionPermission:
-    Type: AWS::Lambda::Permission
-    Properties:
-      Action: lambda:InvokeFunction
-      FunctionName: !GetAtt AccessTokenFunction.Arn
-      Principal: apigateway.amazonaws.com
-
-####################################################################
-#                                                                  #
 # Issue Credential Function                                        #
 #                                                                  #
 ####################################################################
@@ -785,7 +453,7 @@ Resources:
       # checkov:skip=CKV_AWS_115: We do not have enough data to allocate the concurrent execution allowance per function.
       # checkov:skip=CKV_AWS_116: Lambdas invoked via API Gateway do not support Dead Letter Queues.
       # checkov:skip=CKV_AWS_117: Lambdas will migrate to our own VPC in future work.
-      Handler: uk.gov.di.ipv.cri.passport.issuecredential.IssueCredentialHandler::handleRequest
+      Handler: uk.gov.di.ipv.cri.passport.issuecredential.handler.IssueCredentialHandler::handleRequest
       Runtime: java11
       CodeUri: ../../lambdas/issuecredential
       Environment:
@@ -793,17 +461,13 @@ Resources:
         Variables:
           POWERTOOLS_SERVICE_NAME: !Sub "${CriIdentifier}-issuecredential"
           ENVIRONMENT: !Ref Environment
-          DCS_RESPONSE_TABLE_NAME: !Select [1, !Split ['/', !GetAtt DCSResponseTable.Arn]]
-          CRI_PASSPORT_ACCESS_TOKENS_TABLE_NAME: !Select [1, !Split ['/', !GetAtt AccessTokenTable.Arn]]
-          SQS_AUDIT_EVENT_QUEUE_URL: !ImportValue AuditEventQueueUrl
-          PASSPORT_BACK_SESSIONS_TABLE_NAME: !Ref SessionTable
       Policies:
-        - DynamoDBCrudPolicy:
-            TableName: !Ref DCSResponseTable
-        - DynamoDBCrudPolicy:
-            TableName: !Ref AccessTokenTable
-        - DynamoDBCrudPolicy:
-            TableName: !Ref SessionTable
+        - DynamoDBReadPolicy:
+            TableName: !Sub "{{resolve:ssm:/${CommonStackName}/SessionTableName}}"
+        - DynamoDBReadPolicy:
+            TableName: !Sub "{{resolve:ssm:/${CommonStackName}/PersonIdentityTableName}}"
+        - DynamoDBReadPolicy:
+            TableName: !Ref DocumentCheckResultTable
         - SSMParameterReadPolicy:
             ParameterName: !Sub "${AWS::StackName}/clients/*"
         - SQSSendMessagePolicy:
@@ -826,11 +490,13 @@ Resources:
               Action:
                 - ssm:GetParameter
               Resource:
-                - !Sub "arn:aws:ssm:${AWS::Region}:${AWS::AccountId}:parameter/${AWS::StackName}/SessionTtl"
+                - !Sub "arn:aws:ssm:${AWS::Region}:${AWS::AccountId}:parameter/${AWS::StackName}/DocumentCheckResultTableName"
                 - !Sub "arn:aws:ssm:${AWS::Region}:${AWS::AccountId}:parameter/${AWS::StackName}/MaxJwtTtl"
                 - !Sub "arn:aws:ssm:${AWS::Region}:${AWS::AccountId}:parameter/${AWS::StackName}/JwtTtlUnit"
                 - !Sub "arn:aws:ssm:${AWS::Region}:${AWS::AccountId}:parameter/${AWS::StackName}/verifiableCredentialKmsSigningKeyId"
-                - !Sub "arn:aws:ssm:${AWS::Region}:${AWS::AccountId}:parameter/${AWS::StackName}/verifiable-credential/issuer"
+                - !Sub "arn:aws:ssm:${AWS::Region}:${AWS::AccountId}:parameter/${CommonStackName}/SessionTableName"
+                - !Sub "arn:aws:ssm:${AWS::Region}:${AWS::AccountId}:parameter/${CommonStackName}/PersonIdentityTableName"
+                - !Sub "arn:aws:ssm:${AWS::Region}:${AWS::AccountId}:parameter/${CommonStackName}/verifiable-credential/issuer"
       AutoPublishAlias: live
       ProvisionedConcurrencyConfig:
         !If
@@ -865,97 +531,16 @@ Resources:
 #                                                                  #
 ####################################################################
 
-  DCSResponseTable:
-    Type: AWS::DynamoDB::Table
-    # checkov:skip=CKV_AWS_28: Point in time recovery is not necessary for this table.
+  DocumentCheckResultTable:
+    Type: "AWS::DynamoDB::Table" # enable encryption with customer managed kms key. Will need new kms key
     Properties:
-      TableName: !Sub "dcs-response-${AWS::StackName}"
+      TableName: !Sub "document-check-${AWS::StackName}"
       BillingMode: "PAY_PER_REQUEST"
       AttributeDefinitions:
-        - AttributeName: "resourceId"
+        - AttributeName: "sessionId"
           AttributeType: "S"
       KeySchema:
-        - AttributeName: "resourceId"
-          KeyType: "HASH"
-      TimeToLiveSpecification:
-        AttributeName: "ttl"
-        Enabled: true
-      SSESpecification:
-        # checkov:skip=CKV_AWS_119: Implement Customer Managed Keys in PYIC-1391
-        SSEEnabled: true
-        SSEType: KMS
-
-  AuthCodesTable:
-    Type: AWS::DynamoDB::Table
-    # checkov:skip=CKV_AWS_28: Point in time recovery is not necessary for this table.
-    Properties:
-      TableName: !Sub "auth-codes-${AWS::StackName}"
-      BillingMode: "PAY_PER_REQUEST"
-      AttributeDefinitions:
-        - AttributeName: "authCode"
-          AttributeType: "S"
-      KeySchema:
-        - AttributeName: "authCode"
-          KeyType: "HASH"
-      TimeToLiveSpecification:
-        AttributeName: "ttl"
-        Enabled: true
-      SSESpecification:
-        # checkov:skip=CKV_AWS_119: Implement Customer Managed Keys in PYIC-1391
-        SSEEnabled: true
-        SSEType: KMS
-
-  AccessTokenTable:
-    Type: AWS::DynamoDB::Table
-    # checkov:skip=CKV_AWS_28: Point in time recovery is not necessary for this table.
-    Properties:
-      TableName: !Sub "access-token-${AWS::StackName}"
-      BillingMode: "PAY_PER_REQUEST"
-      AttributeDefinitions:
-        - AttributeName: "accessToken"
-          AttributeType: "S"
-      KeySchema:
-        - AttributeName: "accessToken"
-          KeyType: "HASH"
-      TimeToLiveSpecification:
-        AttributeName: "ttl"
-        Enabled: true
-      SSESpecification:
-        # checkov:skip=CKV_AWS_119: Implement Customer Managed Keys in PYIC-1391
-        SSEEnabled: true
-        SSEType: KMS
-
-  ClientAuthJwtIdsTable:
-    Type: AWS::DynamoDB::Table
-    # checkov:skip=CKV_AWS_28: Point in time recovery is not necessary for this table.
-    Properties:
-      TableName: !Sub "client-auth-jwt-ids-${AWS::StackName}"
-      BillingMode: "PAY_PER_REQUEST"
-      AttributeDefinitions:
-        - AttributeName: "jwtId"
-          AttributeType: "S"
-      KeySchema:
-        - AttributeName: "jwtId"
-          KeyType: "HASH"
-      TimeToLiveSpecification:
-        AttributeName: "ttl"
-        Enabled: true
-      SSESpecification:
-        # checkov:skip=CKV_AWS_119: Implement Customer Managed Keys in PYIC-1391
-        SSEEnabled: true
-        SSEType: KMS
-
-  SessionTable:
-    Type: AWS::DynamoDB::Table
-    # checkov:skip=CKV_AWS_28: Point in time recovery is not necessary for this table.
-    Properties:
-      TableName: !Sub "session-${AWS::StackName}"
-      BillingMode: "PAY_PER_REQUEST"
-      AttributeDefinitions:
-        - AttributeName: "passportSessionId"
-          AttributeType: "S"
-      KeySchema:
-        - AttributeName: "passportSessionId"
+        - AttributeName: "sessionId"
           KeyType: "HASH"
       TimeToLiveSpecification:
         AttributeName: "ttl"
@@ -1023,53 +608,13 @@ Resources:
 #                                                                  #
 ####################################################################
 
-  ParameterSessionTableName:
+  ParameterDocumentCheckResultTableName:
     Type: AWS::SSM::Parameter
     Properties:
-      Name: !Sub "/${AWS::StackName}/SessionTableName"
-      Value: !Select [1, !Split ['/', !GetAtt SessionTable.Arn]]
+      Name: !Sub "/${AWS::StackName}/DocumentCheckResultTableName"
+      Value: !Sub document-check-${AWS::StackName}
       Type: String
-      Description: session dynamodb table name
-
-  ParameterAccessTokenTableName:
-    Type: AWS::SSM::Parameter
-    Properties:
-      Name: !Sub "/${AWS::StackName}/AccessTokenTableName"
-      Value: !Select [1, !Split ['/', !GetAtt AccessTokenTable.Arn]]
-      Type: String
-      Description: access token dynamodb table name
-
-  ParameterAuthCodesTableName:
-    Type: AWS::SSM::Parameter
-    Properties:
-      Name: !Sub "/${AWS::StackName}/AuthCodesTableName"
-      Value: !Select [1, !Split ['/', !GetAtt AuthCodesTable.Arn]]
-      Type: String
-      Description: auth codes dynamodb table name
-
-  ParameterClientAuthJwtIdsTableName:
-    Type: AWS::SSM::Parameter
-    Properties:
-      Name: !Sub "/${AWS::StackName}/ClientAuthJwtIdsTableName"
-      Value: !Select [1, !Split ['/', !GetAtt ClientAuthJwtIdsTable.Arn]]
-      Type: String
-      Description: client auth jwtids dynamodb table name
-
-  ParameterDCSResponseTableName:
-    Type: AWS::SSM::Parameter
-    Properties:
-      Name: !Sub "/${AWS::StackName}/DCSResponseTableName"
-      Value: !Select [1, !Split ['/', !GetAtt DCSResponseTable.Arn]]
-      Type: String
-      Description: dcs response dynamodb table name
-
-  AuthCodeExpirySecondsParameter:
-    Type: AWS::SSM::Parameter
-    Properties:
-      Name: !Sub "/${AWS::StackName}/AuthCodeExpirySeconds"
-      Value: !FindInMap [AuthCodeExpirySecondsMapping, Environment, !Ref 'Environment']
-      Type: String
-      Description: auth code expiry in seconds
+      Description: Document check result dynamodb table name
 
   MaximumAttemptCountParameter:
     Type: AWS::SSM::Parameter
@@ -1094,126 +639,6 @@ Resources:
       Type: String
       Value: !FindInMap [ JwtTtlUnitMapping, Environment, !Ref 'Environment' ]
       Description: The unit for the time-to-live for an JWT e.g. (MONTHS)
-
-  SessionTtlParameter:
-    Type: AWS::SSM::Parameter
-    Properties:
-      Name: !Sub "/${AWS::StackName}/SessionTtl"
-      Type: String
-      Value: !FindInMap [ SessionTtlMapping, Environment, !Ref 'Environment' ]
-      Description: default time to live for a passport session item (seconds)
-
-  AccessTokenReqJwtTtlParameter:
-    Type: AWS::SSM::Parameter
-    Properties:
-      Name: !Sub "/${AWS::StackName}/AccessTokenReqJwtTtl"
-      Type: String
-      Value: !FindInMap [ AccessTokenReqJwtTtlMapping, Environment, !Ref 'Environment' ]
-      Description: Max allowed TTL offset in an access token request JWT
-
-  IPVCoreStubAuthenticationAlgParameter:
-    Condition: IsStubEnvironment
-    Type: AWS::SSM::Parameter
-    Properties:
-      Name: !Sub "/${AWS::StackName}/clients/ipv-core-stub/jwtAuthentication/authenticationAlg"
-      Type: String
-      Value: !FindInMap [IPVCoreStubAuthenticationAlgMapping, Environment, !Ref 'Environment']
-
-  IPVCore1AuthenticationAlgParameter:
-    Condition: IsProdLikeEnvironment
-    Type: AWS::SSM::Parameter
-    Properties:
-      Name: !Sub "/${AWS::StackName}/clients/ipv-core/jwtAuthentication/authenticationAlg"
-      Type: String
-      Value: !FindInMap [IPVCore1AuthenticationAlgMapping, Environment, !Ref 'Environment']
-
-  IPVCoreStubAudienceParameter:
-    Condition: IsStubEnvironment
-    Type: AWS::SSM::Parameter
-    Properties:
-      Name: !Sub "/${AWS::StackName}/clients/ipv-core-stub/jwtAuthentication/audience"
-      Type: String
-      Value: !FindInMap [ IPVCoreStubAudienceMapping, Environment, !Ref 'Environment' ]
-
-  IPVCore1AudienceParameter:
-    Condition: IsProdLikeEnvironment
-    Type: AWS::SSM::Parameter
-    Properties:
-      Name: !Sub "/${AWS::StackName}/clients/ipv-core/jwtAuthentication/audience"
-      Type: String
-      Value: !FindInMap [ IPVCore1AudienceMapping, Environment, !Ref 'Environment' ]
-
-  IPVCoreStubIssuerParameter:
-    Condition: IsStubEnvironment
-    Type: AWS::SSM::Parameter
-    Properties:
-      Name: !Sub "/${AWS::StackName}/clients/ipv-core-stub/jwtAuthentication/issuer"
-      Type: String
-      Value: !FindInMap [IPVCoreStubIssuerMapping, Environment, !Ref 'Environment']
-
-  IPVCore1IssuerParameter:
-    Condition: IsProdLikeEnvironment
-    Type: AWS::SSM::Parameter
-    Properties:
-      Name: !Sub "/${AWS::StackName}/clients/ipv-core/jwtAuthentication/issuer"
-      Type: String
-      Value: !FindInMap [IPVCore1IssuerMapping, Environment, !Ref 'Environment']
-
-  IPVCoreStubPublicSigningJwkBase64Parameter:
-    Condition: IsStubEnvironment
-    Type: AWS::SSM::Parameter
-    Properties:
-      Name: !Sub "/${AWS::StackName}/clients/ipv-core-stub/jwtAuthentication/publicSigningJwkBase64"
-      Type: String
-      Value: !FindInMap [IPVCoreStubPublicSigningJwkBase64Mapping, Environment, !Ref 'Environment']
-
-  IPVCore1PublicSigningJwkBase64Parameter:
-    Condition: IsProdLikeEnvironment
-    Type: AWS::SSM::Parameter
-    Properties:
-      Name: !Sub "/${AWS::StackName}/clients/ipv-core/jwtAuthentication/publicSigningJwkBase64"
-      Type: String
-      Value: !FindInMap [IPVCore1PublicSigningJwkBase64Mapping, Environment, !Ref 'Environment']
-
-  IPVCoreStubRedirectURIParameter:
-    Condition: IsStubEnvironment
-    Type: AWS::SSM::Parameter
-    Properties:
-      Name: !Sub "/${AWS::StackName}/clients/ipv-core-stub/jwtAuthentication/redirectUri"
-      Type: String
-      Value: !FindInMap [IPVCoreStubRedirectURIMapping, Environment, !Ref 'Environment']
-
-  IPVCore1RedirectURIParameter:
-    Condition: IsProdLikeEnvironment
-    Type: AWS::SSM::Parameter
-    Properties:
-      Name: !Sub "/${AWS::StackName}/clients/ipv-core/jwtAuthentication/redirectUri"
-      Type: String
-      Value: !FindInMap [IPVCore1RedirectURIMapping, Environment, !Ref 'Environment']
-
-  PassportCriAudienceParameter:
-    Type: AWS::SSM::Parameter
-    Properties:
-      Name: !Sub "/${AWS::StackName}/PassportCriAudience"
-      Type: String
-      Value: !FindInMap [PassportCriAudienceMapping, Environment, !Ref 'Environment']
-      Description: The passport credential issuer (audience) identifier
-
-  AuthRequestKmsEncryptionKeyIdParameter:
-    Type: AWS::SSM::Parameter
-    Properties:
-      Name: !Sub "/${AWS::StackName}/AuthRequestKmsEncryptionKeyId"
-      Type: String
-      Value: !ImportValue core-infrastructure-CriDecryptionKey1Id
-      Description: The (KMS) encryption key identifier for decrypting authorisation requests
-
-  VerifiableCredentialIssuerParameter:
-    Type: AWS::SSM::Parameter
-    Properties:
-      Name: !Sub "/${AWS::StackName}/verifiable-credential/issuer"
-      Type: String
-      Value: !FindInMap [VerifiableCredentialIssuerMapping, Environment, !Ref 'Environment']
-      Description: Issuer of the Verifiable Credential
 
   VerifiableCredentialKmsSigningKeyParameter:
     Type: AWS::SSM::Parameter
@@ -1255,157 +680,157 @@ Resources:
 # Alerts                                                           #
 #                                                                  #
 ####################################################################
-
-  PassportLambdaErrors:
-    Type: AWS::CloudWatch::Alarm
-    Properties:
-      AlarmDescription: !Sub Passport ${Environment} lambda errors
-      ActionsEnabled: true
-      AlarmActions:
-        - !Ref AlarmTopicPassport
-      OKActions:
-        - !Ref AlarmTopicPassport
-      InsufficientDataActions: []
-      MetricName: Errors
-      Namespace: AWS/Lambda
-      Statistic: Sum
-      Dimensions: []
-      Period: 300
-      DatapointsToAlarm: 3
-      EvaluationPeriods: 3
-      Threshold: 1
-      ComparisonOperator: GreaterThanThreshold
-      TreatMissingData: notBreaching
-
-  PassportAPIGW5XXErrors:
-    Type: AWS::CloudWatch::Alarm
-    Properties:
-      AlarmDescription: !Sub Passport ${Environment} API Gateway 5XX errors
-      ActionsEnabled: true
-      AlarmActions:
-        - !Ref AlarmTopicPassport
-      OKActions:
-        - !Ref AlarmTopicPassport
-      InsufficientDataActions: []
-      Dimensions: []
-      DatapointsToAlarm: 3
-      EvaluationPeriods: 3
-      Threshold: 1
-      ComparisonOperator: GreaterThanThreshold
-      TreatMissingData: notBreaching
-      Metrics:
-        - Id: e1
-          Label: Expression1
-          ReturnData: true
-          Expression: SUM(METRICS())
-        - Id: m1
-          ReturnData: false
-          MetricStat:
-            Metric:
-              Namespace: AWS/ApiGateway
-              MetricName: 5XXError
-              Dimensions:
-                - Name: ApiName
-                  Value: !Sub "${AWS::StackName}-PublicUKPassportApi"
-            Period: 300
-            Stat: Sum
-        - Id: m2
-          ReturnData: false
-          MetricStat:
-            Metric:
-              Namespace: AWS/ApiGateway
-              MetricName: 5XXError
-              Dimensions:
-                - Name: ApiName
-                  Value: !Sub "${AWS::StackName}-PrivateUKPassportApi"
-            Period: 300
-            Stat: Sum
-
-  PassportAPIGW4XXErrors:
-    Type: AWS::CloudWatch::Alarm
-    Properties:
-      AlarmDescription: !Sub Passport ${Environment} API Gateway 4XX errors
-      ActionsEnabled: true
-      AlarmActions:
-        - !Ref AlarmTopicPassport
-      OKActions:
-        - !Ref AlarmTopicPassport
-      InsufficientDataActions: []
-      Dimensions: []
-      DatapointsToAlarm: 3
-      EvaluationPeriods: 3
-      Threshold: 2
-      ComparisonOperator: GreaterThanThreshold
-      TreatMissingData: notBreaching
-      Metrics:
-        - Id: e1
-          Label: Expression1
-          ReturnData: true
-          Expression: SUM(METRICS())
-        - Id: m1
-          ReturnData: false
-          MetricStat:
-            Metric:
-              Namespace: AWS/ApiGateway
-              MetricName: 4XXError
-              Dimensions:
-                - Name: ApiName
-                  Value: !Sub "${AWS::StackName}-PublicUKPassportApi"
-            Period: 300
-            Stat: Sum
-        - Id: m2
-          ReturnData: false
-          MetricStat:
-            Metric:
-              Namespace: AWS/ApiGateway
-              MetricName: 4XXError
-              Dimensions:
-                - Name: ApiName
-                  Value: !Sub "${AWS::StackName}-PrivateUKPassportApi"
-            Period: 300
-            Stat: Sum
+# TODO Re-enable after unique alarm topic url is added for passport-api
+#  PassportLambdaErrors:
+#    Type: AWS::CloudWatch::Alarm
+#    Properties:
+#      AlarmDescription: !Sub Passport ${Environment} lambda errors
+#      ActionsEnabled: true
+#      AlarmActions:
+#        - !Ref AlarmTopicPassport
+#      OKActions:
+#        - !Ref AlarmTopicPassport
+#      InsufficientDataActions: []
+#      MetricName: Errors
+#      Namespace: AWS/Lambda
+#      Statistic: Sum
+#      Dimensions: []
+#      Period: 300
+#      DatapointsToAlarm: 3
+#      EvaluationPeriods: 3
+#      Threshold: 1
+#      ComparisonOperator: GreaterThanThreshold
+#      TreatMissingData: notBreaching
+#
+#  PassportAPIGW5XXErrors:
+#    Type: AWS::CloudWatch::Alarm
+#    Properties:
+#      AlarmDescription: !Sub Passport ${Environment} API Gateway 5XX errors
+#      ActionsEnabled: true
+#      AlarmActions:
+#        - !Ref AlarmTopicPassport
+#      OKActions:
+#        - !Ref AlarmTopicPassport
+#      InsufficientDataActions: []
+#      Dimensions: []
+#      DatapointsToAlarm: 3
+#      EvaluationPeriods: 3
+#      Threshold: 1
+#      ComparisonOperator: GreaterThanThreshold
+#      TreatMissingData: notBreaching
+#      Metrics:
+#        - Id: e1
+#          Label: Expression1
+#          ReturnData: true
+#          Expression: SUM(METRICS())
+#        - Id: m1
+#          ReturnData: false
+#          MetricStat:
+#            Metric:
+#              Namespace: AWS/ApiGateway
+#              MetricName: 5XXError
+#              Dimensions:
+#                - Name: ApiName
+#                  Value: !Sub "${AWS::StackName}-PublicUKPassportApi"
+#            Period: 300
+#            Stat: Sum
+#        - Id: m2
+#          ReturnData: false
+#          MetricStat:
+#            Metric:
+#              Namespace: AWS/ApiGateway
+#              MetricName: 5XXError
+#              Dimensions:
+#                - Name: ApiName
+#                  Value: !Sub "${AWS::StackName}-PrivateUKPassportApi"
+#            Period: 300
+#            Stat: Sum
+#
+#  PassportAPIGW4XXErrors:
+#    Type: AWS::CloudWatch::Alarm
+#    Properties:
+#      AlarmDescription: !Sub Passport ${Environment} API Gateway 4XX errors
+#      ActionsEnabled: true
+#      AlarmActions:
+#        - !Ref AlarmTopicPassport
+#      OKActions:
+#        - !Ref AlarmTopicPassport
+#      InsufficientDataActions: []
+#      Dimensions: []
+#      DatapointsToAlarm: 3
+#      EvaluationPeriods: 3
+#      Threshold: 2
+#      ComparisonOperator: GreaterThanThreshold
+#      TreatMissingData: notBreaching
+#      Metrics:
+#        - Id: e1
+#          Label: Expression1
+#          ReturnData: true
+#          Expression: SUM(METRICS())
+#        - Id: m1
+#          ReturnData: false
+#          MetricStat:
+#            Metric:
+#              Namespace: AWS/ApiGateway
+#              MetricName: 4XXError
+#              Dimensions:
+#                - Name: ApiName
+#                  Value: !Sub "${AWS::StackName}-PublicUKPassportApi"
+#            Period: 300
+#            Stat: Sum
+#        - Id: m2
+#          ReturnData: false
+#          MetricStat:
+#            Metric:
+#              Namespace: AWS/ApiGateway
+#              MetricName: 4XXError
+#              Dimensions:
+#                - Name: ApiName
+#                  Value: !Sub "${AWS::StackName}-PrivateUKPassportApi"
+#            Period: 300
+#            Stat: Sum
 
 ####################################################################
 #                                                                  #
 # Alarm setup                                                      #
 #                                                                  #
 ####################################################################
-
-  AlarmTopicPassport:
-    Type: AWS::SNS::Topic
-    # checkov:skip=CKV_AWS_26: We will update this once basic alerting is available
-    Metadata:
-      SamResourceId: AlarmTopicPassport
-  AlarmTopicSubscriptionPagerDutyPassport:
-    Type: AWS::SNS::Subscription
-    Properties:
-      TopicArn:
-        Ref: AlarmTopicPassport
-      Endpoint:
-        Fn::Sub: '{{resolve:ssm:/alerting/pagerduty-passport/url}}'
-      Protocol: https
-    Metadata:
-      SamResourceId: AlarmTopicSubscriptionPagerDutyPassport
-  AlarmPublishToTopicPolicyPassport:
-    Type: AWS::SNS::TopicPolicy
-    Properties:
-      Topics:
-        - Ref: AlarmTopicPassport
-      PolicyDocument:
-        Version: 2012-10-17
-        Statement:
-          - Effect: Allow
-            Action: sns:Publish
-            Resource:
-              Ref: AlarmTopicPassport
-            Principal:
-              Service: cloudwatch.amazonaws.com
-            Condition:
-              ArnLike:
-                AWS:SourceArn:
-                  Fn::Sub: arn:aws:cloudwatch:${AWS::Region}:${AWS::AccountId}:alarm:*
-    Metadata:
-      SamResourceId: AlarmPublishToTopicPolicyPassport
+# TODO unique pagerduty url needed for passport-api
+#  AlarmTopicPassport:
+#    Type: AWS::SNS::Topic
+#    # checkov:skip=CKV_AWS_26: We will update this once basic alerting is available
+#    Metadata:
+#      SamResourceId: AlarmTopicPassport
+#  AlarmTopicSubscriptionPagerDutyPassport:
+#    Type: AWS::SNS::Subscription
+#    Properties:
+#      TopicArn:
+#        Ref: AlarmTopicPassport
+#      Endpoint:
+#        Fn::Sub: '{{resolve:ssm:/alerting/pagerduty-passport/url}}'
+#      Protocol: https
+#    Metadata:
+#      SamResourceId: AlarmTopicSubscriptionPagerDutyPassport
+#  AlarmPublishToTopicPolicyPassport:
+#    Type: AWS::SNS::TopicPolicy
+#    Properties:
+#      Topics:
+#        - Ref: AlarmTopicPassport
+#      PolicyDocument:
+#        Version: 2012-10-17
+#        Statement:
+#          - Effect: Allow
+#            Action: sns:Publish
+#            Resource:
+#              Ref: AlarmTopicPassport
+#            Principal:
+#              Service: cloudwatch.amazonaws.com
+#            Condition:
+#              ArnLike:
+#                AWS:SourceArn:
+#                  Fn::Sub: arn:aws:cloudwatch:${AWS::Region}:${AWS::AccountId}:alarm:*
+#    Metadata:
+#      SamResourceId: AlarmPublishToTopicPolicyPassport
 
 ####################################################################
 #                                                                  #

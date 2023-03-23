@@ -6,36 +6,41 @@ plugins {
 	id "idea"
 	id "jacoco"
 	id 'io.freefair.aspectj.post-compile-weaving' version '6.3.0'
+	id 'java-test-fixtures'
 }
 
 dependencies {
 
-	implementation "com.amazonaws:aws-java-sdk-dynamodb:$rootProject.ext.dependencyVersions.awsJavaSdkDynamodb",
-			"com.amazonaws:aws-java-sdk-sqs:$rootProject.ext.dependencyVersions.awsJavaSdkSqs",
-			"com.amazonaws:aws-lambda-java-core:$rootProject.ext.dependencyVersions.awsLambdaJavaCore",
-			"com.amazonaws:aws-lambda-java-events:$rootProject.ext.dependencyVersions.awsLambdaJavaEvents",
-			"com.fasterxml.jackson.core:jackson-annotations:$rootProject.ext.dependencyVersions.jackson",
-			"com.fasterxml.jackson.core:jackson-core:$rootProject.ext.dependencyVersions.jackson",
-			"com.fasterxml.jackson.core:jackson-databind:$rootProject.ext.dependencyVersions.jackson",
-			"com.fasterxml.jackson.datatype:jackson-datatype-jsr310:$rootProject.ext.dependencyVersions.jackson",
-			"com.google.code.gson:gson:$rootProject.ext.dependencyVersions.gson",
-			"com.nimbusds:nimbus-jose-jwt:$rootProject.ext.dependencyVersions.nimbusJoseJwt",
-			"com.nimbusds:oauth2-oidc-sdk:$rootProject.ext.dependencyVersions.nimbusdsOauth2OidcSdk",
-			"software.amazon.awssdk:dynamodb-enhanced:$rootProject.ext.dependencyVersions.dynamodbEnhanced",
-			configurations.cri_common_lib
+	implementation "uk.gov.account:cri-common-lib:${dependencyVersions.cri_common_lib_version}",
+			"com.nimbusds:oauth2-oidc-sdk:${dependencyVersions.nimbusds_oauth_version}",
+			"software.amazon.awssdk:lambda:${dependencyVersions.aws_sdk_version}",
+			"software.amazon.awssdk:dynamodb:${dependencyVersions.aws_sdk_version}",
+			"software.amazon.awssdk:dynamodb-enhanced:${dependencyVersions.aws_sdk_version}",
+			"software.amazon.awssdk:apache-client:${dependencyVersions.aws_sdk_version}",
+			"software.amazon.awssdk:kms:${dependencyVersions.aws_sdk_version}",
+			"software.amazon.awssdk:sqs:${dependencyVersions.aws_sdk_version}",
+			"com.fasterxml.jackson.core:jackson-core:${dependencyVersions.jackson_version}",
+			"com.fasterxml.jackson.datatype:jackson-datatype-jsr310:${dependencyVersions.jackson_version}",
+			"com.fasterxml.jackson.core:jackson-databind:${dependencyVersions.jackson_version}"
 
-	aspect "software.amazon.lambda:powertools-parameters:$rootProject.ext.dependencyVersions.powertoolsParameters",
-			"software.amazon.lambda:powertools-logging:$rootProject.ext.dependencyVersions.powertoolsLogging",
-			"software.amazon.lambda:powertools-metrics:$rootProject.ext.dependencyVersions.powertoolsMetrics"
+	aspect "software.amazon.lambda:powertools-logging:${dependencyVersions.aws_powertools_logging_version}",
+			"software.amazon.lambda:powertools-metrics:${dependencyVersions.aws_powertools_metrics_version}",
+			"software.amazon.lambda:powertools-parameters:${dependencyVersions.aws_powertools_parameters_version}"
 
-	testImplementation "com.github.tomakehurst:wiremock-jre8:2.32.0",
-			"org.junit.jupiter:junit-jupiter:5.8.2",
-			"org.mockito:mockito-core:4.2.0",
-			"org.mockito:mockito-junit-jupiter:4.2.0",
-			"uk.org.webcompere:system-stubs-jupiter:1.2.0"
+	testImplementation "org.junit.jupiter:junit-jupiter-engine:${dependencyVersions.junit_version}",
+			"org.junit.jupiter:junit-jupiter-api:${dependencyVersions.junit_version}",
+			"org.junit.jupiter:junit-jupiter-params:${dependencyVersions.junit_version}",
+			"org.mockito:mockito-junit-jupiter:${dependencyVersions.mockito_version}",
+			"org.mockito:mockito-inline:${dependencyVersions.mockito_version}",
+			"org.hamcrest:hamcrest:${dependencyVersions.hamcrest_version}",
+			"com.github.tomakehurst:wiremock-jre8:${dependencyVersions.wiremock_version}",
+			"uk.org.webcompere:system-stubs-core:${dependencyVersions.webcompere_version}",
+			"uk.org.webcompere:system-stubs-jupiter:${dependencyVersions.webcompere_version}"
 
-	compileOnly "org.projectlombok:lombok:$rootProject.ext.dependencyVersions.lombok"
-	annotationProcessor "org.projectlombok:lombok:$rootProject.ext.dependencyVersions.lombok"
+	testFixturesImplementation "org.aspectj:aspectjrt:${dependencyVersions.aspectjrt_version}"
+
+	compileOnly "org.projectlombok:lombok:${dependencyVersions.lombok_version}"
+	annotationProcessor "org.projectlombok:lombok:${dependencyVersions.lombok_version}"
 }
 
 
