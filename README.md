@@ -1,23 +1,10 @@
-# di-ipv-cri-passport-api
+# Digital Identity IPV UK Passport CRI API
 V1 iteration of the passport cri backend. This is to align with other CRIs
-=======
-# Digital Identity IPV UK Passport CRI Backend
-
-`di-ipv-cri-uk-passport-back`
+`di-ipv-cri-uk-passport-api`
 
 This the back-end code for the UK Passport Credential Issuer(CRI) for the Identity Proofing and Verification (IPV) system within the GDS digital identity platform, GOV.UK Sign In.
 
 ## Environment variables
-
-* IS_LOCAL - This only needs to be assigned when running locally. This is set to `true` in `local-startup`.
-### DynamoDB table name variables:
-Each environment has a specific table name prefix e.g. `dev-{dynamo-table-name}`
-
-These values are automatically assigned by terraform within the `aws_lambda_function` resource
-* ACCESS_TOKENS_TABLE_NAME
-* AUTH_CODES_TABLE_NAME
-* CRI_PASSPORT_CREDENTIALS_TABLE_NAME
-
 
 ## Pre-Commit Checking / Verification
 
@@ -29,7 +16,6 @@ Completely optional, there is a `.pre-commit-config.yaml` configuration setup in
 * Detects aws credentials or private keys accidentally added to the repo
 * runs cloud formation linter and detects issues
 * runs checkov and checks for any issues.
-
 
 ### Dependency Installation
 To use this locally you will first need to install the dependencies, this can be done in 2 ways:
