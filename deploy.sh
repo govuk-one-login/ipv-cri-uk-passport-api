@@ -42,7 +42,7 @@ sam deploy --stack-name "$stack_name" \
    --capabilities CAPABILITY_IAM \
    --parameter-overrides \
    CodeSigningEnabled=false \
-   Environment=dev #\
+   Environment=dev \
    AuditEventNamePrefix=$audit_event_name_prefix \
    CriIdentifier=$cri_identifier \
    CommonStackName=passport-common-cri-api-local

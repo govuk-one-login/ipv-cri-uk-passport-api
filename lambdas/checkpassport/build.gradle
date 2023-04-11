@@ -9,32 +9,34 @@ plugins {
 }
 
 dependencies {
+	implementation project(":lib"),
+			"uk.gov.account:cri-common-lib:${dependencyVersions.cri_common_lib_version}",
+			"com.nimbusds:oauth2-oidc-sdk:${dependencyVersions.nimbusds_oauth_version}",
+			"com.nimbusds:nimbus-jose-jwt:${dependencyVersions.nimbusds_jwt_version}",
+			"com.amazonaws:aws-lambda-java-core:${dependencyVersions.aws_lambda_core_version}",
+			"com.amazonaws:aws-lambda-java-events:${dependencyVersions.aws_lambda_events_version}",
+			"software.amazon.awssdk:lambda:${dependencyVersions.aws_sdk_version}",
+			"software.amazon.awssdk:dynamodb-enhanced:${dependencyVersions.aws_sdk_version}",
+			"com.fasterxml.jackson.core:jackson-core:${dependencyVersions.jackson_version}",
+			"com.fasterxml.jackson.datatype:jackson-datatype-jsr310:${dependencyVersions.jackson_version}",
+			"com.fasterxml.jackson.core:jackson-databind:${dependencyVersions.jackson_version}",
+			"com.google.code.gson:gson:${dependencyVersions.gson_version}",
+			"org.apache.httpcomponents:httpcore:4.4.15",
+			"org.apache.httpcomponents:httpclient:4.5.13"
 
-	implementation "com.amazonaws:aws-java-sdk-dynamodb:$rootProject.ext.dependencyVersions.awsJavaSdkDynamodb",
-			"com.amazonaws:aws-java-sdk-sqs:$rootProject.ext.dependencyVersions.awsJavaSdkSqs",
-			"com.amazonaws:aws-lambda-java-core:$rootProject.ext.dependencyVersions.awsLambdaJavaCore",
-			"com.amazonaws:aws-lambda-java-events:$rootProject.ext.dependencyVersions.awsLambdaJavaEvents",
-			"com.fasterxml.jackson.core:jackson-annotations:$rootProject.ext.dependencyVersions.jackson",
-			"com.fasterxml.jackson.core:jackson-core:$rootProject.ext.dependencyVersions.jackson",
-			"com.fasterxml.jackson.core:jackson-databind:$rootProject.ext.dependencyVersions.jackson",
-			"com.fasterxml.jackson.datatype:jackson-datatype-jsr310:$rootProject.ext.dependencyVersions.jackson",
-			"com.fasterxml.jackson.dataformat:jackson-dataformat-yaml:$rootProject.ext.dependencyVersions.jackson",
-			"com.google.code.gson:gson:$rootProject.ext.dependencyVersions.gson",
-			"com.nimbusds:nimbus-jose-jwt:$rootProject.ext.dependencyVersions.nimbusJoseJwt",
-			"com.nimbusds:oauth2-oidc-sdk:$rootProject.ext.dependencyVersions.nimbusdsOauth2OidcSdk",
-			"software.amazon.awssdk:dynamodb-enhanced:$rootProject.ext.dependencyVersions.dynamodbEnhanced",
-			project(":lib"),
-			configurations.cri_common_lib
+	aspect "software.amazon.lambda:powertools-logging:${dependencyVersions.aws_powertools_logging_version}",
+			"software.amazon.lambda:powertools-metrics:${dependencyVersions.aws_powertools_metrics_version}",
+			"software.amazon.lambda:powertools-parameters:${dependencyVersions.aws_powertools_parameters_version}"
 
-	aspect "software.amazon.lambda:powertools-parameters:$rootProject.ext.dependencyVersions.powertoolsParameters",
-			"software.amazon.lambda:powertools-logging:$rootProject.ext.dependencyVersions.powertoolsLogging",
-			"software.amazon.lambda:powertools-metrics:$rootProject.ext.dependencyVersions.powertoolsMetrics"
-
-	testImplementation "com.github.tomakehurst:wiremock-jre8:2.31.0",
-			"org.junit.jupiter:junit-jupiter:5.8.2",
-			"org.mockito:mockito-core:4.1.0",
-			"org.mockito:mockito-junit-jupiter:4.1.0",
-			"uk.org.webcompere:system-stubs-jupiter:1.1.0"
+	testImplementation testFixtures(project(":lib")),"org.junit.jupiter:junit-jupiter-engine:${dependencyVersions.junit_version}",
+			"org.junit.jupiter:junit-jupiter-api:${dependencyVersions.junit_version}",
+			"org.junit.jupiter:junit-jupiter-params:${dependencyVersions.junit_version}",
+			"org.mockito:mockito-junit-jupiter:${dependencyVersions.mockito_version}",
+			"org.mockito:mockito-inline:${dependencyVersions.mockito_version}",
+			"org.hamcrest:hamcrest:${dependencyVersions.hamcrest_version}",
+			"com.github.tomakehurst:wiremock-jre8:${dependencyVersions.wiremock_version}",
+			"uk.org.webcompere:system-stubs-core:${dependencyVersions.webcompere_version}",
+			"uk.org.webcompere:system-stubs-jupiter:${dependencyVersions.webcompere_version}"
 }
 
 java {
