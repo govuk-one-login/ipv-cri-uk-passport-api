@@ -9,9 +9,6 @@ Parameters:
       run.
     Type: String
     Default: "cri-vpc"
-  CodeSigningEnabled:
-    Type: "String"
-    Default: "false"
   CodeSigningConfigArn:
     Type: String
     Default: "none"
@@ -46,9 +43,6 @@ Parameters:
     Default: "common-cri-api"
 
 Conditions:
-  EnforceCodeSigning: !Equals
-    - !Ref  CodeSigningEnabled
-    - true
   CreateDevResources: !Equals
     - !Ref Environment
     - dev
@@ -90,10 +84,7 @@ Globals:
 #          - Fn::ImportValue:
 #              !Sub "${VpcStackName}-PrivateSubnetIdC"
       - !Ref AWS::NoValue
-    CodeSigningConfigArn: !If
-      - EnforceCodeSigning
-      - !Ref CodeSigningConfigArn
-      - !Ref AWS::NoValue
+    CodeSigningConfigArn: !Ref CodeSigningConfigArn
     PermissionsBoundary: !If
       - UsePermissionsBoundary
       - !Ref PermissionsBoundary
