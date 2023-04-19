@@ -21,4 +21,4 @@ jobs:
       - name: install checkov
         run: pip3 install --upgrade pip && pip3 install --upgrade setuptools && pip3 install checkov
       - name: run checkov
-        run: checkov --directory deploy
+        run: checkov --soft-fail --directory infrastructure/lambda

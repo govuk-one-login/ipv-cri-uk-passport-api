@@ -72,17 +72,16 @@ Globals:
   Function:
     VpcConfig: !If
       - IsNotDevEnvironment
-      - !Ref AWS::NoValue
-#        SecurityGroupIds:
-#          - Fn::ImportValue:
-#              !Sub "${VpcStackName}-AWSServicesEndpointSecurityGroupId"
-#        SubnetIds:
-#          - Fn::ImportValue:
-#              !Sub "${VpcStackName}-PrivateSubnetIdA"
-#          - Fn::ImportValue:
-#              !Sub "${VpcStackName}-PrivateSubnetIdB"
-#          - Fn::ImportValue:
-#              !Sub "${VpcStackName}-PrivateSubnetIdC"
+      - SecurityGroupIds:
+          - Fn::ImportValue:
+              !Sub "${VpcStackName}-AWSServicesEndpointSecurityGroupId"
+        SubnetIds:
+          - Fn::ImportValue:
+              !Sub "${VpcStackName}-PrivateSubnetIdA"
+          - Fn::ImportValue:
+              !Sub "${VpcStackName}-PrivateSubnetIdB"
+          - Fn::ImportValue:
+              !Sub "${VpcStackName}-PrivateSubnetIdC"
       - !Ref AWS::NoValue
     CodeSigningConfigArn: !Ref CodeSigningConfigArn
     PermissionsBoundary: !If
@@ -410,6 +409,20 @@ Resources:
         - AddProvisionedConcurrency
         - ProvisionedConcurrentExecutions: !FindInMap [ProvisionedConcurrency, Environment, !Ref 'Environment']
         - !Ref AWS::NoValue
+    # CheckPassport uses ProtectedSubnets as it needs to reach a third party api
+    VpcConfig: !If
+      - IsNotDevEnvironment
+      - SecurityGroupIds:
+          - Fn::ImportValue:
+              !Sub "${VpcStackName}-AWSServicesEndpointSecurityGroupId"
+        SubnetIds:
+          - Fn::ImportValue:
+              !Sub "${VpcStackName}-ProtectedSubnetA"
+          - Fn::ImportValue:
+              !Sub "${VpcStackName}-ProtectedSubnetB"
+          - Fn::ImportValue:
+              !Sub "${VpcStackName}-ProtectedSubnetC"
+      - !Ref AWS::NoValue
 
   CheckPassportFunctionLogGroup:
     Type: AWS::Logs::LogGroup
