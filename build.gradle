@@ -6,6 +6,8 @@ plugins {
 	id "com.diffplug.spotless" version "6.1.0"
 }
 
+defaultTasks 'clean', 'spotlessApply', 'build'
+
 repositories {
 	maven {
 		url 'https://gds.jfrog.io/artifactory/di-allowed-repos'
@@ -64,6 +66,8 @@ spotless {
 }
 
 subprojects {
+	apply plugin: 'org.sonarqube'
+
 	configurations {
 		cri_common_lib
 	}
