@@ -70,20 +70,10 @@ Conditions:
 
 Globals:
   Function:
-    VpcConfig: !If
+    CodeSigningConfigArn: !If
       - IsNotDevEnvironment
-      - SecurityGroupIds:
-          - Fn::ImportValue:
-              !Sub "${VpcStackName}-AWSServicesEndpointSecurityGroupId"
-        SubnetIds:
-          - Fn::ImportValue:
-              !Sub "${VpcStackName}-PrivateSubnetIdA"
-          - Fn::ImportValue:
-              !Sub "${VpcStackName}-PrivateSubnetIdB"
-          - Fn::ImportValue:
-              !Sub "${VpcStackName}-PrivateSubnetIdC"
+      - !Ref CodeSigningConfigArn
       - !Ref AWS::NoValue
-    CodeSigningConfigArn: !Ref CodeSigningConfigArn
     PermissionsBoundary: !If
       - UsePermissionsBoundary
       - !Ref PermissionsBoundary
@@ -507,6 +497,19 @@ Resources:
           - AddProvisionedConcurrency
           - ProvisionedConcurrentExecutions: !FindInMap [ProvisionedConcurrency, Environment, !Ref 'Environment']
           - !Ref AWS::NoValue
+    VpcConfig: !If
+      - IsNotDevEnvironment
+      - SecurityGroupIds:
+          - Fn::ImportValue:
+              !Sub "${VpcStackName}-AWSServicesEndpointSecurityGroupId"
+        SubnetIds:
+          - Fn::ImportValue:
+              !Sub "${VpcStackName}-PrivateSubnetIdA"
+          - Fn::ImportValue:
+              !Sub "${VpcStackName}-PrivateSubnetIdB"
+          - Fn::ImportValue:
+              !Sub "${VpcStackName}-PrivateSubnetIdC"
+      - !Ref AWS::NoValue
 
   IssueCredentialFunctionLogGroup:
     Type: AWS::Logs::LogGroup
