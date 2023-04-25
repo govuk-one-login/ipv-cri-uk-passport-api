@@ -17,6 +17,7 @@ public class ConfigurationService {
     private final String environment;
     private final String publicApiGatewayId;
     private final String publicApiGatewayKey;
+    private final boolean usingLocalStub;
 
     public ConfigurationService(String env) {
 
@@ -33,6 +34,7 @@ public class ConfigurationService {
         this.publicApiGatewayId = getParameter("API_GATEWAY_ID_PUBLIC");
         this.publicApiGatewayKey = getParameter("API_GATEWAY_KEY");
         this.environment = env;
+        this.usingLocalStub = getParameter("LOCAL") != null && getParameter("LOCAL").equals("yes");
     }
 
     private String getParameter(String paramName) {
@@ -69,13 +71,14 @@ public class ConfigurationService {
         String coreStubPassword = this.getCoreStubPassword();
         String coreStubUrl = this.getCoreStubEndpoint();
 
-        if (null != coreStubUsername && null != coreStubPassword && withAuth) {
-            return "https://" + coreStubUsername + ":" + coreStubPassword + "@" + coreStubUrl;
+        if (usingLocalStub) {
+            return "http://" + coreStubUrl;
         } else {
-            if (!this.environment.equals("local")) {
+            if (null != coreStubUsername && null != coreStubPassword && withAuth) {
+                return "https://" + coreStubUsername + ":" + coreStubPassword + "@" + coreStubUrl;
+            } else {
                 return "https://" + coreStubUrl;
             }
-            return "http://" + coreStubUrl;
         }
     }
 
@@ -113,5 +116,9 @@ public class ConfigurationService {
                         : this.environment;
         LOGGER.info("publicGatewayId =>" + publicGatewayId);
         return "https://" + publicGatewayId + ".execute-api.eu-west-2.amazonaws.com/" + stage;
+    }
+
+    public boolean isUsingLocalStub() {
+        return usingLocalStub;
     }
 }

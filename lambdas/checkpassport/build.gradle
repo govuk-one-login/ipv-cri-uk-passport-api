@@ -21,8 +21,8 @@ dependencies {
 			"com.fasterxml.jackson.datatype:jackson-datatype-jsr310:${dependencyVersions.jackson_version}",
 			"com.fasterxml.jackson.core:jackson-databind:${dependencyVersions.jackson_version}",
 			"com.google.code.gson:gson:${dependencyVersions.gson_version}",
-			"org.apache.httpcomponents:httpcore:4.4.15",
-			"org.apache.httpcomponents:httpclient:4.5.13"
+			"org.apache.httpcomponents:httpcore:${dependencyVersions.httpcomponents_core_version}",
+			"org.apache.httpcomponents:httpclient:${dependencyVersions.httpcomponents_client_version}"
 
 	aspect "software.amazon.lambda:powertools-logging:${dependencyVersions.aws_powertools_logging_version}",
 			"software.amazon.lambda:powertools-metrics:${dependencyVersions.aws_powertools_metrics_version}",
@@ -44,7 +44,7 @@ java {
 	targetCompatibility = JavaVersion.VERSION_11
 }
 
-task buildZip(type: Zip) {
+tasks.register('buildZip', Zip) {
 	from compileJava
 	from processResources
 	destinationDirectory = file("$rootDir/dist")
@@ -65,7 +65,7 @@ jacocoTestReport {
 	}
 }
 
-tasks.withType(Test) {
+tasks.withType(Test).configureEach {
 	testLogging {
 		events TestLogEvent.FAILED,
 				TestLogEvent.PASSED,

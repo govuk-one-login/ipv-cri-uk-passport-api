@@ -17,16 +17,17 @@ Feature: Passport Test
       |PassportSubject             |
       |PassportSubjectHappyBilly   |
 
-  @Passport_test
-  Scenario Outline: Passport details page unhappy path with InvalidPassportDetails
-    Given User enters data as a <PassportSubject>
-    When User clicks on continue
-    Then I navigate to the passport verifiable issuer to check for a Invalid response
-    And JSON response should contain error description Authorization permission denied and status code as 302
-    And The test is complete and I close the driver
-    Examples:
-      |PassportSubject      |
-      |PassportSubjectUnhappySelina |
+# No longer a valid test as front end form validation prevents the invalid passport number being sent
+#  @Passport_test
+#  Scenario Outline: Passport details page unhappy path with InvalidPassportDetails
+#    Given User enters data as a <PassportSubject>
+#    Then User clicks on continue
+#    Then I navigate to the passport verifiable issuer to check for a Invalid response
+#    And JSON response should contain error description Authorization permission denied and status code as 302
+#    And The test is complete and I close the driver
+#    Examples:
+#      |PassportSubject      |
+#      |PassportSubjectUnhappySelina |
 
   @Passport_test @build @staging @integration
   Scenario Outline: Passport details page unhappy path with IncorrectPassportNumber
@@ -81,7 +82,7 @@ Feature: Passport Test
       |PassportSubject |
       |IncorrectLastName|
 
-# Invalid test valid to not checked in DCS stub
+# # Invalid test - expiry date not checked in DCS stub
 #  @Passport_test @build @staging @integration
 #  Scenario Outline: Passport details page unhappy path with IncorrectValidToDate
 #    Given User enters data as a <PassportSubject>
@@ -137,6 +138,7 @@ Feature: Passport Test
   @Passport_test @smoke
   Scenario: Passport User cancels before first attempt via prove your identity another way route
     Given User click on ‘prove your identity another way' Link
+    Then User selects prove another way radio button
     Then I navigate to the passport verifiable issuer to check for a Invalid response
     And JSON response should contain error description Authorization permission denied and status code as 302
     And The test is complete and I close the driver

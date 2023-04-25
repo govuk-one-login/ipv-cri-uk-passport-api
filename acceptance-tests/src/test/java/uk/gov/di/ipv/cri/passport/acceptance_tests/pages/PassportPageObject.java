@@ -38,16 +38,25 @@ public class PassportPageObject extends UniversalSteps {
     @FindBy(xpath = "//*[@id=\"main-content\"]/p/a/button")
     public WebElement visitCredentialIssuers;
 
-    @FindBy(xpath = "//*[@value=\"Passport CRI Dev\"]")
+    @FindBy(xpath = "//*[@value=\"Passport CRI dev V1\"]")
+    public WebElement passportCRIDevLocalStub;
+
+    @FindBy(xpath = "//*[@value=\"Passport CRI Shared dev V1\"]")
+    public WebElement passportCRISharedDevLocalStub;
+
+    @FindBy(xpath = "//*[@value=\"Passport CRI Dev V1\"]")
     public WebElement passportCRIDev;
 
-    @FindBy(xpath = "//*[@value=\"Build Passport\"]")
+    @FindBy(xpath = "//*[@value=\"Passport CRI Shared Dev V1\"]")
+    public WebElement passportCRISharedDev;
+
+    @FindBy(xpath = "//*[@value=\"Passport CRI Build V1\"]")
     public WebElement passportCRIBuild;
 
-    @FindBy(xpath = "//*[@value=\"Staging Passport\"]")
+    @FindBy(xpath = "//*[@value=\"Passport CRI Staging V1\"]")
     public WebElement passportCRIStaging;
 
-    @FindBy(xpath = "//*[@value=\"Integration Passport\"]")
+    @FindBy(xpath = "//*[@value=\"Passport CRI Integration V1\"]")
     public WebElement passportCRIIntegration;
 
     @FindBy(id = "rowNumber")
@@ -240,13 +249,31 @@ public class PassportPageObject extends UniversalSteps {
         visitCredentialIssuers.click();
         String passportCRITestEnvironment = configurationService.getPassportCRITestEnvironment();
         LOGGER.info("passportCRITestEnvironment = " + passportCRITestEnvironment);
-        if (passportCRITestEnvironment.equalsIgnoreCase("Dev")) {
-            passportCRIDev.click();
-        } else if (passportCRITestEnvironment.equalsIgnoreCase("Build")) {
+
+        boolean sharedDev = passportCRITestEnvironment.toLowerCase().contains("shared");
+
+        boolean isUsingLocalStub = configurationService.isUsingLocalStub();
+        LOGGER.info("isUsingLocalStub = " + isUsingLocalStub);
+
+        if (isUsingLocalStub) {
+            // Local Stub - Passport CRI dev V1 or Passport CRI Shared dev V1
+            if (!sharedDev) {
+                passportCRIDevLocalStub.click();
+            } else {
+                passportCRISharedDevLocalStub.click();
+            }
+        } else if (passportCRITestEnvironment.toLowerCase().contains("dev")) {
+            // Hosted Stub - Passport CRI Dev V1 or Passport CRI Shared Dev V1
+            if (!sharedDev) {
+                passportCRIDev.click();
+            } else {
+                passportCRISharedDev.click();
+            }
+        } else if (passportCRITestEnvironment.toLowerCase().contains("build")) {
             passportCRIBuild.click();
-        } else if (passportCRITestEnvironment.equalsIgnoreCase("Staging")) {
+        } else if (passportCRITestEnvironment.toLowerCase().contains("staging")) {
             passportCRIStaging.click();
-        } else if (passportCRITestEnvironment.equalsIgnoreCase("Integration")) {
+        } else if (passportCRITestEnvironment.toLowerCase().contains("integration")) {
             passportCRIIntegration.click();
         } else {
             LOGGER.info("No test environment is set");
@@ -256,8 +283,8 @@ public class PassportPageObject extends UniversalSteps {
     public void searchForUATUser(String number) {
         assertURLContains(
                 "credential-issuer?cri="
-                        + System.getenv("ENVIRONMENT").toLowerCase()
-                        + "-passport");
+                        + "passport-v1-cri-"
+                        + System.getenv("ENVIRONMENT").toLowerCase());
         selectRow.sendKeys(number);
         searchButton.click();
     }
@@ -287,8 +314,8 @@ public class PassportPageObject extends UniversalSteps {
         Assert.assertEquals(expectedText, betaBannerText.getText());
     }
 
-    public void passportPageURLValidation() {
-        assertURLContains("review-p");
+    public void passportPageURLValidation(String path) {
+        assertURLContains(path);
     }
 
     public void assertUserRoutedToIpvCore() {

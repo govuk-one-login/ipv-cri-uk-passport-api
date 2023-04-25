@@ -5,84 +5,44 @@ plugins {
 
 defaultTasks 'clean', 'build'
 
-ext {
-	dependencyVersions = [
-		jackson_version             : "2.13.3",
-		aws_sdk_version             : "1.12.153",
-		aws_powertools_version      : "1.12.2",
-		nimbusds_oauth_version      : "9.25",
-		nimbusds_jwt_version        : "9.15.1",
-		junit                       : "5.8.2",
-		mockito                     : "4.7.0",
-
-	]
-}
-
-configurations {
-	aws
-	jackson
-	kms
-	nimbus
-	ssm
-	tests
-	test_runtime
-	powertools
-	logging_runtime
-
-	cucumberRuntime {
-		extendsFrom testImplementation
-	}
-}
-
 repositories {
 	maven {
 		url 'https://gds.jfrog.io/artifactory/di-allowed-repos'
 	}
 }
 
+configurations {
+	cucumberRuntime {
+		extendsFrom testImplementation
+	}
+}
+
 dependencies {
-	aws platform('software.amazon.awssdk:bom:2.17.191')
-	kms "software.amazon.awssdk:kms"
+	implementation "software.amazon.awssdk:kms:${dependencyVersions.aws_sdk_version}",
+			"com.fasterxml.jackson.core:jackson-core:${dependencyVersions.jackson_version}",
+			"com.fasterxml.jackson.datatype:jackson-datatype-jsr310:${dependencyVersions.jackson_version}",
+			"com.fasterxml.jackson.core:jackson-databind:${dependencyVersions.jackson_version}",
+			"com.nimbusds:oauth2-oidc-sdk:${dependencyVersions.nimbusds_oauth_version}" ,
+			"com.nimbusds:nimbus-jose-jwt:${dependencyVersions.nimbusds_jwt_version}",
+			"org.junit.jupiter:junit-jupiter-engine:${dependencyVersions.junit_version}",
+			"org.junit.jupiter:junit-jupiter-api:${dependencyVersions.junit_version}",
+			"org.junit.jupiter:junit-jupiter-params:${dependencyVersions.junit_version}",
+			"org.mockito:mockito-junit-jupiter:${dependencyVersions.mockito_version}",
+			"org.mockito:mockito-inline:${dependencyVersions.mockito_version}",
+			"org.hamcrest:hamcrest:${dependencyVersions.hamcrest_version}",
+			"com.google.code.gson:gson:${dependencyVersions.gson_version}"
 
-	implementation "com.fasterxml.jackson.core:jackson-core:${dependencyVersions.jackson_version}"
-	implementation "com.fasterxml.jackson.core:jackson-databind:${dependencyVersions.jackson_version}"
-	implementation "com.fasterxml.jackson.core:jackson-annotations:${dependencyVersions.jackson_version}"
-	implementation "com.fasterxml.jackson.datatype:jackson-datatype-jsr310:${dependencyVersions.jackson_version}"
-	implementation "com.fasterxml.jackson.datatype:jackson-datatype-jdk8:${dependencyVersions.jackson_version}"
-	implementation "jakarta.xml.bind:jakarta.xml.bind-api:3.0.1"
-	implementation "com.sun.xml.bind:jaxb-impl:3.0.2"
+	implementation "io.cucumber:cucumber-java:${dependencyVersions.cucumber_version}",
+			"org.seleniumhq.selenium:selenium-java:${dependencyVersions.selenium_version}",
+			"io.github.bonigarcia:webdrivermanager:${dependencyVersions.webdrivermanager_version}",
+			"com.deque.html.axe-core:selenium:${dependencyVersions.axe_core_selenium_version}"
 
-	implementation "software.amazon.lambda:powertools-logging:${dependencyVersions.aws_powertools_version}"
-	implementation "software.amazon.lambda:powertools-metrics:${dependencyVersions.aws_powertools_version}"
-	implementation	"software.amazon.lambda:powertools-parameters:${dependencyVersions.aws_powertools_version}"
+	testImplementation "io.rest-assured:rest-assured:${dependencyVersions.rest_assured_version}",
+			"io.cucumber:cucumber-junit:${dependencyVersions.cucumber_junit_version}"
 
-	implementation "com.nimbusds:oauth2-oidc-sdk:${dependencyVersions.nimbusds_oauth_version}"
-	implementation "com.nimbusds:nimbus-jose-jwt:${dependencyVersions.nimbusds_jwt_version}"
-
-	implementation "org.junit.jupiter:junit-jupiter-api:${dependencyVersions.junit}"
-	implementation "org.junit.jupiter:junit-jupiter-params:${dependencyVersions.junit}"
-	implementation "org.mockito:mockito-junit-jupiter:${dependencyVersions.mockito}"
-	implementation "org.mockito:mockito-inline:${dependencyVersions.mockito}"
-	implementation "org.hamcrest:hamcrest:2.2"
-
-	implementation 'com.google.code.gson:gson:2.9.0'
-	implementation 'org.seleniumhq.selenium:selenium-java:4.2.1'
-	implementation 'io.github.bonigarcia:webdrivermanager:5.2.0'
-	implementation 'io.cucumber:cucumber-java:7.3.3'
-	implementation 'javax.annotation:javax.annotation-api:1.3.2'
-	implementation 'com.deque:axe-selenium:3.0'
-	implementation 'com.googlecode.json-simple:json-simple:1.1.1'
-	implementation 'com.amazonaws:aws-java-sdk-s3:1.12.239'
-
-	testImplementation 'software.amazon.awssdk:s3:2.17.209'
-	testImplementation 'io.rest-assured:rest-assured:5.1.1'
-	testImplementation 'io.cucumber:cucumber-junit:7.3.3'
-	testImplementation 'org.junit.jupiter:junit-jupiter-api:5.8.2'
-
-	testRuntimeOnly 'org.junit.jupiter:junit-jupiter-engine:5.8.2'
-	test_runtime "org.junit.jupiter:junit-jupiter-engine:${dependencyVersions.junit}"
-
-	aspect configurations.powertools
+	aspect "software.amazon.lambda:powertools-logging:${dependencyVersions.aws_powertools_logging_version}",
+			"software.amazon.lambda:powertools-metrics:${dependencyVersions.aws_powertools_metrics_version}",
+			"software.amazon.lambda:powertools-parameters:${dependencyVersions.aws_powertools_parameters_version}"
 }
 
 java {
@@ -101,7 +61,7 @@ test {
 //                                     //
 //*************************************//
 
-task cucumber() {
+tasks.register('cucumber') {
 	dependsOn assemble, testClasses
 
 	doLast {
@@ -117,7 +77,7 @@ task cucumber() {
 				"${tags}",
 				'--glue',
 				'uk/gov/di/ipv/cri/passport/acceptance_tests/step_definitions',
-				'src/test/resources' ,
+				'src/test/resources',
 				'--plugin',
 				'html:build/test-results/cucumber.html',
 				'--plugin',
@@ -127,7 +87,7 @@ task cucumber() {
 	}
 }
 
-task passportCriSmokeBuild() {
+tasks.register('passportCriSmokeBuild') {
 	dependsOn assemble, compileTestJava
 	doLast {
 		javaexec {
@@ -148,7 +108,7 @@ task passportCriSmokeBuild() {
 	}
 }
 
-task passportCriSmokeStaging() {
+tasks.register('passportCriSmokeStaging') {
 	dependsOn assemble, compileTestJava
 	doLast {
 		javaexec {
@@ -157,6 +117,8 @@ task passportCriSmokeStaging() {
 			args = [
 				'--plugin',
 				'pretty',
+				'--plugin',
+				'html:target/cucumber-report/index.html',
 				'--glue',
 				'uk/gov/di/ipv/cri/passport/acceptance_tests/step_definitions',
 				'src/test/resources/features/',
@@ -166,6 +128,5 @@ task passportCriSmokeStaging() {
 		}
 	}
 }
-
 
 apply plugin: 'java'

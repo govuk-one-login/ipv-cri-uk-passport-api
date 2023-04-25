@@ -17,13 +17,13 @@ public class PassportAPIStepDefs extends PassportAPIPage {
     public void passport_user_has_the_user_identity_in_the_form_of_a_signed_jwt_string(
             String criId, Integer LindaDuffExperianRowNumber)
             throws URISyntaxException, IOException, InterruptedException {
-        passportUserIdentityAsJwtString(criId, LindaDuffExperianRowNumber);
+        userIdentityAsJwtString(criId, LindaDuffExperianRowNumber);
     }
 
     @And("Passport user sends a POST request to session endpoint")
     public void passport_user_sends_a_post_request_to_session_end_point()
             throws IOException, InterruptedException {
-        passportPostRequestToSessionEndpoint();
+        postRequestToSessionEndpoint();
     }
 
     @And("Passport user gets a session-id")
@@ -44,13 +44,13 @@ public class PassportAPIStepDefs extends PassportAPIPage {
 
     @And("Passport user gets authorisation code")
     public void passport_user_gets_authorisation_code() throws IOException, InterruptedException {
-        getAuthorisationCodeForPassport();
+        getAuthorisationCode();
     }
 
     @And("Passport user sends a POST request to Access Token endpoint (.*)$")
     public void passport_user_requests_access_token(String CRIId)
             throws IOException, InterruptedException {
-        postRequestToAccessTokenEndpointForPassport(CRIId);
+        postRequestToAccessTokenEndpoint(CRIId);
     }
 
     @Then("User requests Passport CRI VC")

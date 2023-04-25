@@ -28,9 +28,9 @@ public class PassportStepDefs extends PassportPageObject {
         searchForUATUser(number);
     }
 
-    @And("I assert the URL is valid")
-    public void i_assert_the_url_is_valid() {
-        passportPageURLValidation();
+    @And("I assert the url path contains (.*)$")
+    public void i_assert_the_url_path_contains(String path) {
+        passportPageURLValidation(path);
     }
 
     @Given("^I check the page title is (.*)$")

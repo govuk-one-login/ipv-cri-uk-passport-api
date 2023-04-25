@@ -4,5 +4,4 @@ include "lib",
 		"lambdas",
 		"lambdas:checkpassport",
 		"lambdas:issuecredential",
-		"integration-test",
 		"acceptance-tests"
