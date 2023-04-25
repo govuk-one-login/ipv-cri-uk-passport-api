@@ -4,9 +4,7 @@ public class ParameterStoreParameters {
 
     public static final String DOCUMENT_CHECK_RESULT_TABLE_NAME = "DocumentCheckResultTableName";
     public static final String MAXIMUM_ATTEMPT_COUNT = "MaximumAttemptCount"; // Max Form Attempts
-
     public static final String THIRD_PARTY_API_CHECK = "ThirdPartyApiCheck";
-
     public static final String DCS_POST_URL = "DCS/PostUrl";
     public static final String HTTPCLIENT_TLS_CERT = "DCS/HttpClient/TLSCert";
     public static final String HTTPCLIENT_TLS_KEY = "DCS/HttpClient/TLSKey";
