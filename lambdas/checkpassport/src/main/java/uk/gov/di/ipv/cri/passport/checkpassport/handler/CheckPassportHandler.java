@@ -47,6 +47,7 @@ import java.util.Map;
 import static uk.gov.di.ipv.cri.common.library.error.ErrorResponse.SESSION_EXPIRED;
 import static uk.gov.di.ipv.cri.common.library.error.ErrorResponse.SESSION_NOT_FOUND;
 import static uk.gov.di.ipv.cri.passport.library.config.ParameterStoreParameters.MAXIMUM_ATTEMPT_COUNT;
+import static uk.gov.di.ipv.cri.passport.library.config.ParameterStoreParameters.THIRD_PARTY_API_CHECK;
 import static uk.gov.di.ipv.cri.passport.library.metrics.Definitions.FORM_DATA_PARSE_FAIL;
 import static uk.gov.di.ipv.cri.passport.library.metrics.Definitions.FORM_DATA_PARSE_PASS;
 import static uk.gov.di.ipv.cri.passport.library.metrics.Definitions.LAMBDA_CHECK_PASSPORT_ATTEMPT_STATUS_RETRY;
@@ -269,7 +270,7 @@ public class CheckPassportHandler
 
     private PassportFormData parsePassportFormRequest(String input)
             throws OAuthHttpResponseExceptionWithErrorBody {
-        LOGGER.info("Parsing passport form data into payload for DCS");
+        LOGGER.info("Parsing passport form data into payload");
         try {
             return objectMapper.readValue(input, PassportFormData.class);
         } catch (JsonProcessingException e) {
@@ -327,12 +328,20 @@ public class CheckPassportHandler
                         .getClientFactoryService()
                         .getHTTPClient(passportConfigurationService);
 
-        ThirdPartyAPIService thirdPartyAPIService =
-                new ThirdPartyAPIService(
-                        passportConfigurationService,
-                        eventProbe,
-                        new DcsCryptographyService(passportConfigurationService),
-                        httpClient);
+        String thirdPartApiCheck =
+                passportConfigurationService.getParameterValue(THIRD_PARTY_API_CHECK);
+        LOGGER.info(String.format("Selecting %s as third party API", thirdPartApiCheck));
+        ThirdPartyAPIService thirdPartyAPIService = null;
+        if (thirdPartApiCheck.equals("DCS")) {
+            thirdPartyAPIService =
+                    new ThirdPartyAPIService(
+                            passportConfigurationService,
+                            eventProbe,
+                            new DcsCryptographyService(passportConfigurationService),
+                            httpClient);
+        } else {
+            // insert HMPO service call here
+        }
 
         return new DocumentDataVerificationService(
                 eventProbe, auditService, thirdPartyAPIService, new FormDataValidator());
