@@ -103,13 +103,13 @@ Mappings:
       integration: 2
       production: 2
 
-  ThirdPartyApiMapping:
+  DvaDigitalEnabledMapping:
     Environment:
-      dev: "DCS"
-      build: "DCS"
-      staging: "DCS"
-      integration: "DCS"
-      production: "DCS"
+      dev: "false"
+      build: "false"
+      staging: "false"
+      integration: "false"
+      production: "false"
 
   ProvisionedConcurrency:
     Environment:
@@ -373,7 +373,7 @@ Resources:
               Resource:
                 - !Sub "arn:aws:ssm:${AWS::Region}:${AWS::AccountId}:parameter/${AWS::StackName}/DocumentCheckResultTableName"
                 - !Sub "arn:aws:ssm:${AWS::Region}:${AWS::AccountId}:parameter/${AWS::StackName}/MaximumAttemptCount"
-                - !Sub "arn:aws:ssm:${AWS::Region}:${AWS::AccountId}:parameter/${AWS::StackName}/ThirdPartyApiCheck"
+                - !Sub "arn:aws:ssm:${AWS::Region}:${AWS::AccountId}:parameter/${AWS::StackName}/DvaDigitalEnabled"
                 - !Sub "arn:aws:ssm:${AWS::Region}:${AWS::AccountId}:parameter/${AWS::StackName}/DCS/PostUrl"
                 - !Sub "arn:aws:ssm:${AWS::Region}:${AWS::AccountId}:parameter/${AWS::StackName}/DCS/HttpClient/TLSCert"
                 - !Sub "arn:aws:ssm:${AWS::Region}:${AWS::AccountId}:parameter/${AWS::StackName}/DCS/HttpClient/TLSKey"
@@ -640,11 +640,11 @@ Resources:
       Type: String
       Description: maximum passport verification attempts
 
-  ThirdPartyApiCheckParameter:
+  DvaDigitalEnabledParameter:
     Type: AWS::SSM::Parameter
     Properties:
-      Name: !Sub "/${AWS::StackName}/ThirdPartyApiCheck"
-      Value: !FindInMap [ThirdPartyApiMapping, Environment, !Ref 'Environment']
+      Name: !Sub "/${AWS::StackName}/DvaDigitalEnabled"
+      Value: !FindInMap [DvaDigitalEnabledMapping, Environment, !Ref 'Environment']
       Type: String
       Description: use DCS for document checks
 
