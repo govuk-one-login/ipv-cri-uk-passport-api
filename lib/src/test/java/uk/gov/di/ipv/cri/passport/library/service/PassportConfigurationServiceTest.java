@@ -13,7 +13,7 @@ import uk.org.webcompere.systemstubs.jupiter.SystemStubsExtension;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.mockito.Mockito.when;
-import static uk.gov.di.ipv.cri.passport.library.config.ParameterStoreParameters.PASSPORT_CRI_ENCRYPTION_KEY;
+import static uk.gov.di.ipv.cri.passport.library.config.ParameterStoreParameters.DCS_PASSPORT_CRI_ENCRYPTION_KEY;
 
 @WireMockTest(httpPort = 8080)
 @ExtendWith(MockitoExtension.class)
@@ -46,12 +46,14 @@ class PassportConfigurationServiceTest {
 
         when(mockSSMProvider.withDecryption()).thenReturn(mockSSMProvider);
 
-        String parameterPath = String.format("/%s/%s", AWS_STACK_NAME, PASSPORT_CRI_ENCRYPTION_KEY);
+        String parameterPath =
+                String.format("/%s/%s", AWS_STACK_NAME, DCS_PASSPORT_CRI_ENCRYPTION_KEY);
 
         when(mockSSMProvider.get(parameterPath)).thenReturn(TEST_PRIVATE_KEY);
 
         String privateKey =
-                passportConfigurationService.getEncryptedSsmParameter(PASSPORT_CRI_ENCRYPTION_KEY);
+                passportConfigurationService.getEncryptedSsmParameter(
+                        DCS_PASSPORT_CRI_ENCRYPTION_KEY);
 
         assertEquals(TEST_PRIVATE_KEY, privateKey);
     }

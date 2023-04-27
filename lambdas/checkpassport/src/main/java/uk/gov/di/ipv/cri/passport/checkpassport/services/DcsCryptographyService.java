@@ -41,10 +41,10 @@ import java.util.Base64;
 import java.util.Map;
 
 import static uk.gov.di.ipv.cri.passport.library.config.ParameterStoreParameters.DCS_ENCRYPTION_CERT;
+import static uk.gov.di.ipv.cri.passport.library.config.ParameterStoreParameters.DCS_PASSPORT_CRI_ENCRYPTION_KEY;
+import static uk.gov.di.ipv.cri.passport.library.config.ParameterStoreParameters.DCS_PASSPORT_CRI_SIGNING_CERT;
+import static uk.gov.di.ipv.cri.passport.library.config.ParameterStoreParameters.DCS_PASSPORT_CRI_SIGNING_KEY;
 import static uk.gov.di.ipv.cri.passport.library.config.ParameterStoreParameters.DCS_SIGNING_CERT;
-import static uk.gov.di.ipv.cri.passport.library.config.ParameterStoreParameters.PASSPORT_CRI_ENCRYPTION_KEY;
-import static uk.gov.di.ipv.cri.passport.library.config.ParameterStoreParameters.PASSPORT_CRI_SIGNING_CERT;
-import static uk.gov.di.ipv.cri.passport.library.config.ParameterStoreParameters.PASSPORT_CRI_SIGNING_KEY;
 
 public class DcsCryptographyService {
 
@@ -96,7 +96,7 @@ public class DcsCryptographyService {
             throws NoSuchAlgorithmException, InvalidKeySpecException, JOSEException,
                     CertificateException {
 
-        Thumbprints thumbprints = makeThumbprints(PASSPORT_CRI_SIGNING_CERT);
+        Thumbprints thumbprints = makeThumbprints(DCS_PASSPORT_CRI_SIGNING_CERT);
 
         ProtectedHeader protectedHeader =
                 new ProtectedHeader(
@@ -117,7 +117,7 @@ public class DcsCryptographyService {
                         new Payload(stringToSign));
 
         String base64String =
-                passportConfigurationService.getEncryptedSsmParameter(PASSPORT_CRI_SIGNING_KEY);
+                passportConfigurationService.getEncryptedSsmParameter(DCS_PASSPORT_CRI_SIGNING_KEY);
 
         PrivateKey privateKey = KeyCertHelper.getDecodedPrivateRSAKey(base64String);
 
@@ -189,7 +189,7 @@ public class DcsCryptographyService {
         try {
             String base64String =
                     passportConfigurationService.getEncryptedSsmParameter(
-                            PASSPORT_CRI_ENCRYPTION_KEY);
+                            DCS_PASSPORT_CRI_ENCRYPTION_KEY);
 
             PrivateKey privateKey = KeyCertHelper.getDecodedPrivateRSAKey(base64String);
 
