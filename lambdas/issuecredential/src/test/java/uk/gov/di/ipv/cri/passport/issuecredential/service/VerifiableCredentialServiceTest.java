@@ -48,7 +48,7 @@ import static uk.gov.di.ipv.cri.passport.issuecredential.domain.VerifiableCreden
 import static uk.gov.di.ipv.cri.passport.issuecredential.domain.VerifiableCredentialConstants.VC_NAME_KEY;
 import static uk.gov.di.ipv.cri.passport.issuecredential.domain.VerifiableCredentialConstants.VC_PASSPORT_KEY;
 import static uk.gov.di.ipv.cri.passport.issuecredential.domain.VerifiableCredentialConstants.VC_SUBJECT_KEY;
-import static uk.gov.di.ipv.cri.passport.issuecredential.service.VerifiableCredentialService.UK_ICAO_ISSUER_CODE;
+import static uk.gov.di.ipv.cri.passport.library.config.GlobalConstants.UK_ICAO_ISSUER_CODE;
 import static uk.gov.di.ipv.cri.passport.library.config.ParameterStoreParameters.MAX_JWT_TTL_UNIT;
 
 @ExtendWith(MockitoExtension.class)

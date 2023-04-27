@@ -31,6 +31,7 @@ import uk.gov.di.ipv.cri.common.library.util.EventProbe;
 import uk.gov.di.ipv.cri.passport.issuecredential.exception.CredentialRequestException;
 import uk.gov.di.ipv.cri.passport.issuecredential.service.VerifiableCredentialService;
 import uk.gov.di.ipv.cri.passport.issuecredential.util.IssueCredentialPassportAuditExtensionUtil;
+import uk.gov.di.ipv.cri.passport.library.helpers.PersonIdentityDetailedHelperMapper;
 import uk.gov.di.ipv.cri.passport.library.persistence.DocumentCheckResultItem;
 import uk.gov.di.ipv.cri.passport.library.service.PassportConfigurationService;
 import uk.gov.di.ipv.cri.passport.library.service.ServiceFactory;
@@ -114,36 +115,44 @@ public class IssueCredentialHandler
             LOGGER.info("Retrieving identity details and document check results...");
             var personIdentityDetailed =
                     personIdentityService.getPersonIdentityDetailed(sessionItem.getSessionId());
-            DocumentCheckResultItem documentCheckResult =
+            DocumentCheckResultItem documentCheckResultItem =
                     documentCheckResultStore.getItem(sessionItem.getSessionId().toString());
 
-            if (documentCheckResult == null) {
+            if (documentCheckResultItem == null) {
                 LOGGER.error("User has arrived in issue credential without completing check");
                 return ApiGatewayResponseGenerator.proxyJsonResponse(
                         HttpStatusCode.INTERNAL_SERVER_ERROR,
                         OauthErrorResponse.ACCESS_DENIED_ERROR);
             }
-
             LOGGER.info("VC content retrieved.");
 
             LOGGER.info("Generating verifiable credential...");
             SignedJWT signedJWT =
                     verifiableCredentialService.generateSignedVerifiableCredentialJwt(
-                            sessionItem.getSubject(), documentCheckResult, personIdentityDetailed);
+                            sessionItem.getSubject(),
+                            documentCheckResultItem,
+                            personIdentityDetailed);
             LOGGER.info("Credential generated");
 
             String verifiableCredentialIssuer =
                     passportConfigurationService.getVerifiableCredentialIssuer();
 
+            // Needed as personIdentityService.savePersonIdentity creates personIdentityDetailed via
+            // shared claims
+            var auditRestricted =
+                    PersonIdentityDetailedHelperMapper
+                            .mapPersonIdentityDetailedAndPassportDataToAuditRestricted(
+                                    personIdentityDetailed, documentCheckResultItem);
+
             auditService.sendAuditEvent(
                     AuditEventType.VC_ISSUED,
-                    new AuditEventContext(input.getHeaders(), sessionItem),
+                    new AuditEventContext(auditRestricted, input.getHeaders(), sessionItem),
                     IssueCredentialPassportAuditExtensionUtil
                             .generateVCISSDocumentCheckAuditExtension(
-                                    verifiableCredentialIssuer, List.of(documentCheckResult)));
+                                    verifiableCredentialIssuer, List.of(documentCheckResultItem)));
 
             // CI Metric captured here as check lambda can have multiple attempts
-            recordCIMetrics(PASSPORT_CI_PREFIX, documentCheckResult.getContraIndicators());
+            recordCIMetrics(PASSPORT_CI_PREFIX, documentCheckResultItem.getContraIndicators());
 
             auditService.sendAuditEvent(
                     AuditEventType.END, new AuditEventContext(input.getHeaders(), sessionItem));
@@ -155,11 +164,17 @@ public class IssueCredentialHandler
         } catch (AwsServiceException ex) {
             LOGGER.error(LAMBDA_EXCEPTION_ERROR_MESSAGE, context.getFunctionName(), ex.getClass());
             eventProbe.counterMetric(LAMBDA_ISSUE_CREDENTIAL_COMPLETED_ERROR);
+
+            LOGGER.debug(ex.getMessage(), ex);
+
             return ApiGatewayResponseGenerator.proxyJsonResponse(
                     HttpStatusCode.INTERNAL_SERVER_ERROR, ex.awsErrorDetails().errorMessage());
         } catch (CredentialRequestException | ParseException | JOSEException e) {
             LOGGER.error(LAMBDA_EXCEPTION_ERROR_MESSAGE, context.getFunctionName(), e.getClass());
             eventProbe.counterMetric(LAMBDA_ISSUE_CREDENTIAL_COMPLETED_ERROR);
+
+            LOGGER.debug(e.getMessage(), e);
+
             return ApiGatewayResponseGenerator.proxyJsonResponse(
                     HttpStatusCode.BAD_REQUEST, ErrorResponse.VERIFIABLE_CREDENTIAL_ERROR);
         } catch (SqsException sqsException) {
@@ -168,6 +183,9 @@ public class IssueCredentialHandler
                     context.getFunctionName(),
                     sqsException.getClass());
             eventProbe.counterMetric(LAMBDA_ISSUE_CREDENTIAL_COMPLETED_ERROR);
+
+            LOGGER.debug(sqsException.getMessage(), sqsException);
+
             return ApiGatewayResponseGenerator.proxyJsonResponse(
                     HttpStatusCode.INTERNAL_SERVER_ERROR, sqsException.getMessage());
         } catch (Exception e) {
@@ -177,6 +195,9 @@ public class IssueCredentialHandler
                     context.getFunctionName(),
                     e.getClass());
             eventProbe.counterMetric(LAMBDA_ISSUE_CREDENTIAL_COMPLETED_ERROR);
+
+            LOGGER.debug(e.getMessage(), e);
+
             return ApiGatewayResponseGenerator.proxyJsonResponse(
                     HttpStatusCode.INTERNAL_SERVER_ERROR, e.getMessage());
         }

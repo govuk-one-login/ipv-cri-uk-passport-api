@@ -127,6 +127,14 @@ Mappings:
       integration: 1024
       production: 2048
 
+  VcExpiryRemoved:
+    Environment:
+      dev: "true"
+      build: "true"
+      staging: "true"
+      integration: "true"
+      production: "true"
+
   # VC Only
   MaxJwtTtlMapping:
     Environment:
@@ -503,6 +511,7 @@ Resources:
               Action:
                 - ssm:GetParameter
               Resource:
+                - !Sub "arn:aws:ssm:${AWS::Region}:${AWS::AccountId}:parameter/release-flags/vc-expiry-removed"
                 - !Sub "arn:aws:ssm:${AWS::Region}:${AWS::AccountId}:parameter/${AWS::StackName}/DocumentCheckResultTableName"
                 - !Sub "arn:aws:ssm:${AWS::Region}:${AWS::AccountId}:parameter/${AWS::StackName}/MaxJwtTtl"
                 - !Sub "arn:aws:ssm:${AWS::Region}:${AWS::AccountId}:parameter/${AWS::StackName}/JwtTtlUnit"
@@ -633,6 +642,17 @@ Resources:
 # Parameters                                                       #
 #                                                                  #
 ####################################################################
+
+  ParameterReleaseFlagsVcExpiryRemoved:
+    Type: AWS::SSM::Parameter
+    Properties:
+      Name: !If
+        - IsDevEnvironment
+        - !Sub "/${AWS::StackName}/release-flags-vc-expiry-removed-not-used-in-dev"
+        - !Sub "/release-flags/vc-expiry-removed"
+      Value: !FindInMap [ VcExpiryRemoved, Environment, !Ref Environment ]
+      Type: String
+      Description: Expiry date release toggle
 
   ParameterDocumentCheckResultTableName:
     Type: AWS::SSM::Parameter
