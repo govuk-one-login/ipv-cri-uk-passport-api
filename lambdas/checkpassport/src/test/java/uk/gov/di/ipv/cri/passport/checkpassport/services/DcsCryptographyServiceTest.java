@@ -54,10 +54,10 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.Mockito.when;
 import static uk.gov.di.ipv.cri.passport.library.config.ParameterStoreParameters.DCS_ENCRYPTION_CERT;
+import static uk.gov.di.ipv.cri.passport.library.config.ParameterStoreParameters.DCS_PASSPORT_CRI_ENCRYPTION_KEY;
+import static uk.gov.di.ipv.cri.passport.library.config.ParameterStoreParameters.DCS_PASSPORT_CRI_SIGNING_CERT;
+import static uk.gov.di.ipv.cri.passport.library.config.ParameterStoreParameters.DCS_PASSPORT_CRI_SIGNING_KEY;
 import static uk.gov.di.ipv.cri.passport.library.config.ParameterStoreParameters.DCS_SIGNING_CERT;
-import static uk.gov.di.ipv.cri.passport.library.config.ParameterStoreParameters.PASSPORT_CRI_ENCRYPTION_KEY;
-import static uk.gov.di.ipv.cri.passport.library.config.ParameterStoreParameters.PASSPORT_CRI_SIGNING_CERT;
-import static uk.gov.di.ipv.cri.passport.library.config.ParameterStoreParameters.PASSPORT_CRI_SIGNING_KEY;
 
 @ExtendWith(MockitoExtension.class)
 class DcsCryptographyServiceTest {
@@ -89,10 +89,10 @@ class DcsCryptographyServiceTest {
             throws JOSEException, InvalidKeySpecException, NoSuchAlgorithmException,
                     CertificateException, ParseException, JsonProcessingException {
 
-        when(passportConfigurationService.getEncryptedSsmParameter(PASSPORT_CRI_SIGNING_KEY))
+        when(passportConfigurationService.getEncryptedSsmParameter(DCS_PASSPORT_CRI_SIGNING_KEY))
                 .thenReturn(BASE64_SIGNING_PRIVATE_KEY);
 
-        when(passportConfigurationService.getEncryptedSsmParameter(PASSPORT_CRI_SIGNING_CERT))
+        when(passportConfigurationService.getEncryptedSsmParameter(DCS_PASSPORT_CRI_SIGNING_CERT))
                 .thenReturn(BASE64_DCS_SIGNING_CERT);
 
         when(passportConfigurationService.getEncryptedSsmParameter(DCS_ENCRYPTION_CERT))
@@ -130,7 +130,7 @@ class DcsCryptographyServiceTest {
         when(passportConfigurationService.getEncryptedSsmParameter(DCS_SIGNING_CERT))
                 .thenReturn(BASE64_DCS_SIGNING_CERT);
 
-        when(passportConfigurationService.getEncryptedSsmParameter(PASSPORT_CRI_ENCRYPTION_KEY))
+        when(passportConfigurationService.getEncryptedSsmParameter(DCS_PASSPORT_CRI_ENCRYPTION_KEY))
                 .thenReturn(BASE64_ENCRYPTION_PRIVATE_KEY);
 
         DcsResponse expectedDcsResponse =
@@ -176,7 +176,7 @@ class DcsCryptographyServiceTest {
                     JOSEException {
         when(passportConfigurationService.getEncryptedSsmParameter(DCS_SIGNING_CERT))
                 .thenReturn(BASE64_DCS_SIGNING_CERT);
-        when(passportConfigurationService.getEncryptedSsmParameter(PASSPORT_CRI_ENCRYPTION_KEY))
+        when(passportConfigurationService.getEncryptedSsmParameter(DCS_PASSPORT_CRI_ENCRYPTION_KEY))
                 .thenReturn(BASE64_SIGNING_PRIVATE_KEY);
         String payload = "some test data";
         String dcsResponse = generateDCSResponse(payload);
@@ -197,7 +197,7 @@ class DcsCryptographyServiceTest {
                     JOSEException {
         when(passportConfigurationService.getEncryptedSsmParameter(DCS_SIGNING_CERT))
                 .thenReturn(BASE64_DCS_SIGNING_CERT, BASE64_ENCRYPTION_PUBLIC_CERT);
-        when(passportConfigurationService.getEncryptedSsmParameter(PASSPORT_CRI_ENCRYPTION_KEY))
+        when(passportConfigurationService.getEncryptedSsmParameter(DCS_PASSPORT_CRI_ENCRYPTION_KEY))
                 .thenReturn(BASE64_ENCRYPTION_PRIVATE_KEY);
 
         String payload = "some test data";
