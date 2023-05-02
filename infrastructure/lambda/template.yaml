@@ -103,6 +103,14 @@ Mappings:
       integration: 2
       production: 2
 
+  DvaDigitalEnabledMapping:
+    Environment:
+      dev: "false"
+      build: "false"
+      staging: "false"
+      integration: "false"
+      production: "false"
+
   ProvisionedConcurrency:
     Environment:
       dev: 0
@@ -365,6 +373,7 @@ Resources:
               Resource:
                 - !Sub "arn:aws:ssm:${AWS::Region}:${AWS::AccountId}:parameter/${AWS::StackName}/DocumentCheckResultTableName"
                 - !Sub "arn:aws:ssm:${AWS::Region}:${AWS::AccountId}:parameter/${AWS::StackName}/MaximumAttemptCount"
+                - !Sub "arn:aws:ssm:${AWS::Region}:${AWS::AccountId}:parameter/${AWS::StackName}/DvaDigitalEnabled"
                 - !Sub "arn:aws:ssm:${AWS::Region}:${AWS::AccountId}:parameter/${AWS::StackName}/DCS/PostUrl"
                 - !Sub "arn:aws:ssm:${AWS::Region}:${AWS::AccountId}:parameter/${AWS::StackName}/DCS/HttpClient/TLSCert"
                 - !Sub "arn:aws:ssm:${AWS::Region}:${AWS::AccountId}:parameter/${AWS::StackName}/DCS/HttpClient/TLSKey"
@@ -630,6 +639,14 @@ Resources:
       Value: !FindInMap [MaximumAttemptCountMapping, Environment, !Ref 'Environment']
       Type: String
       Description: maximum passport verification attempts
+
+  DvaDigitalEnabledParameter:
+    Type: AWS::SSM::Parameter
+    Properties:
+      Name: !Sub "/${AWS::StackName}/DvaDigitalEnabled"
+      Value: !FindInMap [DvaDigitalEnabledMapping, Environment, !Ref 'Environment']
+      Type: String
+      Description: use DCS for document checks
 
   MaxJwtTtlParameter:
     Type: AWS::SSM::Parameter
