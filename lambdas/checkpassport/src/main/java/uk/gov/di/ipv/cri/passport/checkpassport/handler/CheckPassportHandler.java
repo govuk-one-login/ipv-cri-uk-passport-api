@@ -323,15 +323,16 @@ public class CheckPassportHandler
             ServiceFactory serviceFactory) {
 
         AuditService auditService = serviceFactory.getAuditService();
-        HttpClient httpClient =
-                serviceFactory
-                        .getClientFactoryService()
-                        .getHTTPClient(passportConfigurationService);
 
         String dvaDigitalEnabled =
                 passportConfigurationService.getParameterValue(DVA_DIGITAL_ENABLED);
         ThirdPartyAPIService thirdPartyAPIService = null;
         if (dvaDigitalEnabled.equals("false")) {
+            HttpClient httpClient =
+                    serviceFactory
+                            .getClientFactoryService()
+                            .getLegacyHTTPClient(passportConfigurationService);
+
             thirdPartyAPIService =
                     new ThirdPartyAPIService(
                             passportConfigurationService,
@@ -339,7 +340,17 @@ public class CheckPassportHandler
                             new DcsCryptographyService(passportConfigurationService),
                             httpClient);
         } else {
-            // insert HMPO service call here
+            HttpClient httpClient =
+                    serviceFactory
+                            .getClientFactoryService()
+                            .getHTTPClient(passportConfigurationService);
+
+            thirdPartyAPIService =
+                    new ThirdPartyAPIService(
+                            passportConfigurationService,
+                            eventProbe,
+                            new DcsCryptographyService(passportConfigurationService),
+                            httpClient);
         }
 
         return new DocumentDataVerificationService(
