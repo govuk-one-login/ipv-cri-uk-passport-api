@@ -19,7 +19,9 @@ dependencies {
 			"software.amazon.awssdk:dynamodb-enhanced:${dependencyVersions.aws_sdk_version}",
 			"com.fasterxml.jackson.core:jackson-core:${dependencyVersions.jackson_version}",
 			"com.fasterxml.jackson.datatype:jackson-datatype-jsr310:${dependencyVersions.jackson_version}",
+			"com.fasterxml.jackson.datatype:jackson-datatype-jdk8:${dependencyVersions.jackson_version}",
 			"com.fasterxml.jackson.core:jackson-databind:${dependencyVersions.jackson_version}",
+			"com.fasterxml.jackson.core:jackson-annotations:${dependencyVersions.jackson_version}",
 			"com.google.code.gson:gson:${dependencyVersions.gson_version}",
 			"org.apache.httpcomponents:httpcore:${dependencyVersions.httpcomponents_core_version}",
 			"org.apache.httpcomponents:httpclient:${dependencyVersions.httpcomponents_client_version}"

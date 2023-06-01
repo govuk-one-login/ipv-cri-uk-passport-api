@@ -182,6 +182,8 @@ public class CheckPassportHandler
             LOGGER.error(customOAuth2ErrorDescription);
             eventProbe.counterMetric(LAMBDA_CHECK_PASSPORT_COMPLETED_ERROR);
 
+            LOGGER.debug(e.getMessage(), e);
+
             return ApiGatewayResponseGenerator.proxyJsonResponse(
                     HttpStatusCode.FORBIDDEN,
                     new CommonExpressOAuthError(
@@ -192,12 +194,17 @@ public class CheckPassportHandler
             LOGGER.error(customOAuth2ErrorDescription);
             eventProbe.counterMetric(LAMBDA_CHECK_PASSPORT_COMPLETED_ERROR);
 
+            LOGGER.debug(e.getMessage(), e);
+
             return ApiGatewayResponseGenerator.proxyJsonResponse(
                     HttpStatusCode.FORBIDDEN,
                     new CommonExpressOAuthError(
                             OAuth2Error.ACCESS_DENIED, customOAuth2ErrorDescription));
         } catch (OAuthHttpResponseExceptionWithErrorBody e) {
             eventProbe.counterMetric(LAMBDA_CHECK_PASSPORT_COMPLETED_ERROR);
+
+            LOGGER.debug(e.getMessage(), e);
+
             return ApiGatewayResponseGenerator.proxyJsonResponse(
                     e.getStatusCode(), // Status Code determined by throw location
                     new CommonExpressOAuthError(OAuth2Error.SERVER_ERROR));
@@ -205,6 +212,9 @@ public class CheckPassportHandler
             eventProbe.counterMetric(LAMBDA_CHECK_PASSPORT_COMPLETED_ERROR);
             // Cannot log e, due to possibility of PII
             LOGGER.error("Check Passport Unhandled Exception");
+
+            LOGGER.debug(e.getMessage(), e);
+
             return ApiGatewayResponseGenerator.proxyJsonResponse(
                     HttpStatusCode.INTERNAL_SERVER_ERROR,
                     new CommonExpressOAuthError(OAuth2Error.SERVER_ERROR));
