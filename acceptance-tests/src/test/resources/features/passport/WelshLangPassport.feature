@@ -13,7 +13,7 @@ Feature: Passport Language Test
     When the beta banner reads Mae hwn yn wasanaeth newydd – bydd eich adborth (agor mewn tab newydd) yn ein helpu i’w wella.
     Then The test is complete and I close the driver
 
-  @Language-regression-fraud
+  @Language-regression
   Scenario: Beta Banner Reject Analytics
     When I view the Beta banner
     And I select Gwrthod cwcis dadansoddi button
