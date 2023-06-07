@@ -9,10 +9,18 @@ import org.openqa.selenium.support.ui.ExpectedCondition;
 import org.openqa.selenium.support.ui.ExpectedConditions;
 import org.openqa.selenium.support.ui.WebDriverWait;
 
+import java.io.IOException;
+import java.net.URI;
+import java.net.http.HttpClient;
+import java.net.http.HttpRequest;
+import java.net.http.HttpResponse;
 import java.time.Duration;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
+
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.fail;
 
 public class BrowserUtils {
 
@@ -419,5 +427,24 @@ public class BrowserUtils {
         String currentURL = Driver.get().getCurrentUrl();
         String newURL = currentURL + "/?lang=" + languageCode;
         Driver.get().get(newURL);
+    }
+
+    public static HttpResponse<String> sendHttpRequest(HttpRequest request)
+            throws IOException, InterruptedException {
+        HttpClient client = HttpClient.newBuilder().build();
+        HttpResponse<String> response = client.send(request, HttpResponse.BodyHandlers.ofString());
+        return response;
+    }
+
+    public static void checkOkHttpResponseOnLink(String link) {
+        HttpRequest request = HttpRequest.newBuilder().uri(URI.create(link)).GET().build();
+        HttpResponse<String> httpResponse = null;
+        try {
+            httpResponse = sendHttpRequest(request);
+            int statusCode = httpResponse.statusCode();
+            assertEquals(statusCode, 200);
+        } catch (IOException | InterruptedException e) {
+            fail("Failed to get 200 back on request to url");
+        }
     }
 }

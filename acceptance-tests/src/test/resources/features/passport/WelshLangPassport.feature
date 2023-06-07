@@ -14,6 +14,15 @@ Feature: Passport Language Test
     Then The test is complete and I close the driver
 
   @Language-regression
+  Scenario: Beta Banner Reject Analytics
+    When I view the Beta banner
+    And I select Gwrthod cwcis dadansoddi button
+    Then I see the Reject Analytics sentence Rydych wedi gwrthod cwcis ychwanegol. Gallwch newid eich gosodiadau cwcis unrhyw bryd.
+    And  I select the link newid eich gosodiadau cwcis
+    Then I check the page to change cookie preferences opens
+    And The test is complete and I close the driver
+
+  @Language-regression
   Scenario:User Selects landed in the passport page and Validate the title and sentences
     Then I check the page title is Rhowch eich manylion yn union fel maent yn ymddangos ar eich pasbort y DU – Profi pwy ydych chi – GOV.UK
     And I see the heading Rhowch eich manylion yn union fel maent yn ymddangos ar eich pasbort y DU

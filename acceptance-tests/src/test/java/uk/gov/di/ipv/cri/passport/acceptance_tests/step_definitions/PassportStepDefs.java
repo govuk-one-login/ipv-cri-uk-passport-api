@@ -99,6 +99,28 @@ public class PassportStepDefs extends PassportPageObject {
         betaBannerSentence(expectedText);
     }
 
+    @And("^I select (.*) button$")
+    public void selectRejectAnalysisCookie(String rejectAnalyticsBtn) {
+        rejectAnalysisCookie(rejectAnalyticsBtn);
+    }
+
+    @Then("^I see the Reject Analytics sentence (.*)$")
+    public void
+            iSeeTheSenetenceYouVeRejectedAdditionalCookiesYouCanChangeYourCookieSettingsAtAnyTime(
+                    String rejectAnalysisSentence) {
+        rejectCookieSentence(rejectAnalysisSentence);
+    }
+
+    @And("^I select the link (.*)$")
+    public void iSelectTheChangeYourCookieSettingsLink(String changeCookieLink) {
+        AssertChangeCookieLink(changeCookieLink);
+    }
+
+    @Then("^I check the page to change cookie preferences opens$")
+    public void iCheckThePageToChangeCookiePreferencesOpens() {
+        AssertcookiePreferencePage();
+    }
+
     @And("^I see the passport Selection sentence starts with (.*)$")
     public void ICanSeeThePageDescriptionAs(String expectedText) throws Throwable {
         assertPageDescription(expectedText);

@@ -27,6 +27,7 @@ import static org.junit.Assert.fail;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static uk.gov.di.ipv.cri.passport.acceptance_tests.pages.Headers.IPV_CORE_STUB;
+import static uk.gov.di.ipv.cri.passport.acceptance_tests.utilities.BrowserUtils.checkOkHttpResponseOnLink;
 
 public class PassportPageObject extends UniversalSteps {
 
@@ -105,6 +106,18 @@ public class PassportPageObject extends UniversalSteps {
 
     @FindBy(className = "govuk-phase-banner__text")
     public WebElement betaBannerText;
+
+    @FindBy(xpath = "//*[@id=\"cookies-banner-main\"]/div[2]/button[2]")
+    public WebElement rejectAnalysisButton;
+
+    @FindBy(xpath = "//*[@id=\"cookies-rejected\"]/div[1]/div/div/p")
+    public WebElement rejectAnalysisActual;
+
+    @FindBy(xpath = "//*[@id=\"cookies-rejected\"]/div[1]/div/div/p/a")
+    public WebElement changeCookieButton;
+
+    @FindBy(xpath = "/html/head/link[1]")
+    public WebElement cookiePreference;
 
     @FindBy(id = "error-summary-title")
     public WebElement errorSummaryTitle;
@@ -312,6 +325,26 @@ public class PassportPageObject extends UniversalSteps {
 
     public void betaBannerSentence(String expectedText) {
         Assert.assertEquals(expectedText, betaBannerText.getText());
+    }
+
+    public void rejectAnalysisCookie(String rejectAnalyticsBtn) {
+        Assert.assertEquals(rejectAnalyticsBtn, rejectAnalysisButton.getText());
+        rejectAnalysisButton.click();
+    }
+
+    public void rejectCookieSentence(String rejectAnalysisSentence) {
+        LOGGER.info("CookieSentence = " + rejectAnalysisActual.getText());
+        Assert.assertEquals(rejectAnalysisSentence, rejectAnalysisActual.getText());
+    }
+
+    public void AssertChangeCookieLink(String changeCookieLink) {
+        Assert.assertEquals(changeCookieLink, changeCookieButton.getText());
+        changeCookieButton.click();
+    }
+
+    public void AssertcookiePreferencePage() {
+        String changeCookiePageUrl = cookiePreference.getAttribute("href");
+        checkOkHttpResponseOnLink(changeCookiePageUrl);
     }
 
     public void passportPageURLValidation(String path) {
