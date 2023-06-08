@@ -58,6 +58,11 @@ Conditions:
     - dev
   IsNotDevEnvironment: !Not
     - Condition: IsDevEnvironment
+  UsingCodeSigning:
+    Fn::Not:
+      - Fn::Equals:
+          - !Ref CodeSigningConfigArn
+          - "none"
   AddProvisionedConcurrency: !Not
     - !Equals
       - !FindInMap [ProvisionedConcurrency, Environment, !Ref 'Environment']
@@ -71,7 +76,7 @@ Conditions:
 Globals:
   Function:
     CodeSigningConfigArn: !If
-      - IsNotDevEnvironment
+      - UsingCodeSigning
       - !Ref CodeSigningConfigArn
       - !Ref AWS::NoValue
     PermissionsBoundary: !If
