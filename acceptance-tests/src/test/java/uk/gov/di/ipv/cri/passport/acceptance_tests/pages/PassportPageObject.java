@@ -25,6 +25,7 @@ import java.util.stream.Collectors;
 
 import static org.junit.Assert.fail;
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static uk.gov.di.ipv.cri.passport.acceptance_tests.pages.Headers.IPV_CORE_STUB;
 import static uk.gov.di.ipv.cri.passport.acceptance_tests.utilities.BrowserUtils.checkOkHttpResponseOnLink;
@@ -748,5 +749,22 @@ public class PassportPageObject extends UniversalSteps {
 
     private WebElement getLabel(WebElement webElement) {
         return webElement.findElement(By.tagName("label"));
+    }
+
+    private JsonNode getVCFromJson(String vc) throws JsonProcessingException {
+        String result = JSONPayload.getText();
+        LOGGER.info("result = " + result);
+        ObjectMapper objectMapper = new ObjectMapper();
+        JsonNode jsonNode = objectMapper.readTree(result);
+        return jsonNode.get(vc);
+    }
+
+    public void expiryAbsentFromVC(String checkType) throws JsonProcessingException {
+        JsonNode vcNode = getVCFromJson("vc");
+        JsonNode evidenceNode = vcNode.get("evidence").get(0);
+        boolean expInVC =
+                evidenceNode.findValues("expiryDate").stream()
+                        .anyMatch(x -> x.asText().equals(checkType));
+        assertFalse(expInVC);
     }
 }
