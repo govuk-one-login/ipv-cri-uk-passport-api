@@ -412,7 +412,7 @@ public class PassportStepDefs extends PassportPageObject {
     }
 
     @And("^(.*) should not be absent in the JSON payload$")
-    public void ExpiryNotPresentInJsonResponse(String checkType) throws JsonProcessingException {
-        expiryAbsentFromVC(checkType);
+    public void ExpiryNotPresentInJsonResponse(String exp) throws JsonProcessingException {
+        expiryAbsentFromVC(exp);
     }
 }
