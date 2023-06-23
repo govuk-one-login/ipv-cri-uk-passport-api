@@ -19,6 +19,11 @@ Parameters:
     Description: >
       The ARN of the permissions boundary to apply to any role created by the template
     Default: "none"
+  DevEnvironment:
+    Type: String
+    Description: >
+      To support unique VPC config on cri-dev
+    Default: "all-other-env"
   Environment:
     Description: "The environment type"
     Type: "String"
@@ -49,15 +54,20 @@ Conditions:
   IsProdEnvironment: !Equals
     - !Ref Environment
     - production
-  IsProdLikeEnvironment: !Or
-    - !Equals [ !Ref Environment, staging ]
-    - !Equals [ !Ref Environment, integration ]
-    - !Equals [ !Ref Environment, production ]
+  #  IsProdLikeEnvironment: !Or
+  #    - !Equals [ !Ref Environment, staging ]
+  #    - !Equals [ !Ref Environment, integration ]
+  #    - !Equals [ !Ref Environment, production ]
   IsDevEnvironment: !Equals
     - !Ref Environment
     - dev
   IsNotDevEnvironment: !Not
     - Condition: IsDevEnvironment
+  IsNotCRIDevEnv:
+    Fn::Not:
+      - Fn::Equals:
+          - !Ref DevEnvironment
+          - "cri-dev"
   UsingCodeSigning:
     Fn::Not:
       - Fn::Equals:
@@ -358,6 +368,28 @@ Resources:
       # checkov:skip=CKV_AWS_115: We do not have enough data to allocate the concurrent execution allowance per function.
       # checkov:skip=CKV_AWS_116: Lambdas invoked via API Gateway do not support Dead Letter Queues.
       # checkov:skip=CKV_AWS_117: Lambdas will migrate to our own VPC in future work.
+      # CheckPassport uses ProtectedSubnets as it needs to reach a third party api
+      VpcConfig:
+        !If
+        - IsNotCRIDevEnv
+        - SecurityGroupIds:
+            - Fn::ImportValue:
+                !Sub "${VpcStackName}-AWSServicesEndpointSecurityGroupId"
+          SubnetIds:
+            - Fn::ImportValue:
+                !Sub "${VpcStackName}-ProtectedSubnetIdA"
+            - Fn::ImportValue:
+                !Sub "${VpcStackName}-ProtectedSubnetIdB"
+            - Fn::ImportValue:
+                !Sub "${VpcStackName}-ProtectedSubnetIdC"
+        - SecurityGroupIds:
+            - Fn::ImportValue:
+                !Sub "${VpcStackName}-LambdaSecurityGroup"
+          SubnetIds:
+            - Fn::ImportValue:
+                !Sub "${VpcStackName}-PrivateSubnetIdA"
+            - Fn::ImportValue:
+                !Sub "${VpcStackName}-PrivateSubnetIdB"
       Handler: uk.gov.di.ipv.cri.passport.checkpassport.handler.CheckPassportHandler::handleRequest
       Runtime: java11
       CodeUri: ../../lambdas/checkpassport
@@ -431,20 +463,6 @@ Resources:
         - AddProvisionedConcurrency
         - ProvisionedConcurrentExecutions: !FindInMap [ProvisionedConcurrency, Environment, !Ref 'Environment']
         - !Ref AWS::NoValue
-    # CheckPassport uses ProtectedSubnets as it needs to reach a third party api
-    VpcConfig: !If
-      - IsNotDevEnvironment
-      - SecurityGroupIds:
-          - Fn::ImportValue:
-              !Sub "${VpcStackName}-AWSServicesEndpointSecurityGroupId"
-        SubnetIds:
-          - Fn::ImportValue:
-              !Sub "${VpcStackName}-ProtectedSubnetA"
-          - Fn::ImportValue:
-              !Sub "${VpcStackName}-ProtectedSubnetB"
-          - Fn::ImportValue:
-              !Sub "${VpcStackName}-ProtectedSubnetC"
-      - !Ref AWS::NoValue
 
   CheckPassportFunctionLogGroup:
     Type: AWS::Logs::LogGroup
@@ -479,6 +497,27 @@ Resources:
       # checkov:skip=CKV_AWS_115: We do not have enough data to allocate the concurrent execution allowance per function.
       # checkov:skip=CKV_AWS_116: Lambdas invoked via API Gateway do not support Dead Letter Queues.
       # checkov:skip=CKV_AWS_117: Lambdas will migrate to our own VPC in future work.
+      VpcConfig:
+        !If
+        - IsNotCRIDevEnv
+        - SecurityGroupIds:
+            - Fn::ImportValue:
+                !Sub "${VpcStackName}-AWSServicesEndpointSecurityGroupId"
+          SubnetIds:
+            - Fn::ImportValue:
+                !Sub "${VpcStackName}-PrivateSubnetIdA"
+            - Fn::ImportValue:
+                !Sub "${VpcStackName}-PrivateSubnetIdB"
+            - Fn::ImportValue:
+                !Sub "${VpcStackName}-PrivateSubnetIdC"
+        - SecurityGroupIds:
+            - Fn::ImportValue:
+                !Sub "${VpcStackName}-LambdaSecurityGroup"
+          SubnetIds:
+            - Fn::ImportValue:
+                !Sub "${VpcStackName}-PrivateSubnetIdA"
+            - Fn::ImportValue:
+                !Sub "${VpcStackName}-PrivateSubnetIdB"
       Handler: uk.gov.di.ipv.cri.passport.issuecredential.handler.IssueCredentialHandler::handleRequest
       Runtime: java11
       CodeUri: ../../lambdas/issuecredential
@@ -527,22 +566,9 @@ Resources:
       AutoPublishAlias: live
       ProvisionedConcurrencyConfig:
         !If
-          - AddProvisionedConcurrency
-          - ProvisionedConcurrentExecutions: !FindInMap [ProvisionedConcurrency, Environment, !Ref 'Environment']
-          - !Ref AWS::NoValue
-    VpcConfig: !If
-      - IsNotDevEnvironment
-      - SecurityGroupIds:
-          - Fn::ImportValue:
-              !Sub "${VpcStackName}-AWSServicesEndpointSecurityGroupId"
-        SubnetIds:
-          - Fn::ImportValue:
-              !Sub "${VpcStackName}-PrivateSubnetIdA"
-          - Fn::ImportValue:
-              !Sub "${VpcStackName}-PrivateSubnetIdB"
-          - Fn::ImportValue:
-              !Sub "${VpcStackName}-PrivateSubnetIdC"
-      - !Ref AWS::NoValue
+        - AddProvisionedConcurrency
+        - ProvisionedConcurrentExecutions: !FindInMap [ProvisionedConcurrency, Environment, !Ref 'Environment']
+        - !Ref AWS::NoValue
 
   IssueCredentialFunctionLogGroup:
     Type: AWS::Logs::LogGroup
