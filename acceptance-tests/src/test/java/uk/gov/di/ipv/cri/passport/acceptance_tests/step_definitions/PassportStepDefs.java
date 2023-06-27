@@ -410,4 +410,9 @@ public class PassportStepDefs extends PassportPageObject {
     public void errorInJsonResponse(String documentNumber) throws IOException {
         assertDocumentNumberInVc(documentNumber);
     }
+
+    @And("^(.*) should be absent in the JSON payload$")
+    public void ExpiryNotPresentInJsonResponse(String exp) throws JsonProcessingException {
+        expiryAbsentFromVC(exp);
+    }
 }

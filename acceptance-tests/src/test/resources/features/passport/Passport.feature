@@ -12,6 +12,7 @@ Feature: Passport Test
     Then I navigate to the passport verifiable issuer to check for a Valid response
     And JSON payload should contain validity score 2 and strength score 4
     And JSON response should contain documentNumber 321654987 same as given passport
+    And exp should be absent in the JSON payload
     And The test is complete and I close the driver
     Examples:
       |PassportSubject             |
