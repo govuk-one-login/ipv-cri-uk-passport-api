@@ -104,6 +104,11 @@ public class ThirdPartyAPIService {
             // EntityUtils can return null
             responseBody = (mappedBody) == null ? "No Body Text Found" : mappedBody;
 
+            if (Boolean.parseBoolean(
+                    passportConfigurationService.getParameterValue("logDcsResponse"))) {
+                LOGGER.info("DCS response " + responseBody);
+            }
+
             statusCode = response.getStatusLine().getStatusCode();
         } catch (IOException e) {
             LOGGER.error("IOException mapping http response body");
