@@ -147,6 +147,11 @@ public class ClientFactoryService {
 
         SSLContext sslContext = sslContextSetup(keystoreTLS, trustStore);
 
+        if (Boolean.parseBoolean(
+                passportConfigurationService.getParameterValue("isPerformanceStub"))) {
+            sslContextSetup(keystoreTLS, null);
+        }
+
         return HttpClients.custom().setSSLContext(sslContext).build();
     }
 
