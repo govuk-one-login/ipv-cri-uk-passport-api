@@ -9,10 +9,6 @@ public class ValidationResult<T> {
         this.error = error;
     }
 
-    public static <U> ValidationResult<U> createValidResult() {
-        return new ValidationResult<>(true, null);
-    }
-
     public boolean isValid() {
         return valid;
     }

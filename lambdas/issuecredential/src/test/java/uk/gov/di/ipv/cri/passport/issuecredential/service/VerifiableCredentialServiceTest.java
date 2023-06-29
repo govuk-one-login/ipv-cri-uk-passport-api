@@ -3,7 +3,9 @@ package uk.gov.di.ipv.cri.passport.issuecredential.service;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import com.nimbusds.jose.JOSEException;
+import com.nimbusds.jose.JWSSigner;
 import com.nimbusds.jose.crypto.ECDSASigner;
 import com.nimbusds.jose.crypto.ECDSAVerifier;
 import com.nimbusds.jose.jwk.ECKey;
@@ -18,7 +20,6 @@ import org.junit.jupiter.params.provider.CsvSource;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import uk.gov.di.ipv.cri.common.library.domain.personidentity.PersonIdentityDetailed;
-import uk.gov.di.ipv.cri.common.library.util.SignedJWTFactory;
 import uk.gov.di.ipv.cri.passport.library.DocumentCheckTestDataGenerator;
 import uk.gov.di.ipv.cri.passport.library.PassportFormTestDataGenerator;
 import uk.gov.di.ipv.cri.passport.library.VerifiableCredentialServiceTestFixtures;
@@ -58,23 +59,24 @@ class VerifiableCredentialServiceTest implements VerifiableCredentialServiceTest
     private final String UNIT_TEST_VC_ISSUER = "UNIT_TEST_VC_ISSUER";
     private final String UNIT_TEST_SUBJECT = "urn:fdc:12345678";
 
-    private final ObjectMapper testFixtureObjectMapper = new ObjectMapper();
-
-    @Mock private PassportConfigurationService mockPassportConfigurationService;
     @Mock private ServiceFactory mockServiceFactory;
+
+    // Returned via the ServiceFactory
+    private final ObjectMapper realObjectMapper =
+            new ObjectMapper().registerModule(new JavaTimeModule());
+    @Mock private PassportConfigurationService mockPassportConfigurationService;
 
     private VerifiableCredentialService verifiableCredentialService;
 
     @BeforeEach
     void setup() throws InvalidKeySpecException, NoSuchAlgorithmException, JOSEException {
 
-        SignedJWTFactory signedJwtFactory = new SignedJWTFactory(new ECDSASigner(getPrivateKey()));
+        JWSSigner jwsSigner = new ECDSASigner(getPrivateKey());
 
-        when(mockServiceFactory.getObjectMapper()).thenReturn(testFixtureObjectMapper);
+        mockServiceFactoryBehaviour();
 
         verifiableCredentialService =
-                new VerifiableCredentialService(
-                        mockPassportConfigurationService, mockServiceFactory, signedJwtFactory);
+                new VerifiableCredentialService(mockServiceFactory, jwsSigner);
     }
 
     @ParameterizedTest
@@ -130,13 +132,13 @@ class VerifiableCredentialServiceTest implements VerifiableCredentialServiceTest
                                         VerifiableCredentialServiceTestFixtures.EC_PUBLIC_JWK_1))));
 
         String jsonGeneratedClaims =
-                testFixtureObjectMapper
+                realObjectMapper
                         .writer()
                         .withDefaultPrettyPrinter()
                         .writeValueAsString(generatedClaims);
         LOGGER.info(jsonGeneratedClaims);
 
-        JsonNode claimsSet = testFixtureObjectMapper.readTree(generatedClaims.toString());
+        JsonNode claimsSet = realObjectMapper.readTree(generatedClaims.toString());
         assertNotNull(claimsSet);
         assertEquals(5, claimsSet.size());
 
@@ -165,7 +167,7 @@ class VerifiableCredentialServiceTest implements VerifiableCredentialServiceTest
 
         // Names
         assertEquals(
-                testFixtureObjectMapper.writeValueAsString(personIdentityDetailed.getNames()),
+                realObjectMapper.writeValueAsString(personIdentityDetailed.getNames()),
                 subject.get(VC_NAME_KEY).toString());
 
         // Passport (0)
@@ -203,5 +205,11 @@ class VerifiableCredentialServiceTest implements VerifiableCredentialServiceTest
                 new ECDSAVerifier(
                         ECKey.parse(VerifiableCredentialServiceTestFixtures.EC_PUBLIC_JWK_1));
         assertTrue(signedJWT.verify(ecVerifier));
+    }
+
+    private void mockServiceFactoryBehaviour() {
+        when(mockServiceFactory.getObjectMapper()).thenReturn(realObjectMapper);
+        when(mockServiceFactory.getPassportConfigurationService())
+                .thenReturn(mockPassportConfigurationService);
     }
 }

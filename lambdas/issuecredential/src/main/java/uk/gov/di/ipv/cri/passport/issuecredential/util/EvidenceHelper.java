@@ -1,5 +1,6 @@
 package uk.gov.di.ipv.cri.passport.issuecredential.util;
 
+import uk.gov.di.ipv.cri.common.library.annotations.ExcludeFromGeneratedCoverageReport;
 import uk.gov.di.ipv.cri.passport.issuecredential.domain.checkdetails.Check;
 import uk.gov.di.ipv.cri.passport.issuecredential.domain.verifiablecredential.Evidence;
 import uk.gov.di.ipv.cri.passport.issuecredential.domain.verifiablecredential.EvidenceType;
@@ -9,6 +10,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class EvidenceHelper {
+    @ExcludeFromGeneratedCoverageReport
     private EvidenceHelper() {
         throw new IllegalStateException("Instantiation is not valid for this class.");
     }
@@ -26,20 +28,18 @@ public class EvidenceHelper {
 
         List<String> stringCheckDetails = documentCheckResultItem.getCheckDetails();
         if (stringCheckDetails != null && !stringCheckDetails.isEmpty()) {
-            evidence.setCheckDetails(createCheckList(stringCheckDetails, documentCheckResultItem));
+            evidence.setCheckDetails(createCheckList(stringCheckDetails));
         }
 
         List<String> stringFailedCheckDetails = documentCheckResultItem.getFailedCheckDetails();
         if (stringFailedCheckDetails != null && !stringFailedCheckDetails.isEmpty()) {
-            evidence.setFailedCheckDetails(
-                    createCheckList(stringFailedCheckDetails, documentCheckResultItem));
+            evidence.setFailedCheckDetails(createCheckList(stringFailedCheckDetails));
         }
 
         return evidence;
     }
 
-    private static List<Check> createCheckList(
-            List<String> stringChecks, DocumentCheckResultItem documentCheckResultItem) {
+    private static List<Check> createCheckList(List<String> stringChecks) {
 
         List<Check> checkList = new ArrayList<>();
 

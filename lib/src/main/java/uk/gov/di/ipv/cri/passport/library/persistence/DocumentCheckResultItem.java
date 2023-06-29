@@ -22,6 +22,8 @@ public class DocumentCheckResultItem {
     private List<String> checkDetails;
     private List<String> failedCheckDetails;
 
+    private long ttl;
+
     @DynamoDbPartitionKey()
     public UUID getSessionId() {
         return sessionId;
@@ -93,5 +95,13 @@ public class DocumentCheckResultItem {
 
     public void setFailedCheckDetails(List<String> failedCheckDetails) {
         this.failedCheckDetails = failedCheckDetails;
+    }
+
+    public long getTtl() {
+        return ttl;
+    }
+
+    public void setTtl(long ttl) {
+        this.ttl = ttl;
     }
 }

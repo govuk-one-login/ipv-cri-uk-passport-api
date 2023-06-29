@@ -5,7 +5,6 @@ import java.util.List;
 
 public class DocumentDataVerificationResult {
     private boolean verified;
-    private List<String> validationErrors;
     private List<String> contraIndicators;
     private int strengthScore;
     private int validityScore;
@@ -21,14 +20,6 @@ public class DocumentDataVerificationResult {
 
     public void setVerified(boolean verified) {
         this.verified = verified;
-    }
-
-    public List<String> getValidationErrors() {
-        return validationErrors;
-    }
-
-    public void setValidationErrors(List<String> validationErrors) {
-        this.validationErrors = validationErrors;
     }
 
     public List<String> getContraIndicators() {

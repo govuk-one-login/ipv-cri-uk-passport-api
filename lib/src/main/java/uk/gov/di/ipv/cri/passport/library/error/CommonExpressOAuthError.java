@@ -3,7 +3,9 @@ package uk.gov.di.ipv.cri.passport.library.error;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.nimbusds.oauth2.sdk.ErrorObject;
 import net.minidev.json.JSONObject;
+import uk.gov.di.ipv.cri.common.library.annotations.ExcludeFromGeneratedCoverageReport;
 
+@ExcludeFromGeneratedCoverageReport
 public class CommonExpressOAuthError {
     @JsonProperty("oauth_error")
     private final JSONObject error;

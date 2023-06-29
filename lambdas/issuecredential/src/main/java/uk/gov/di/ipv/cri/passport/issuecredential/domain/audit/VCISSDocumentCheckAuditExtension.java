@@ -25,12 +25,4 @@ public class VCISSDocumentCheckAuditExtension {
         this.iss = iss;
         this.evidence = evidence;
     }
-
-    public String getIss() {
-        return iss;
-    }
-
-    public List<Evidence> getEvidence() {
-        return evidence;
-    }
 }

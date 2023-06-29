@@ -1,4 +1,4 @@
-package uk.gov.di.ipv.cri.passport.checkpassport.domain.response;
+package uk.gov.di.ipv.cri.passport.checkpassport.handler;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 import uk.gov.di.ipv.cri.common.library.annotations.ExcludeFromGeneratedCoverageReport;

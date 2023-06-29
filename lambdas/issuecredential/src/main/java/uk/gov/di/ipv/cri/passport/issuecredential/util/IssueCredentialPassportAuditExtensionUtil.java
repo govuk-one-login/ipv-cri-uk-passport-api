@@ -1,5 +1,6 @@
 package uk.gov.di.ipv.cri.passport.issuecredential.util;
 
+import uk.gov.di.ipv.cri.common.library.annotations.ExcludeFromGeneratedCoverageReport;
 import uk.gov.di.ipv.cri.passport.issuecredential.domain.audit.VCISSDocumentCheckAuditExtension;
 import uk.gov.di.ipv.cri.passport.issuecredential.domain.verifiablecredential.Evidence;
 import uk.gov.di.ipv.cri.passport.library.persistence.DocumentCheckResultItem;
@@ -9,6 +10,7 @@ import java.util.List;
 
 public class IssueCredentialPassportAuditExtensionUtil {
 
+    @ExcludeFromGeneratedCoverageReport
     private IssueCredentialPassportAuditExtensionUtil() {
         throw new IllegalStateException("Instantiation is not valid for this class.");
     }

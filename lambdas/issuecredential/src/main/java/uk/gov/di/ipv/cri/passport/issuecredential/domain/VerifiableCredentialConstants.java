@@ -1,5 +1,7 @@
 package uk.gov.di.ipv.cri.passport.issuecredential.domain;
 
+import uk.gov.di.ipv.cri.common.library.annotations.ExcludeFromGeneratedCoverageReport;
+
 public class VerifiableCredentialConstants {
     public static final String VC_CLAIM_KEY = "vc";
     public static final String VC_CLAIM_TYPE_KEY = "type";
@@ -12,6 +14,7 @@ public class VerifiableCredentialConstants {
     public static final String VC_PASSPORT_KEY = "passport";
     public static final String VC_EVIDENCE_KEY = "evidence";
 
+    @ExcludeFromGeneratedCoverageReport
     private VerifiableCredentialConstants() {
         throw new IllegalStateException("Instantiation is not valid for this class.");
     }

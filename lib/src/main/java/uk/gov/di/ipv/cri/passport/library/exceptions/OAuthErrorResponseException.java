@@ -1,12 +1,13 @@
-package uk.gov.di.ipv.cri.passport.checkpassport.exception;
+package uk.gov.di.ipv.cri.passport.library.exceptions;
 
 import uk.gov.di.ipv.cri.passport.library.error.ErrorResponse;
 
-public class HttpResponseExceptionWithErrorBody extends Exception {
+/** Exception used to return CRI specific oauth error messages */
+public class OAuthErrorResponseException extends Exception {
     private final int statusCode;
     private final ErrorResponse errorResponse;
 
-    public HttpResponseExceptionWithErrorBody(int statusCode, ErrorResponse errorResponse) {
+    public OAuthErrorResponseException(int statusCode, ErrorResponse errorResponse) {
         this.statusCode = statusCode;
         this.errorResponse = errorResponse;
     }

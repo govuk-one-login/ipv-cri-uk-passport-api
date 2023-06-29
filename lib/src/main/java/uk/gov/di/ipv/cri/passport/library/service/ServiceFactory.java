@@ -2,11 +2,9 @@ package uk.gov.di.ipv.cri.passport.library.service;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
-import uk.gov.di.ipv.cri.common.library.annotations.ExcludeFromGeneratedCoverageReport;
 import uk.gov.di.ipv.cri.common.library.persistence.DataStore;
 import uk.gov.di.ipv.cri.common.library.service.AuditEventFactory;
 import uk.gov.di.ipv.cri.common.library.service.AuditService;
-import uk.gov.di.ipv.cri.common.library.service.ConfigurationService;
 import uk.gov.di.ipv.cri.common.library.service.PersonIdentityService;
 import uk.gov.di.ipv.cri.common.library.service.SessionService;
 import uk.gov.di.ipv.cri.common.library.util.EventProbe;
@@ -18,110 +16,106 @@ import static uk.gov.di.ipv.cri.passport.library.config.ParameterStoreParameters
 
 public class ServiceFactory {
 
-    private final ObjectMapper objectMapper;
-    private final PassportConfigurationService passportConfigurationService;
-    private final ClientFactoryService clientFactoryService;
-    private final EventProbe eventProbe;
-    private final SessionService sessionService;
-    private final AuditService auditService;
-    private final PersonIdentityService personIdentityService;
+    private ObjectMapper objectMapper;
+    private EventProbe eventProbe;
+    private ClientFactoryService clientFactoryService;
+    private PassportConfigurationService passportConfigurationService;
+    private SessionService sessionService;
+    private AuditService auditService;
+    private PersonIdentityService personIdentityService;
+    private DataStore<DocumentCheckResultItem> documentCheckResultStore;
 
-    private final DataStore<DocumentCheckResultItem> documentCheckResultStore;
-
-    /** Creates common service objects used by *both* passport lambdas */
-    @ExcludeFromGeneratedCoverageReport
+    /**
+     * Creates common service objects used by *both* passport lambdas Important - - All objects in
+     * this class are intended to be singletons. ALWAYS use getters() for object parameters to
+     * ensure all parameters objects are also setup
+     */
     public ServiceFactory() {
-        this.objectMapper = new ObjectMapper().registerModule(new JavaTimeModule());
-
-        this.clientFactoryService = new ClientFactoryService();
-        this.passportConfigurationService = new PassportConfigurationService(clientFactoryService);
-
-        this.eventProbe = new EventProbe();
-        this.sessionService = createSessionService(passportConfigurationService);
-        this.auditService =
-                createAuditService(
-                        passportConfigurationService, objectMapper, clientFactoryService);
-        this.personIdentityService = new PersonIdentityService(passportConfigurationService);
-
-        this.documentCheckResultStore =
-                createDocumentCheckResultStore(passportConfigurationService);
-    }
-
-    public ServiceFactory(
-            ObjectMapper objectMapper,
-            PassportConfigurationService passportConfigurationService,
-            ClientFactoryService clientFactoryService,
-            EventProbe eventProbe,
-            SessionService sessionService,
-            AuditService auditService,
-            PersonIdentityService personIdentityService,
-            DataStore<DocumentCheckResultItem> documentCheckResultStore) {
-        this.objectMapper = objectMapper;
-
-        this.clientFactoryService = clientFactoryService;
-        this.passportConfigurationService = passportConfigurationService;
-
-        this.eventProbe = eventProbe;
-        this.sessionService = sessionService;
-        this.auditService = auditService;
-        this.personIdentityService = personIdentityService;
-
-        this.documentCheckResultStore = documentCheckResultStore;
-    }
-
-    private SessionService createSessionService(
-            PassportConfigurationService passportConfigurationService) {
-        return new SessionService(passportConfigurationService);
-    }
-
-    private AuditService createAuditService(
-            ConfigurationService commonConfigurationService,
-            ObjectMapper objectMapper,
-            ClientFactoryService clientFactoryService) {
-
-        return new AuditService(
-                clientFactoryService.getSqsClient(),
-                commonConfigurationService,
-                objectMapper,
-                new AuditEventFactory(commonConfigurationService, Clock.systemUTC()));
-    }
-
-    private DataStore<DocumentCheckResultItem> createDocumentCheckResultStore(
-            ConfigurationService commonConfigurationService) {
-        final String tableName =
-                commonConfigurationService.getParameterValue(DOCUMENT_CHECK_RESULT_TABLE_NAME);
-        return new DataStore<>(tableName, DocumentCheckResultItem.class, DataStore.getClient());
+        // Lazy Init Singletons (NOT thread safe)
     }
 
     public ObjectMapper getObjectMapper() {
+
+        if (objectMapper == null) {
+            objectMapper = new ObjectMapper().registerModule(new JavaTimeModule());
+        }
+
         return objectMapper;
     }
 
     public EventProbe getEventProbe() {
+
+        if (eventProbe == null) {
+            eventProbe = new EventProbe();
+        }
+
         return eventProbe;
     }
 
+    public ClientFactoryService getClientFactoryService() {
+
+        if (clientFactoryService == null) {
+            clientFactoryService = new ClientFactoryService();
+        }
+
+        return clientFactoryService;
+    }
+
     public PassportConfigurationService getPassportConfigurationService() {
+
+        if (passportConfigurationService == null) {
+            passportConfigurationService =
+                    new PassportConfigurationService(getClientFactoryService());
+        }
+
         return passportConfigurationService;
     }
 
     public SessionService getSessionService() {
+
+        if (sessionService == null) {
+            sessionService = new SessionService(getPassportConfigurationService());
+        }
+
         return sessionService;
     }
 
     public AuditService getAuditService() {
+
+        if (auditService == null) {
+            auditService =
+                    new AuditService(
+                            getClientFactoryService().getSqsClient(),
+                            getPassportConfigurationService(),
+                            getObjectMapper(),
+                            new AuditEventFactory(
+                                    getPassportConfigurationService(), Clock.systemUTC()));
+        }
+
         return auditService;
     }
 
     public PersonIdentityService getPersonIdentityService() {
+
+        if (personIdentityService == null) {
+            personIdentityService = new PersonIdentityService(getPassportConfigurationService());
+        }
+
         return personIdentityService;
     }
 
-    public ClientFactoryService getClientFactoryService() {
-        return clientFactoryService;
-    }
-
     public DataStore<DocumentCheckResultItem> getDocumentCheckResultStore() {
+
+        if (documentCheckResultStore == null) {
+            final String tableName =
+                    getPassportConfigurationService()
+                            .getParameterValue(DOCUMENT_CHECK_RESULT_TABLE_NAME);
+
+            documentCheckResultStore =
+                    new DataStore<>(
+                            tableName, DocumentCheckResultItem.class, DataStore.getClient());
+        }
+
         return documentCheckResultStore;
     }
 }

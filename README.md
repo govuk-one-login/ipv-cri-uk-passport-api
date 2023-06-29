@@ -86,11 +86,15 @@ See onboarding guide for instructions on how to setup the following command line
 - sam cli
 - gds cli
 
-### Deploy to dev account
+### Deploy to passport dev account
 
-Any time you wish to deploy, run:
+`gds aws di-ipv-cri-passporta-dev-admin -- ./deploy.sh di-ipv-cri-passport-myusernameORticket`
 
-`gds aws di-ipv-cri-dev -- ./deploy.sh my-ukpassport-api-stack-name`
+### Deploy to shared dev account
+
+edit deploy.sh and set DevEnvironment=cri-dev
+
+`gds aws di-ipv-cri-dev -- ./deploy.sh di-ipv-cri-passport-myusernameORticket`
 
 ### Delete stack from dev account
 > The stack name *must* be unique to you and created by you in the deploy stage above.
@@ -98,4 +102,4 @@ Any time you wish to deploy, run:
 
 The command to run is:
 
-`gds aws di-ipv-cri-dev -- sam delete --config-env dev --stack-name <unique-stack-name>`
+`gds aws ROLE -- sam delete --config-env dev --stack-name <unique-stack-name>`

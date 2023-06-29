@@ -6,6 +6,7 @@ plugins {
 	id "idea"
 	id "jacoco"
 	id 'io.freefair.aspectj.post-compile-weaving' version '6.3.0'
+	id 'java-test-fixtures'
 }
 
 dependencies {
@@ -30,7 +31,7 @@ dependencies {
 			"software.amazon.lambda:powertools-metrics:${dependencyVersions.aws_powertools_metrics_version}",
 			"software.amazon.lambda:powertools-parameters:${dependencyVersions.aws_powertools_parameters_version}"
 
-	testImplementation testFixtures(project(":lib")),"org.junit.jupiter:junit-jupiter-engine:${dependencyVersions.junit_version}",
+	testImplementation testFixtures(project(":lib")), testFixtures(this.project),"org.junit.jupiter:junit-jupiter-engine:${dependencyVersions.junit_version}",
 			"org.junit.jupiter:junit-jupiter-api:${dependencyVersions.junit_version}",
 			"org.junit.jupiter:junit-jupiter-params:${dependencyVersions.junit_version}",
 			"org.mockito:mockito-junit-jupiter:${dependencyVersions.mockito_version}",
@@ -38,7 +39,17 @@ dependencies {
 			"org.hamcrest:hamcrest:${dependencyVersions.hamcrest_version}",
 			"com.github.tomakehurst:wiremock-jre8:${dependencyVersions.wiremock_version}",
 			"uk.org.webcompere:system-stubs-core:${dependencyVersions.webcompere_version}",
-			"uk.org.webcompere:system-stubs-jupiter:${dependencyVersions.webcompere_version}"
+			"uk.org.webcompere:system-stubs-jupiter:${dependencyVersions.webcompere_version}",
+			"com.amazonaws:aws-lambda-java-core:${dependencyVersions.aws_lambda_core_version}"
+
+	testFixturesImplementation "org.aspectj:aspectjrt:${dependencyVersions.aspectjrt_version}",
+			"com.fasterxml.jackson.core:jackson-core:${dependencyVersions.jackson_version}",
+			"com.fasterxml.jackson.datatype:jackson-datatype-jsr310:${dependencyVersions.jackson_version}",
+			"com.fasterxml.jackson.datatype:jackson-datatype-jdk8:${dependencyVersions.jackson_version}",
+			"com.fasterxml.jackson.core:jackson-databind:${dependencyVersions.jackson_version}",
+			"com.fasterxml.jackson.core:jackson-annotations:${dependencyVersions.jackson_version}",
+			"org.apache.httpcomponents:httpcore:${dependencyVersions.httpcomponents_core_version}",
+			"org.apache.httpcomponents:httpclient:${dependencyVersions.httpcomponents_client_version}"
 }
 
 java {
@@ -57,7 +68,7 @@ tasks.register('buildZip', Zip) {
 
 test {
 	useJUnitPlatform ()
-	finalizedBy jacocoTestReport
+	finalizedBy jacocoTestReport, jacocoTestCoverageVerification
 }
 
 jacocoTestReport {
@@ -84,6 +95,21 @@ tasks.withType(Test).configureEach {
 				def startItem = "|  ", endItem = "  |"
 				def repeatLength = startItem.length() + output.length() + endItem.length()
 				println("\n" + ("-" * repeatLength) + "\n" + startItem + output + endItem + "\n" + ("-" * repeatLength))
+			}
+		}
+	}
+}
+
+jacocoTestCoverageVerification {
+	violationRules {
+		rule {
+			limit {
+				counter = 'LINE'
+				minimum = minUnitTestLineCoverage
+			}
+			limit {
+				counter = 'BRANCH'
+				minimum = minUnitTestBranchCoverage
 			}
 		}
 	}

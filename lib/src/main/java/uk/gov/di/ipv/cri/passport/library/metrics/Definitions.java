@@ -1,5 +1,7 @@
 package uk.gov.di.ipv.cri.passport.library.metrics;
 
+import uk.gov.di.ipv.cri.common.library.annotations.ExcludeFromGeneratedCoverageReport;
+
 public class Definitions {
 
     // These completed metrics record all escape routes from the lambdas.
@@ -42,19 +44,11 @@ public class Definitions {
 
     public static final String PASSPORT_CI_PREFIX = "passport_ci_";
 
-    // HTTP Connection Send (Both)
-    public static final String THIRD_PARTY_REQUEST_CREATED = "third_party_requests_created";
-    public static final String THIRD_PARTY_REQUEST_SEND_OK = "third_party_request_send_ok";
-    public static final String THIRD_PARTY_REQUEST_SEND_ERROR = "third_party_request_send_error";
+    // ThirdPartyAPIService metrics in Passport are recorded per API (DCS/DVAD)
+    // For DVAD they are also recorded Per API Endpoint individually
+    // See ThirdPartyAPIEndpointMetric
 
-    // Third Party AI Response Type
-    public static final String THIRD_PARTY_API_RESPONSE_TYPE_OK =
-            "third_party_api_response_type_ok"; // 200
-    public static final String THIRD_PARTY_API_RESPONSE_TYPE_ERROR =
-            "third_party_api_response_type_error"; // A Specific Error from API
-    public static final String THIRD_PARTY_API_RESPONSE_TYPE_UNEXPECTED_HTTP_STATUS =
-            "third_party_api_response_type_unexpected_http_status"; // Anything Not 200
-
+    @ExcludeFromGeneratedCoverageReport
     private Definitions() {
         throw new IllegalStateException("Instantiation is not valid for this class.");
     }

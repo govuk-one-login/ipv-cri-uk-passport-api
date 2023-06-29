@@ -1,14 +1,12 @@
-package uk.gov.di.ipv.cri.passport.checkpassport.domain.response;
+package uk.gov.di.ipv.cri.passport.checkpassport.domain.response.dcs;
 
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import software.amazon.awssdk.enhanced.dynamodb.mapper.annotations.DynamoDbBean;
-import uk.gov.di.ipv.cri.common.library.annotations.ExcludeFromGeneratedCoverageReport;
 
 import java.util.List;
 
 @DynamoDbBean
-@ExcludeFromGeneratedCoverageReport
 public class DcsResponse {
     private String correlationId;
     private String requestId;

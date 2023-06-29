@@ -12,15 +12,18 @@ import uk.gov.di.ipv.cri.common.library.service.AuditService;
 import uk.gov.di.ipv.cri.common.library.util.EventProbe;
 import uk.gov.di.ipv.cri.passport.checkpassport.domain.result.DocumentDataVerificationResult;
 import uk.gov.di.ipv.cri.passport.checkpassport.domain.result.ThirdPartyAPIResult;
-import uk.gov.di.ipv.cri.passport.checkpassport.exception.OAuthHttpResponseExceptionWithErrorBody;
 import uk.gov.di.ipv.cri.passport.checkpassport.validation.ValidationResult;
 import uk.gov.di.ipv.cri.passport.library.domain.PassportFormData;
 import uk.gov.di.ipv.cri.passport.library.error.ErrorResponse;
+import uk.gov.di.ipv.cri.passport.library.exceptions.OAuthErrorResponseException;
 import uk.gov.di.ipv.cri.passport.library.helpers.PersonIdentityDetailedHelperMapper;
+import uk.gov.di.ipv.cri.passport.library.service.ServiceFactory;
 
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 import static uk.gov.di.ipv.cri.passport.library.domain.CheckType.DOCUMENT_DATA_VERIFICATION;
 import static uk.gov.di.ipv.cri.passport.library.metrics.Definitions.DOCUMENT_DATA_VERIFICATION_REQUEST_FAILED;
@@ -31,6 +34,8 @@ import static uk.gov.di.ipv.cri.passport.library.metrics.Definitions.FORM_DATA_V
 public class DocumentDataVerificationService {
     private static final Logger LOGGER = LogManager.getLogger();
 
+    private static final String DOCUMENT_VALIDITY_CI = "D02";
+
     private static final int MAX_PASSPORT_GPG45_STRENGTH_VALUE = 4;
     private static final int MAX_PASSPORT_GPG45_VALIDITY_VALUE = 2;
     private static final int MIN_PASSPORT_GPG45_VALUE = 0;
@@ -39,26 +44,27 @@ public class DocumentDataVerificationService {
     private final AuditService auditService;
 
     private final FormDataValidator formDataValidator;
-    private final ThirdPartyAPIService thirdPartyAPIService;
+    private final ContraIndicatorMapper contraIndicatorMapper;
 
     public DocumentDataVerificationService(
-            EventProbe eventProbe,
-            AuditService auditService,
-            ThirdPartyAPIService thirdPartyAPIService,
-            FormDataValidator formDataValidator) {
+            ServiceFactory serviceFactory,
+            FormDataValidator formDataValidator,
+            ContraIndicatorMapper contraIndicatorMapper) {
 
-        this.eventProbe = eventProbe;
-        this.auditService = auditService;
+        this.eventProbe = serviceFactory.getEventProbe();
+        this.auditService = serviceFactory.getAuditService();
 
-        this.thirdPartyAPIService = thirdPartyAPIService;
         this.formDataValidator = formDataValidator;
+
+        this.contraIndicatorMapper = contraIndicatorMapper;
     }
 
     public DocumentDataVerificationResult verifyData(
+            ThirdPartyAPIService thirdPartyAPIService,
             PassportFormData passportFormData,
             SessionItem sessionItem,
             Map<String, String> requestHeaders)
-            throws OAuthHttpResponseExceptionWithErrorBody {
+            throws OAuthErrorResponseException {
         try {
             LOGGER.info("Validating form data...");
             ValidationResult<List<String>> validationResult =
@@ -70,17 +76,19 @@ public class DocumentDataVerificationService {
                         ErrorResponse.FORM_DATA_FAILED_VALIDATION.getMessage(),
                         errorMessages);
                 eventProbe.counterMetric(FORM_DATA_VALIDATION_FAIL);
-                throw new OAuthHttpResponseExceptionWithErrorBody(
+                throw new OAuthErrorResponseException(
                         HttpStatusCode.INTERNAL_SERVER_ERROR,
                         ErrorResponse.FORM_DATA_FAILED_VALIDATION);
             }
             LOGGER.info("Form data validated");
             eventProbe.counterMetric(FORM_DATA_VALIDATION_PASS);
 
+            LOGGER.info(
+                    "Performing data verification using {}", thirdPartyAPIService.getServiceName());
             ThirdPartyAPIResult thirdPartyAPIResult =
                     thirdPartyAPIService.performCheck(passportFormData);
 
-            LOGGER.info("Sending audit event REQUEST_SENT...");
+            LOGGER.info("Sending audit event {}...", AuditEventType.REQUEST_SENT);
             auditService.sendAuditEvent(
                     AuditEventType.REQUEST_SENT,
                     new AuditEventContext(
@@ -94,7 +102,7 @@ public class DocumentDataVerificationService {
             int documentStrengthScore = MAX_PASSPORT_GPG45_STRENGTH_VALUE;
             int documentValidityScore = calculateValidity(thirdPartyAPIResult);
 
-            LOGGER.info("Mapping contra indicators from Third party response");
+            LOGGER.info("Mapping contra-indicators from Third party response");
             List<String> cis = calculateContraIndicators(thirdPartyAPIResult);
 
             LOGGER.info("Generating Document Data Verification Result");
@@ -122,7 +130,7 @@ public class DocumentDataVerificationService {
             documentDataVerificationResult.setChecksSucceeded(checksSucceeded);
             documentDataVerificationResult.setChecksFailed(checksFailed);
 
-            // TODO Update and Check Audit Event with Extension if necessary
+            LOGGER.info("Sending audit event {}...", AuditEventType.RESPONSE_RECEIVED);
             auditService.sendAuditEvent(
                     AuditEventType.RESPONSE_RECEIVED,
                     new AuditEventContext(requestHeaders, sessionItem),
@@ -130,7 +138,7 @@ public class DocumentDataVerificationService {
 
             LOGGER.info(
                     "Document Data Verification Request Completed Indicators {}, Strength Score {}, Validity Score {}",
-                    (cis != null) ? String.join(", ", cis.toString()) : "[]",
+                    !cis.isEmpty() ? String.join(", ", cis.toString()) : "[]",
                     documentStrengthScore,
                     documentValidityScore);
 
@@ -140,9 +148,9 @@ public class DocumentDataVerificationService {
             eventProbe.counterMetric(DOCUMENT_DATA_VERIFICATION_REQUEST_SUCCEEDED);
 
             return documentDataVerificationResult;
-        } catch (OAuthHttpResponseExceptionWithErrorBody e) {
+        } catch (OAuthErrorResponseException e) {
             eventProbe.counterMetric(DOCUMENT_DATA_VERIFICATION_REQUEST_FAILED);
-            // Specific exception for all non-recoverable DCS related errors
+            // Specific exception for all non-recoverable ThirdPartyAPI related errors
             throw e;
         } catch (SqsException e) {
             // Audit Events are not working
@@ -151,7 +159,7 @@ public class DocumentDataVerificationService {
                             Level.ERROR,
                             ErrorResponse.FAILED_TO_SEND_AUDIT_MESSAGE_TO_SQS_QUEUE.getMessage())
                     .counterMetric(DOCUMENT_DATA_VERIFICATION_REQUEST_FAILED);
-            throw new OAuthHttpResponseExceptionWithErrorBody(
+            throw new OAuthErrorResponseException(
                     HttpStatusCode.INTERNAL_SERVER_ERROR,
                     ErrorResponse.FAILED_TO_SEND_AUDIT_MESSAGE_TO_SQS_QUEUE);
         }
@@ -164,6 +172,36 @@ public class DocumentDataVerificationService {
     }
 
     private List<String> calculateContraIndicators(ThirdPartyAPIResult thirdPartyAPIResult) {
-        return thirdPartyAPIResult.isValid() ? null : List.of("D02");
+
+        // Set used to prevent duplicate CI's
+        final Set<String> contraIndicators = new HashSet<>();
+
+        if (!thirdPartyAPIResult.isValid()) {
+            contraIndicators.add(DOCUMENT_VALIDITY_CI);
+        }
+
+        // Legacy API will not set any flags
+        if (thirdPartyAPIResult.getFlags() != null) {
+            Map<String, String> flagMap = thirdPartyAPIResult.getFlags();
+
+            LOGGER.debug("Matches : ");
+            for (Map.Entry<String, String> entry : flagMap.entrySet()) {
+                String key = entry.getKey();
+                String value = entry.getValue();
+                String message = String.format("Match %s : %s", key, value);
+                LOGGER.debug(message);
+            }
+
+            List<String> flagCIs = contraIndicatorMapper.mapFlagsToCIs(flagMap);
+
+            for (String ci : flagCIs) {
+                String message = String.format("CI %s ", ci);
+                LOGGER.debug(message);
+            }
+
+            contraIndicators.addAll(flagCIs);
+        }
+
+        return new ArrayList<>(Set.copyOf(contraIndicators));
     }
 }
