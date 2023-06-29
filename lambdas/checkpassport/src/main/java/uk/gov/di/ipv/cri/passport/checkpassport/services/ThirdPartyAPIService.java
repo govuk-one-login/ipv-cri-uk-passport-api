@@ -88,7 +88,7 @@ public class ThirdPartyAPIService {
             response = (CloseableHttpResponse) httpClient.execute(request);
             eventProbe.counterMetric(THIRD_PARTY_REQUEST_SEND_OK);
         } catch (IOException e) {
-            LOGGER.info("IOException executing http request");
+            LOGGER.error("IOException executing http request", e);
             eventProbe.counterMetric(THIRD_PARTY_REQUEST_SEND_ERROR);
             throw new OAuthHttpResponseExceptionWithErrorBody(
                     HttpStatusCode.INTERNAL_SERVER_ERROR,
@@ -111,7 +111,7 @@ public class ThirdPartyAPIService {
 
             statusCode = response.getStatusLine().getStatusCode();
         } catch (IOException e) {
-            LOGGER.error("IOException mapping http response body");
+            LOGGER.error("IOException mapping response body {}", e.getMessage());
             throw new OAuthHttpResponseExceptionWithErrorBody(
                     HttpStatusCode.INTERNAL_SERVER_ERROR,
                     ErrorResponse.FAILED_TO_MAP_HTTP_RESPONSE_BODY);
