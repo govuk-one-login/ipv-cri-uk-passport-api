@@ -129,7 +129,7 @@ Mappings:
   ProvisionedConcurrency:
     Environment:
       dev: 0
-      build: 0
+      build: 1
       staging: 1
       integration: 1
       production: 1
@@ -137,7 +137,7 @@ Mappings:
   MemorySizeMapping:
     Environment:
       dev: 512
-      build: 1024
+      build: 2048
       staging: 1024
       integration: 1024
       production: 2048
