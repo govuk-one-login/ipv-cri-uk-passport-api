@@ -1,5 +1,7 @@
 package uk.gov.di.ipv.cri.passport.library.helpers;
 
+import uk.gov.di.ipv.cri.common.library.annotations.ExcludeFromGeneratedCoverageReport;
+
 import java.io.ByteArrayInputStream;
 import java.security.KeyFactory;
 import java.security.NoSuchAlgorithmException;
@@ -13,6 +15,7 @@ import java.util.Base64;
 
 public class KeyCertHelper {
 
+    @ExcludeFromGeneratedCoverageReport
     private KeyCertHelper() {
         throw new IllegalStateException("Instantiation is not valid for this class.");
     }

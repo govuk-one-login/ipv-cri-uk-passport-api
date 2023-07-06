@@ -1,4 +1,4 @@
-package uk.gov.di.ipv.cri.passport.checkpassport.services;
+package uk.gov.di.ipv.cri.passport.checkpassport.services.dcs;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -23,9 +23,9 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
-import uk.gov.di.ipv.cri.passport.checkpassport.domain.response.DcsResponse;
-import uk.gov.di.ipv.cri.passport.checkpassport.domain.response.DcsSignedEncryptedResponse;
-import uk.gov.di.ipv.cri.passport.checkpassport.exception.IpvCryptoException;
+import uk.gov.di.ipv.cri.passport.checkpassport.domain.response.dcs.DcsResponse;
+import uk.gov.di.ipv.cri.passport.checkpassport.domain.response.dcs.DcsSignedEncryptedResponse;
+import uk.gov.di.ipv.cri.passport.checkpassport.exception.dcs.IpvCryptoException;
 import uk.gov.di.ipv.cri.passport.library.domain.PassportFormData;
 import uk.gov.di.ipv.cri.passport.library.service.PassportConfigurationService;
 

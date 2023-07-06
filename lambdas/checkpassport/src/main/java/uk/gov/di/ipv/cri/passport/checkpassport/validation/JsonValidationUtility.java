@@ -1,5 +1,7 @@
 package uk.gov.di.ipv.cri.passport.checkpassport.validation;
 
+import uk.gov.di.ipv.cri.common.library.annotations.ExcludeFromGeneratedCoverageReport;
+
 import java.time.Instant;
 import java.time.format.DateTimeParseException;
 import java.util.List;
@@ -15,6 +17,7 @@ public final class JsonValidationUtility {
     public static final String FAIL_PARSING_TIMESTAMP_ERROR_MESSAGE_SUFFIX =
             " failed timestamp parsing.";
 
+    @ExcludeFromGeneratedCoverageReport
     private JsonValidationUtility() {
         throw new IllegalStateException("Instantiation is not valid for this class.");
     }

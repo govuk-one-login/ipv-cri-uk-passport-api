@@ -1,4 +1,4 @@
-package uk.gov.di.ipv.cri.passport.checkpassport.domain.request;
+package uk.gov.di.ipv.cri.passport.checkpassport.domain.request.dcs;
 
 public class Thumbprints {
 

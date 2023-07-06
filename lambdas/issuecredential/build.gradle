@@ -54,7 +54,7 @@ tasks.register('buildZip', Zip) {
 
 test {
 	useJUnitPlatform ()
-	finalizedBy jacocoTestReport
+	finalizedBy jacocoTestReport, jacocoTestCoverageVerification
 }
 
 jacocoTestReport {
@@ -81,6 +81,21 @@ tasks.withType(Test).configureEach {
 				def startItem = "|  ", endItem = "  |"
 				def repeatLength = startItem.length() + output.length() + endItem.length()
 				println("\n" + ("-" * repeatLength) + "\n" + startItem + output + endItem + "\n" + ("-" * repeatLength))
+			}
+		}
+	}
+}
+
+jacocoTestCoverageVerification {
+	violationRules {
+		rule {
+			limit {
+				counter = 'LINE'
+				minimum = minUnitTestLineCoverage
+			}
+			limit {
+				counter = 'BRANCH'
+				minimum = minUnitTestBranchCoverage
 			}
 		}
 	}

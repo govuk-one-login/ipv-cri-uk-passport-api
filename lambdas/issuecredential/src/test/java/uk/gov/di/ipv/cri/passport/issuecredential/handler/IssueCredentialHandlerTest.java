@@ -41,8 +41,12 @@ import uk.gov.di.ipv.cri.passport.library.DocumentCheckTestDataGenerator;
 import uk.gov.di.ipv.cri.passport.library.PassportFormTestDataGenerator;
 import uk.gov.di.ipv.cri.passport.library.helpers.PersonIdentityDetailedHelperMapper;
 import uk.gov.di.ipv.cri.passport.library.persistence.DocumentCheckResultItem;
+import uk.gov.di.ipv.cri.passport.library.service.ClientFactoryService;
 import uk.gov.di.ipv.cri.passport.library.service.PassportConfigurationService;
 import uk.gov.di.ipv.cri.passport.library.service.ServiceFactory;
+import uk.org.webcompere.systemstubs.environment.EnvironmentVariables;
+import uk.org.webcompere.systemstubs.jupiter.SystemStub;
+import uk.org.webcompere.systemstubs.jupiter.SystemStubsExtension;
 
 import java.util.Map;
 import java.util.UUID;
@@ -62,24 +66,25 @@ import static uk.gov.di.ipv.cri.passport.library.metrics.Definitions.LAMBDA_ISSU
 import static uk.gov.di.ipv.cri.passport.library.metrics.Definitions.PASSPORT_CI_PREFIX;
 
 @ExtendWith(MockitoExtension.class)
+@ExtendWith(SystemStubsExtension.class)
 class IssueCredentialHandlerTest {
+    @SystemStub private EnvironmentVariables environmentVariables = new EnvironmentVariables();
+
     public static final String REQUEST_SUBJECT = "subject";
     @Mock private Context mockLambdaContext;
 
     @Mock private ServiceFactory mockServiceFactory;
 
-    @Mock private PassportConfigurationService mockPassportConfigurationService;
-
-    // CRI-Lib Common Services and objects
-    @Mock private EventProbe mockEventProbe;
-    @Mock private SessionService mockSessionService;
-    @Mock private PersonIdentityService mockPersonIdentityService;
-    @Mock private AuditService mockAuditService;
-    // Passport Common Services and objects
+    // Returned via the ServiceFactory
     private final ObjectMapper realObjectMapper =
             new ObjectMapper().registerModule(new JavaTimeModule());
-
-    @Mock private DataStore<DocumentCheckResultItem> mockDocumentCheckResultStore;
+    @Mock private static EventProbe mockEventProbe;
+    @Mock private static ClientFactoryService mockClientFactoryService;
+    @Mock private static PassportConfigurationService mockPassportConfigurationService;
+    @Mock private static SessionService mockSessionService;
+    @Mock private static AuditService mockAuditService;
+    @Mock private static PersonIdentityService mockPersonIdentityService;
+    @Mock private static DataStore<DocumentCheckResultItem> mockDocumentCheckResultStore;
 
     // Issue Credential only services
     @Mock private VerifiableCredentialService mockVerifiableCredentialService;
@@ -88,16 +93,10 @@ class IssueCredentialHandlerTest {
 
     @BeforeEach
     void setup() {
-        when(mockServiceFactory.getPassportConfigurationService())
-                .thenReturn(mockPassportConfigurationService);
-        when(mockServiceFactory.getEventProbe()).thenReturn(mockEventProbe);
-        when(mockServiceFactory.getSessionService()).thenReturn(mockSessionService);
-        when(mockServiceFactory.getPersonIdentityService()).thenReturn(mockPersonIdentityService);
-        when(mockServiceFactory.getAuditService()).thenReturn(mockAuditService);
-        when(mockServiceFactory.getDocumentCheckResultStore())
-                .thenReturn(mockDocumentCheckResultStore);
-        when(mockServiceFactory.getDocumentCheckResultStore())
-                .thenReturn(mockDocumentCheckResultStore);
+        environmentVariables.set("AWS_REGION", "eu-west-2");
+        environmentVariables.set("AWS_STACK_NAME", "TEST_STACK");
+
+        mockServiceFactoryBehaviour();
 
         this.issueCredentialHandler =
                 new IssueCredentialHandler(mockServiceFactory, mockVerifiableCredentialService);
@@ -358,5 +357,20 @@ class IssueCredentialHandlerTest {
                         .serialize();
 
         event.setBody(requestJWT);
+    }
+
+    private void mockServiceFactoryBehaviour() {
+        when(mockServiceFactory.getEventProbe()).thenReturn(mockEventProbe);
+
+        when(mockServiceFactory.getPassportConfigurationService())
+                .thenReturn(mockPassportConfigurationService);
+
+        when(mockServiceFactory.getSessionService()).thenReturn(mockSessionService);
+        when(mockServiceFactory.getAuditService()).thenReturn(mockAuditService);
+
+        when(mockServiceFactory.getPersonIdentityService()).thenReturn(mockPersonIdentityService);
+
+        when(mockServiceFactory.getDocumentCheckResultStore())
+                .thenReturn(mockDocumentCheckResultStore);
     }
 }

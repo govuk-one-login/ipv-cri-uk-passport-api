@@ -2,12 +2,11 @@ package uk.gov.di.ipv.cri.passport.issuecredential.service;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.nimbusds.jose.JOSEException;
+import com.nimbusds.jose.JWSSigner;
 import com.nimbusds.jwt.SignedJWT;
-import uk.gov.di.ipv.cri.common.library.annotations.ExcludeFromGeneratedCoverageReport;
 import uk.gov.di.ipv.cri.common.library.domain.personidentity.BirthDate;
 import uk.gov.di.ipv.cri.common.library.domain.personidentity.Passport;
 import uk.gov.di.ipv.cri.common.library.domain.personidentity.PersonIdentityDetailed;
-import uk.gov.di.ipv.cri.common.library.util.KMSSigner;
 import uk.gov.di.ipv.cri.common.library.util.SignedJWTFactory;
 import uk.gov.di.ipv.cri.common.library.util.VerifiableCredentialClaimsSetBuilder;
 import uk.gov.di.ipv.cri.passport.issuecredential.util.EvidenceHelper;
@@ -29,40 +28,16 @@ import static uk.gov.di.ipv.cri.passport.library.config.GlobalConstants.UK_ICAO_
 import static uk.gov.di.ipv.cri.passport.library.config.ParameterStoreParameters.MAX_JWT_TTL_UNIT;
 
 public class VerifiableCredentialService {
-    private final PassportConfigurationService passportConfigurationService;
-    private final ObjectMapper objectMapper;
-    private final SignedJWTFactory signedJwtFactory;
-    private final VerifiableCredentialClaimsSetBuilder vcClaimsSetBuilder;
+    private ObjectMapper objectMapper;
+    private PassportConfigurationService passportConfigurationService;
+    private SignedJWTFactory signedJwtFactory;
+    private VerifiableCredentialClaimsSetBuilder vcClaimsSetBuilder;
 
-    @ExcludeFromGeneratedCoverageReport
-    public VerifiableCredentialService(
-            PassportConfigurationService passportConfigurationService,
-            ServiceFactory serviceFactory) {
-        this.passportConfigurationService = passportConfigurationService;
-
+    public VerifiableCredentialService(ServiceFactory serviceFactory, JWSSigner jwsSigner) {
         this.objectMapper = serviceFactory.getObjectMapper();
+        this.passportConfigurationService = serviceFactory.getPassportConfigurationService();
 
-        KMSSigner kmsSigner =
-                new KMSSigner(
-                        passportConfigurationService.getVerifiableCredentialKmsSigningKeyId(),
-                        serviceFactory.getClientFactoryService().getKMSClient());
-
-        this.signedJwtFactory = new SignedJWTFactory(kmsSigner);
-
-        this.vcClaimsSetBuilder =
-                new VerifiableCredentialClaimsSetBuilder(
-                        passportConfigurationService, Clock.systemUTC());
-    }
-
-    public VerifiableCredentialService(
-            PassportConfigurationService passportConfigurationService,
-            ServiceFactory serviceFactory,
-            SignedJWTFactory signedJwtFactory) {
-        this.passportConfigurationService = passportConfigurationService;
-
-        this.objectMapper = serviceFactory.getObjectMapper();
-
-        this.signedJwtFactory = signedJwtFactory;
+        this.signedJwtFactory = new SignedJWTFactory(jwsSigner);
 
         this.vcClaimsSetBuilder =
                 new VerifiableCredentialClaimsSetBuilder(

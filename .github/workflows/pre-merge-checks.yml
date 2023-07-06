@@ -106,6 +106,8 @@ jobs:
           java-version: 11
           distribution: zulu
           cache: 'gradle'
+      - name: Generate Aggregate Coverage Report
+        run: ./gradlew report
       - name: Run SonarCloud Analysis
         if: ${{ github.actor != 'dependabot[bot]' }}
         env:

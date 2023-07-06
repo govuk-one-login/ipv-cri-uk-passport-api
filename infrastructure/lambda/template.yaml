@@ -54,10 +54,10 @@ Conditions:
   IsProdEnvironment: !Equals
     - !Ref Environment
     - production
-  #  IsProdLikeEnvironment: !Or
-  #    - !Equals [ !Ref Environment, staging ]
-  #    - !Equals [ !Ref Environment, integration ]
-  #    - !Equals [ !Ref Environment, production ]
+#  IsProdLikeEnvironment: !Or
+#    - !Equals [ !Ref Environment, staging ]
+#    - !Equals [ !Ref Environment, integration ]
+#    - !Equals [ !Ref Environment, production ]
   IsDevEnvironment: !Equals
     - !Ref Environment
     - dev
@@ -66,8 +66,8 @@ Conditions:
   IsNotCRIDevEnv:
     Fn::Not:
       - Fn::Equals:
-          - !Ref DevEnvironment
-          - "cri-dev"
+        - !Ref DevEnvironment
+        - "cri-dev"
   UsingCodeSigning:
     Fn::Not:
       - Fn::Equals:
@@ -120,9 +120,9 @@ Mappings:
 
   DvaDigitalEnabledMapping:
     Environment:
-      dev: "false"
-      build: "false"
-      staging: "false"
+      dev: "true"
+      build: "true"
+      staging: "true"
       integration: "false"
       production: "false"
 
@@ -416,9 +416,13 @@ Resources:
               Action:
                 - ssm:GetParameter
               Resource:
+                - !Sub "arn:aws:ssm:${AWS::Region}:${AWS::AccountId}:parameter/${AWS::StackName}/ContraindicationMappings"
                 - !Sub "arn:aws:ssm:${AWS::Region}:${AWS::AccountId}:parameter/${AWS::StackName}/DocumentCheckResultTableName"
                 - !Sub "arn:aws:ssm:${AWS::Region}:${AWS::AccountId}:parameter/${AWS::StackName}/MaximumAttemptCount"
+                - !Sub "arn:aws:ssm:${AWS::Region}:${AWS::AccountId}:parameter/${AWS::StackName}/isDCSPerformanceStub"
+                - !Sub "arn:aws:ssm:${AWS::Region}:${AWS::AccountId}:parameter/${AWS::StackName}/isDVADPerformanceStub"
                 - !Sub "arn:aws:ssm:${AWS::Region}:${AWS::AccountId}:parameter/${AWS::StackName}/DvaDigitalEnabled"
+                - !Sub "arn:aws:ssm:${AWS::Region}:${AWS::AccountId}:parameter/${AWS::StackName}/logDcsResponse"
                 - !Sub "arn:aws:ssm:${AWS::Region}:${AWS::AccountId}:parameter/${AWS::StackName}/DCS/PostUrl"
                 - !Sub "arn:aws:ssm:${AWS::Region}:${AWS::AccountId}:parameter/${AWS::StackName}/DCS/HttpClient/TLSCert"
                 - !Sub "arn:aws:ssm:${AWS::Region}:${AWS::AccountId}:parameter/${AWS::StackName}/DCS/HttpClient/TLSKey"
@@ -429,18 +433,21 @@ Resources:
                 - !Sub "arn:aws:ssm:${AWS::Region}:${AWS::AccountId}:parameter/${AWS::StackName}/DCS/JWE/EncryptionCertForPassportToEncrypt"
                 - !Sub "arn:aws:ssm:${AWS::Region}:${AWS::AccountId}:parameter/${AWS::StackName}/DCS/JWE/SigningCertForPassportToVerify"
                 - !Sub "arn:aws:ssm:${AWS::Region}:${AWS::AccountId}:parameter/${AWS::StackName}/DCS/JWE/EncryptionKeyForPassportToDecrypt"
+                - !Sub "arn:aws:ssm:${AWS::Region}:${AWS::AccountId}:parameter/${AWS::StackName}/HMPODVAD/API/GraphQl/QueryString"
+                - !Sub "arn:aws:ssm:${AWS::Region}:${AWS::AccountId}:parameter/${AWS::StackName}/HMPODVAD/API/EndpointUrl"
+                - !Sub "arn:aws:ssm:${AWS::Region}:${AWS::AccountId}:parameter/${AWS::StackName}/HMPODVAD/API/HealthPath"
+                - !Sub "arn:aws:ssm:${AWS::Region}:${AWS::AccountId}:parameter/${AWS::StackName}/HMPODVAD/API/TokenPath"
+                - !Sub "arn:aws:ssm:${AWS::Region}:${AWS::AccountId}:parameter/${AWS::StackName}/HMPODVAD/API/GraphQLPath"
                 - !Sub "arn:aws:ssm:${AWS::Region}:${AWS::AccountId}:parameter/${AWS::StackName}/HMPODVAD/HttpClient/TLSCert"
                 - !Sub "arn:aws:ssm:${AWS::Region}:${AWS::AccountId}:parameter/${AWS::StackName}/HMPODVAD/HttpClient/TLSKey"
                 - !Sub "arn:aws:ssm:${AWS::Region}:${AWS::AccountId}:parameter/${AWS::StackName}/HMPODVAD/HttpClient/TLSRootCertificate"
                 - !Sub "arn:aws:ssm:${AWS::Region}:${AWS::AccountId}:parameter/${AWS::StackName}/HMPODVAD/HttpClient/TLSIntermediateCertificate"
-                - !Sub "arn:aws:ssm:${AWS::Region}:${AWS::AccountId}:parameter/${AWS::StackName}/HMPODVAD/HttpClient/clientId"
-                - !Sub "arn:aws:ssm:${AWS::Region}:${AWS::AccountId}:parameter/${AWS::StackName}/HMPODVAD/HttpClient/clientSecret"
-                - !Sub "arn:aws:ssm:${AWS::Region}:${AWS::AccountId}:parameter/${AWS::StackName}/HMPODVAD/HttpClient/apiKey"
-                - !Sub "arn:aws:ssm:${AWS::Region}:${AWS::AccountId}:parameter/${AWS::StackName}/HMPODVAD/HttpClient/apiEndpointUrl"
-                - !Sub "arn:aws:ssm:${AWS::Region}:${AWS::AccountId}:parameter/${AWS::StackName}/HMPODVAD/HttpClient/userAgent"
-                - !Sub "arn:aws:ssm:${AWS::Region}:${AWS::AccountId}:parameter/${AWS::StackName}/HMPODVAD/HttpClient/secret"
-                - !Sub "arn:aws:ssm:${AWS::Region}:${AWS::AccountId}:parameter/${AWS::StackName}/isPerformanceStub"
-                - !Sub "arn:aws:ssm:${AWS::Region}:${AWS::AccountId}:parameter/${AWS::StackName}/logDcsResponse"
+                - !Sub "arn:aws:ssm:${AWS::Region}:${AWS::AccountId}:parameter/${AWS::StackName}/HMPODVAD/API/Header/ClientId"
+                - !Sub "arn:aws:ssm:${AWS::Region}:${AWS::AccountId}:parameter/${AWS::StackName}/HMPODVAD/API/Header/ApiKey"
+                - !Sub "arn:aws:ssm:${AWS::Region}:${AWS::AccountId}:parameter/${AWS::StackName}/HMPODVAD/API/Header/UserAgent"
+                - !Sub "arn:aws:ssm:${AWS::Region}:${AWS::AccountId}:parameter/${AWS::StackName}/HMPODVAD/API/Header/Secret"
+                - !Sub "arn:aws:ssm:${AWS::Region}:${AWS::AccountId}:parameter/${AWS::StackName}/HMPODVAD/API/Header/GrantType"
+                - !Sub "arn:aws:ssm:${AWS::Region}:${AWS::AccountId}:parameter/${AWS::StackName}/HMPODVAD/API/Header/Audience"
                 - !Sub "arn:aws:ssm:${AWS::Region}:${AWS::AccountId}:parameter/${CommonStackName}/SessionTableName"
                 - !Sub "arn:aws:ssm:${AWS::Region}:${AWS::AccountId}:parameter/${CommonStackName}/PersonIdentityTableName"
                 - !Sub "arn:aws:ssm:${AWS::Region}:${AWS::AccountId}:parameter/${CommonStackName}/SessionTtl"
@@ -714,13 +721,21 @@ Resources:
       Value: !ImportValue core-infrastructure-CriVcSigningKey1Id
       Description: Verifiable Credential Key Id
 
-  IsPerformanceStubParameter:
+  IsDCSPerformanceStubParameter:
     Type: AWS::SSM::Parameter
     Properties:
-      Name: !Sub "/${AWS::StackName}/isPerformanceStub"
+      Name: !Sub "/${AWS::StackName}/isDCSPerformanceStub"
       Type: String
       Value: "false"
-      Description: Feature toggle to allow performance testing passed SSL
+      Description: Feature toggle to allow performance testing passed SSL (DCS)
+
+  IsDVADPerformanceStubParameter:
+    Type: AWS::SSM::Parameter
+    Properties:
+      Name: !Sub "/${AWS::StackName}/isDVADPerformanceStub"
+      Type: String
+      Value: "false"
+      Description: Feature toggle to allow performance testing passed SSL (DVAD)
 
   logDcsResponseParameter:
     Type: AWS::SSM::Parameter

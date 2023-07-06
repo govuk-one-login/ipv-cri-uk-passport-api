@@ -1,6 +1,6 @@
 package uk.gov.di.ipv.cri.passport.library.service;
 
-import org.apache.http.client.HttpClient;
+import org.apache.http.impl.client.CloseableHttpClient;
 import org.apache.http.impl.client.HttpClients;
 import org.apache.http.ssl.SSLContexts;
 import software.amazon.awssdk.auth.credentials.EnvironmentVariableCredentialsProvider;
@@ -37,7 +37,8 @@ import static uk.gov.di.ipv.cri.passport.library.config.ParameterStoreParameters
 import static uk.gov.di.ipv.cri.passport.library.config.ParameterStoreParameters.HMPO_HTTPCLIENT_TLS_ROOT_CERT;
 
 // See https://docs.aws.amazon.com/sdk-for-java/latest/developer-guide/http-configuration.html
-// If an explicit client choice is not made the SDK default will be used *if it the only one* in the
+// If an explicit client choice is not made the SDK default will be used *if it is the only one* in
+// the
 // classpath
 // If there is more than one of the same HTTP client type a conflict will occur for these clients.
 // To prevent this, the exact http clients are now being specified for each client.
@@ -75,82 +76,106 @@ public class ClientFactoryService {
                 .build();
     }
 
+    public CloseableHttpClient getLegacyCloseableHttpClient(
+            boolean tlsOn, PassportConfigurationService passportConfigurationService) {
+        try {
+            if (tlsOn) {
+                final String base64TLSCertString =
+                        passportConfigurationService.getEncryptedSsmParameter(
+                                DCS_HTTPCLIENT_TLS_CERT);
+                final String base64TLSKeyString =
+                        passportConfigurationService.getEncryptedSsmParameter(
+                                DCS_HTTPCLIENT_TLS_KEY);
+                final String base64TLSRootCertString =
+                        passportConfigurationService.getEncryptedSsmParameter(
+                                DCS_HTTPCLIENT_TLS_ROOT_CERT);
+                final String base64TLSIntCertString =
+                        passportConfigurationService.getEncryptedSsmParameter(
+                                DCS_HTTPCLIENT_TLS_INTER_CERT);
+
+                return generateHTTPClientFromExternalApacheHttpClient(
+                        base64TLSCertString,
+                        base64TLSKeyString,
+                        base64TLSRootCertString,
+                        base64TLSIntCertString);
+            } else {
+                return generatePublicHttpClient();
+            }
+        } catch (NoSuchAlgorithmException
+                | InvalidKeySpecException
+                | CertificateException
+                | KeyStoreException
+                | IOException
+                | UnrecoverableKeyException
+                | KeyManagementException e) {
+            throw new HttpClientException(e);
+        }
+    }
+
+    public CloseableHttpClient getCloseableHttpClient(
+            boolean tlsOn, PassportConfigurationService passportConfigurationService) {
+        try {
+            if (tlsOn) {
+                final String base64TLSCertString =
+                        passportConfigurationService.getEncryptedSsmParameter(
+                                HMPO_HTTPCLIENT_TLS_CERT);
+                final String base64TLSKeyString =
+                        passportConfigurationService.getEncryptedSsmParameter(
+                                HMPO_HTTPCLIENT_TLS_KEY);
+                final String base64TLSRootCertString =
+                        passportConfigurationService.getEncryptedSsmParameter(
+                                HMPO_HTTPCLIENT_TLS_ROOT_CERT);
+                final String base64TLSIntCertString =
+                        passportConfigurationService.getEncryptedSsmParameter(
+                                HMPO_HTTPCLIENT_TLS_INTER_CERT);
+
+                return generateHTTPClientFromExternalApacheHttpClient(
+                        base64TLSCertString,
+                        base64TLSKeyString,
+                        base64TLSRootCertString,
+                        base64TLSIntCertString);
+            } else {
+                return generatePublicHttpClient();
+            }
+        } catch (NoSuchAlgorithmException
+                | InvalidKeySpecException
+                | CertificateException
+                | KeyStoreException
+                | IOException
+                | UnrecoverableKeyException
+                | KeyManagementException e) {
+            throw new HttpClientException(e);
+        }
+    }
+
     // TODO Use Switch to SdkHttpClient instead of external http apache client
-    public HttpClient getLegacyHTTPClient(
-            PassportConfigurationService passportConfigurationService) {
-        try {
-            return generateHTTPClientFromExternalApacheHttpClient(
-                    passportConfigurationService,
-                    DCS_HTTPCLIENT_TLS_CERT,
-                    DCS_HTTPCLIENT_TLS_KEY,
-                    DCS_HTTPCLIENT_TLS_ROOT_CERT,
-                    DCS_HTTPCLIENT_TLS_INTER_CERT);
-        } catch (NoSuchAlgorithmException
-                | InvalidKeySpecException
-                | CertificateException
-                | KeyStoreException
-                | IOException
-                | UnrecoverableKeyException
-                | KeyManagementException e) {
-            throw new HttpClientException(e);
-        }
+    private CloseableHttpClient generatePublicHttpClient() {
+        return HttpClients.custom().build();
     }
 
-    public HttpClient getHTTPClient(PassportConfigurationService passportConfigurationService) {
-        try {
-            return generateHTTPClientFromExternalApacheHttpClient(
-                    passportConfigurationService,
-                    HMPO_HTTPCLIENT_TLS_CERT,
-                    HMPO_HTTPCLIENT_TLS_KEY,
-                    HMPO_HTTPCLIENT_TLS_ROOT_CERT,
-                    HMPO_HTTPCLIENT_TLS_INTER_CERT);
-        } catch (NoSuchAlgorithmException
-                | InvalidKeySpecException
-                | CertificateException
-                | KeyStoreException
-                | IOException
-                | UnrecoverableKeyException
-                | KeyManagementException e) {
-            throw new HttpClientException(e);
-        }
-    }
-
-    private HttpClient generateHTTPClientFromExternalApacheHttpClient(
-            PassportConfigurationService passportConfigurationService,
-            String dcsHttpclientTlsCert,
-            String dcsHttpclientTlsKey,
-            String dcsHttpclientTlsRootCert,
-            String dcsHttpclientTlsInterCert)
+    // TODO Use Switch to SdkHttpClient instead of external http apache client
+    private CloseableHttpClient generateHTTPClientFromExternalApacheHttpClient(
+            String base64TLSCertString,
+            String base64TLSKeyString,
+            String base64TLSRootCertString,
+            String base64TLSIntCertString)
             throws NoSuchAlgorithmException, InvalidKeySpecException, CertificateException,
                     KeyStoreException, IOException, UnrecoverableKeyException,
                     KeyManagementException {
 
-        String base64TLSCertString =
-                passportConfigurationService.getEncryptedSsmParameter(dcsHttpclientTlsCert);
         Certificate tlsCert = KeyCertHelper.getDecodedX509Certificate(base64TLSCertString);
 
-        String base64TLSKeyString =
-                passportConfigurationService.getEncryptedSsmParameter(dcsHttpclientTlsKey);
         PrivateKey tlsKey = KeyCertHelper.getDecodedPrivateRSAKey(base64TLSKeyString);
 
         KeyStore keystoreTLS = createKeyStore(tlsCert, tlsKey);
 
-        String base64TLSRootCertString =
-                passportConfigurationService.getEncryptedSsmParameter(dcsHttpclientTlsRootCert);
         Certificate tlsRootCert = KeyCertHelper.getDecodedX509Certificate(base64TLSRootCertString);
 
-        String base64TLSIntCertString =
-                passportConfigurationService.getEncryptedSsmParameter(dcsHttpclientTlsInterCert);
         Certificate tlsIntCert = KeyCertHelper.getDecodedX509Certificate(base64TLSIntCertString);
 
         KeyStore trustStore = createTrustStore(new Certificate[] {tlsRootCert, tlsIntCert});
 
         SSLContext sslContext = sslContextSetup(keystoreTLS, trustStore);
-
-        if (Boolean.parseBoolean(
-                passportConfigurationService.getParameterValue("isPerformanceStub"))) {
-            sslContext = sslContextSetup(keystoreTLS, null);
-        }
 
         return HttpClients.custom().setSSLContext(sslContext).build();
     }

@@ -1,4 +1,4 @@
-package uk.gov.di.ipv.cri.passport.checkpassport.services;
+package uk.gov.di.ipv.cri.passport.checkpassport.services.dcs;
 
 import com.fasterxml.jackson.core.exc.InputCoercionException;
 import com.nimbusds.jose.JOSEException;
@@ -15,9 +15,9 @@ import org.apache.http.HttpEntity;
 import org.apache.http.HttpStatus;
 import org.apache.http.ProtocolVersion;
 import org.apache.http.StatusLine;
-import org.apache.http.client.HttpClient;
 import org.apache.http.client.methods.CloseableHttpResponse;
 import org.apache.http.client.methods.HttpPost;
+import org.apache.http.impl.client.CloseableHttpClient;
 import org.apache.http.message.BasicHeader;
 import org.apache.http.params.HttpParams;
 import org.junit.jupiter.api.BeforeEach;
@@ -32,13 +32,14 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import software.amazon.awssdk.http.HttpStatusCode;
 import uk.gov.di.ipv.cri.common.library.util.EventProbe;
-import uk.gov.di.ipv.cri.passport.checkpassport.domain.response.DcsResponse;
+import uk.gov.di.ipv.cri.passport.checkpassport.domain.response.dcs.DcsResponse;
 import uk.gov.di.ipv.cri.passport.checkpassport.domain.result.ThirdPartyAPIResult;
-import uk.gov.di.ipv.cri.passport.checkpassport.exception.IpvCryptoException;
-import uk.gov.di.ipv.cri.passport.checkpassport.exception.OAuthHttpResponseExceptionWithErrorBody;
+import uk.gov.di.ipv.cri.passport.checkpassport.exception.dcs.IpvCryptoException;
+import uk.gov.di.ipv.cri.passport.checkpassport.services.ThirdPartyAPIService;
 import uk.gov.di.ipv.cri.passport.library.PassportFormTestDataGenerator;
 import uk.gov.di.ipv.cri.passport.library.domain.PassportFormData;
 import uk.gov.di.ipv.cri.passport.library.error.ErrorResponse;
+import uk.gov.di.ipv.cri.passport.library.exceptions.OAuthErrorResponseException;
 import uk.gov.di.ipv.cri.passport.library.service.PassportConfigurationService;
 
 import java.io.ByteArrayInputStream;
@@ -59,6 +60,7 @@ import java.util.stream.Stream;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.doThrow;
@@ -67,15 +69,17 @@ import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verifyNoMoreInteractions;
 import static org.mockito.Mockito.when;
 import static uk.gov.di.ipv.cri.passport.library.config.ParameterStoreParameters.DCS_POST_URL;
-import static uk.gov.di.ipv.cri.passport.library.metrics.Definitions.THIRD_PARTY_API_RESPONSE_TYPE_ERROR;
-import static uk.gov.di.ipv.cri.passport.library.metrics.Definitions.THIRD_PARTY_API_RESPONSE_TYPE_OK;
-import static uk.gov.di.ipv.cri.passport.library.metrics.Definitions.THIRD_PARTY_API_RESPONSE_TYPE_UNEXPECTED_HTTP_STATUS;
-import static uk.gov.di.ipv.cri.passport.library.metrics.Definitions.THIRD_PARTY_REQUEST_CREATED;
-import static uk.gov.di.ipv.cri.passport.library.metrics.Definitions.THIRD_PARTY_REQUEST_SEND_ERROR;
-import static uk.gov.di.ipv.cri.passport.library.metrics.Definitions.THIRD_PARTY_REQUEST_SEND_OK;
+import static uk.gov.di.ipv.cri.passport.library.metrics.ThirdPartyAPIEndpointMetric.DCS_REQUEST_CREATED;
+import static uk.gov.di.ipv.cri.passport.library.metrics.ThirdPartyAPIEndpointMetric.DCS_REQUEST_SEND_ERROR;
+import static uk.gov.di.ipv.cri.passport.library.metrics.ThirdPartyAPIEndpointMetric.DCS_REQUEST_SEND_OK;
+import static uk.gov.di.ipv.cri.passport.library.metrics.ThirdPartyAPIEndpointMetric.DCS_RESPONSE_TYPE_ERROR;
+import static uk.gov.di.ipv.cri.passport.library.metrics.ThirdPartyAPIEndpointMetric.DCS_RESPONSE_TYPE_EXPECTED_HTTP_STATUS;
+import static uk.gov.di.ipv.cri.passport.library.metrics.ThirdPartyAPIEndpointMetric.DCS_RESPONSE_TYPE_INVALID;
+import static uk.gov.di.ipv.cri.passport.library.metrics.ThirdPartyAPIEndpointMetric.DCS_RESPONSE_TYPE_UNEXPECTED_HTTP_STATUS;
+import static uk.gov.di.ipv.cri.passport.library.metrics.ThirdPartyAPIEndpointMetric.DCS_RESPONSE_TYPE_VALID;
 
 @ExtendWith(MockitoExtension.class)
-class ThirdPartyAPIServiceTest {
+class DcsThirdPartyAPIServiceTest {
 
     private final String TEST_ENDPOINT_URL = "http://localhost/test";
     private static final String TEST_THIRD_PARTY_RESPONSE_REQUEST_ID = "RID_1234";
@@ -86,28 +90,27 @@ class ThirdPartyAPIServiceTest {
 
     @Mock private PassportConfigurationService mockPassportConfigurationService;
 
-    @Mock private HttpClient mockHttpClient;
+    @Mock private CloseableHttpClient mockCloseableHttpClient;
 
-    @Mock private CloseableHttpResponse mockHttpResponse;
+    @Mock private CloseableHttpResponse mockCloseableHttpResponse;
     @Mock private HttpEntity mockHttpEntity;
 
-    private ThirdPartyAPIService thirdPartyAPIService;
+    private ThirdPartyAPIService dcsThirdPartyAPIService;
 
     @BeforeEach
     void setUp() {
-        thirdPartyAPIService =
-                new ThirdPartyAPIService(
+        dcsThirdPartyAPIService =
+                new DcsThirdPartyAPIService(
                         mockPassportConfigurationService,
                         mockEventProbe,
                         mockDcsCryptographyService,
-                        mockHttpClient);
+                        mockCloseableHttpClient);
     }
 
     @Test
     void shouldInvokeThirdPartyAPI()
             throws IOException, CertificateException, ParseException, JOSEException,
-                    OAuthHttpResponseExceptionWithErrorBody, NoSuchAlgorithmException,
-                    InvalidKeySpecException {
+                    OAuthErrorResponseException, NoSuchAlgorithmException, InvalidKeySpecException {
 
         PassportFormData passportFormData = PassportFormTestDataGenerator.generate();
 
@@ -123,18 +126,22 @@ class ThirdPartyAPIServiceTest {
 
         ArgumentCaptor<HttpPost> httpRequestCaptor = ArgumentCaptor.forClass(HttpPost.class);
         CloseableHttpResponse httpResponse = createHttpResponse(200);
-        when(mockHttpClient.execute(httpRequestCaptor.capture())).thenReturn(httpResponse);
+
+        when(mockCloseableHttpClient.execute(httpRequestCaptor.capture())).thenReturn(httpResponse);
 
         when(mockDcsCryptographyService.unwrapDcsResponse(anyString()))
                 .thenReturn(createSuccessDcsResponse());
 
         ThirdPartyAPIResult thirdPartyAPIResult =
-                thirdPartyAPIService.performCheck(passportFormData);
+                dcsThirdPartyAPIService.performCheck(passportFormData);
 
         InOrder inOrder = inOrder(mockEventProbe);
-        inOrder.verify(mockEventProbe).counterMetric(THIRD_PARTY_REQUEST_CREATED);
-        inOrder.verify(mockEventProbe).counterMetric(THIRD_PARTY_REQUEST_SEND_OK);
-        inOrder.verify(mockEventProbe).counterMetric(THIRD_PARTY_API_RESPONSE_TYPE_OK);
+        inOrder.verify(mockEventProbe).counterMetric(DCS_REQUEST_CREATED.withEndpointPrefix());
+        inOrder.verify(mockEventProbe).counterMetric(DCS_REQUEST_SEND_OK.withEndpointPrefix());
+        inOrder.verify(mockEventProbe)
+                .counterMetric(DCS_RESPONSE_TYPE_EXPECTED_HTTP_STATUS.withEndpointPrefix());
+
+        inOrder.verify(mockEventProbe).counterMetric(DCS_RESPONSE_TYPE_VALID.withEndpointPrefix());
         verifyNoMoreInteractions(mockEventProbe);
 
         assertEquals(TEST_ENDPOINT_URL, httpRequestCaptor.getValue().getURI().toString());
@@ -145,6 +152,7 @@ class ThirdPartyAPIServiceTest {
 
         assertNotNull(thirdPartyAPIResult);
         assertEquals(TEST_THIRD_PARTY_RESPONSE_REQUEST_ID, thirdPartyAPIResult.getTransactionId());
+        assertTrue(thirdPartyAPIResult.isValid());
     }
 
     @ParameterizedTest
@@ -169,8 +177,8 @@ class ThirdPartyAPIServiceTest {
 
         // Determine throwable
         Exception exceptionCaught = null;
-        OAuthHttpResponseExceptionWithErrorBody expectedReturnedException =
-                new OAuthHttpResponseExceptionWithErrorBody(
+        OAuthErrorResponseException expectedReturnedException =
+                new OAuthErrorResponseException(
                         HttpStatus.SC_INTERNAL_SERVER_ERROR,
                         ErrorResponse.FAILED_TO_PREPARE_DCS_PAYLOAD);
         switch (exceptionName) {
@@ -199,16 +207,21 @@ class ThirdPartyAPIServiceTest {
                 .when(mockDcsCryptographyService)
                 .preparePayload(any(PassportFormData.class));
 
-        OAuthHttpResponseExceptionWithErrorBody thrownException =
+        OAuthErrorResponseException thrownException =
                 assertThrows(
-                        OAuthHttpResponseExceptionWithErrorBody.class,
-                        () -> thirdPartyAPIService.performCheck(passportFormData),
-                        "Expected OAuthHttpResponseExceptionWithErrorBody due to " + exceptionName);
+                        OAuthErrorResponseException.class,
+                        () -> dcsThirdPartyAPIService.performCheck(passportFormData),
+                        "Expected OAuthErrorResponseException due to " + exceptionName);
 
         InOrder inOrder = inOrder(mockEventProbe);
-        inOrder.verify(mockEventProbe, never()).counterMetric(THIRD_PARTY_REQUEST_CREATED);
-        inOrder.verify(mockEventProbe, never()).counterMetric(THIRD_PARTY_REQUEST_SEND_OK);
-        inOrder.verify(mockEventProbe, never()).counterMetric(THIRD_PARTY_API_RESPONSE_TYPE_OK);
+        inOrder.verify(mockEventProbe, never())
+                .counterMetric(DCS_REQUEST_CREATED.withEndpointPrefix());
+        inOrder.verify(mockEventProbe, never())
+                .counterMetric(DCS_REQUEST_SEND_OK.withEndpointPrefix());
+        inOrder.verify(mockEventProbe, never())
+                .counterMetric(DCS_RESPONSE_TYPE_EXPECTED_HTTP_STATUS.withEndpointPrefix());
+        inOrder.verify(mockEventProbe, never())
+                .counterMetric(DCS_RESPONSE_TYPE_VALID.withEndpointPrefix());
         verifyNoMoreInteractions(mockEventProbe);
 
         assertEquals(expectedReturnedException.getStatusCode(), thrownException.getStatusCode());
@@ -236,23 +249,23 @@ class ThirdPartyAPIServiceTest {
 
         // Determine throwable
         Exception exceptionCaught = new IOException("Error during HTTP client execute");
-        OAuthHttpResponseExceptionWithErrorBody expectedReturnedException =
-                new OAuthHttpResponseExceptionWithErrorBody(
+        OAuthErrorResponseException expectedReturnedException =
+                new OAuthErrorResponseException(
                         HttpStatus.SC_INTERNAL_SERVER_ERROR,
-                        ErrorResponse.ERROR_INVOKING_THIRD_PARTY_API);
+                        ErrorResponse.ERROR_INVOKING_LEGACY_THIRD_PARTY_API);
 
-        doThrow(exceptionCaught).when(mockHttpClient).execute(httpRequestCaptor.capture());
+        doThrow(exceptionCaught).when(mockCloseableHttpClient).execute(httpRequestCaptor.capture());
 
-        OAuthHttpResponseExceptionWithErrorBody thrownException =
+        OAuthErrorResponseException thrownException =
                 assertThrows(
-                        OAuthHttpResponseExceptionWithErrorBody.class,
-                        () -> thirdPartyAPIService.performCheck(passportFormData),
-                        "Expected OAuthHttpResponseExceptionWithErrorBody due to "
+                        OAuthErrorResponseException.class,
+                        () -> dcsThirdPartyAPIService.performCheck(passportFormData),
+                        "Expected OAuthErrorResponseException due to "
                                 + exceptionCaught.getCause());
 
         InOrder inOrder = inOrder(mockEventProbe);
-        inOrder.verify(mockEventProbe).counterMetric(THIRD_PARTY_REQUEST_CREATED);
-        inOrder.verify(mockEventProbe).counterMetric(THIRD_PARTY_REQUEST_SEND_ERROR);
+        inOrder.verify(mockEventProbe).counterMetric(DCS_REQUEST_CREATED.withEndpointPrefix());
+        inOrder.verify(mockEventProbe).counterMetric(DCS_REQUEST_SEND_ERROR.withEndpointPrefix());
         verifyNoMoreInteractions(mockEventProbe);
 
         assertEquals(expectedReturnedException.getStatusCode(), thrownException.getStatusCode());
@@ -280,27 +293,28 @@ class ThirdPartyAPIServiceTest {
 
         // Determine throwable
         Exception exceptionCaught = new IOException("Error during EntityUtils.getEntity()");
-        OAuthHttpResponseExceptionWithErrorBody expectedReturnedException =
-                new OAuthHttpResponseExceptionWithErrorBody(
+        OAuthErrorResponseException expectedReturnedException =
+                new OAuthErrorResponseException(
                         HttpStatus.SC_INTERNAL_SERVER_ERROR,
-                        ErrorResponse.FAILED_TO_MAP_HTTP_RESPONSE_BODY);
+                        ErrorResponse.FAILED_TO_RETRIEVE_HTTP_RESPONSE_BODY);
 
         // Mocks the entire response handling sequence
-        when(mockHttpClient.execute(httpRequestCaptor.capture())).thenReturn(mockHttpResponse);
-        when(mockHttpResponse.getEntity()).thenReturn(mockHttpEntity);
+        when(mockCloseableHttpClient.execute(httpRequestCaptor.capture()))
+                .thenReturn(mockCloseableHttpResponse);
+        when(mockCloseableHttpResponse.getEntity()).thenReturn(mockHttpEntity);
         // IOException in the input stream
         doThrow(exceptionCaught).when(mockHttpEntity).getContent();
 
-        OAuthHttpResponseExceptionWithErrorBody thrownException =
+        OAuthErrorResponseException thrownException =
                 assertThrows(
-                        OAuthHttpResponseExceptionWithErrorBody.class,
-                        () -> thirdPartyAPIService.performCheck(passportFormData),
-                        "Expected OAuthHttpResponseExceptionWithErrorBody due to "
+                        OAuthErrorResponseException.class,
+                        () -> dcsThirdPartyAPIService.performCheck(passportFormData),
+                        "Expected OAuthErrorResponseException due to "
                                 + exceptionCaught.getCause());
 
         InOrder inOrder = inOrder(mockEventProbe);
-        inOrder.verify(mockEventProbe).counterMetric(THIRD_PARTY_REQUEST_CREATED);
-        inOrder.verify(mockEventProbe).counterMetric(THIRD_PARTY_REQUEST_SEND_OK);
+        inOrder.verify(mockEventProbe).counterMetric(DCS_REQUEST_CREATED.withEndpointPrefix());
+        inOrder.verify(mockEventProbe).counterMetric(DCS_REQUEST_SEND_OK.withEndpointPrefix());
         verifyNoMoreInteractions(mockEventProbe);
 
         assertEquals(expectedReturnedException.getStatusCode(), thrownException.getStatusCode());
@@ -333,12 +347,13 @@ class ThirdPartyAPIServiceTest {
 
         ArgumentCaptor<HttpPost> httpRequestCaptor = ArgumentCaptor.forClass(HttpPost.class);
         CloseableHttpResponse httpResponse = createHttpResponse(200);
-        when(mockHttpClient.execute(httpRequestCaptor.capture())).thenReturn(httpResponse);
+
+        when(mockCloseableHttpClient.execute(httpRequestCaptor.capture())).thenReturn(httpResponse);
 
         // Determine throwable
         Exception exceptionCaught = null;
-        OAuthHttpResponseExceptionWithErrorBody expectedReturnedException =
-                new OAuthHttpResponseExceptionWithErrorBody(
+        OAuthErrorResponseException expectedReturnedException =
+                new OAuthErrorResponseException(
                         HttpStatus.SC_INTERNAL_SERVER_ERROR,
                         ErrorResponse.FAILED_TO_UNWRAP_DCS_RESPONSE);
         switch (exceptionName) {
@@ -365,15 +380,19 @@ class ThirdPartyAPIServiceTest {
 
         doThrow(exceptionCaught).when(mockDcsCryptographyService).unwrapDcsResponse(anyString());
 
-        OAuthHttpResponseExceptionWithErrorBody thrownException =
+        OAuthErrorResponseException thrownException =
                 assertThrows(
-                        OAuthHttpResponseExceptionWithErrorBody.class,
-                        () -> thirdPartyAPIService.performCheck(passportFormData),
-                        "Expected OAuthHttpResponseExceptionWithErrorBody due to " + exceptionName);
+                        OAuthErrorResponseException.class,
+                        () -> dcsThirdPartyAPIService.performCheck(passportFormData),
+                        "Expected OAuthErrorResponseException due to " + exceptionName);
 
         InOrder inOrder = inOrder(mockEventProbe);
-        inOrder.verify(mockEventProbe).counterMetric(THIRD_PARTY_REQUEST_CREATED);
-        inOrder.verify(mockEventProbe).counterMetric(THIRD_PARTY_REQUEST_SEND_OK);
+        inOrder.verify(mockEventProbe).counterMetric(DCS_REQUEST_CREATED.withEndpointPrefix());
+        inOrder.verify(mockEventProbe).counterMetric(DCS_REQUEST_SEND_OK.withEndpointPrefix());
+        inOrder.verify(mockEventProbe)
+                .counterMetric(DCS_RESPONSE_TYPE_EXPECTED_HTTP_STATUS.withEndpointPrefix());
+        inOrder.verify(mockEventProbe)
+                .counterMetric(DCS_RESPONSE_TYPE_INVALID.withEndpointPrefix());
         verifyNoMoreInteractions(mockEventProbe);
 
         assertEquals(expectedReturnedException.getStatusCode(), thrownException.getStatusCode());
@@ -399,7 +418,8 @@ class ThirdPartyAPIServiceTest {
 
         ArgumentCaptor<HttpPost> httpRequestCaptor = ArgumentCaptor.forClass(HttpPost.class);
         CloseableHttpResponse httpResponse = createHttpResponse(200);
-        when(mockHttpClient.execute(httpRequestCaptor.capture())).thenReturn(httpResponse);
+
+        when(mockCloseableHttpClient.execute(httpRequestCaptor.capture())).thenReturn(httpResponse);
 
         DcsResponse dscResponse = createSuccessDcsResponse();
         dscResponse.setError(true);
@@ -408,20 +428,24 @@ class ThirdPartyAPIServiceTest {
 
         when(mockDcsCryptographyService.unwrapDcsResponse(anyString())).thenReturn(dscResponse);
 
-        OAuthHttpResponseExceptionWithErrorBody expectedReturnedException =
-                new OAuthHttpResponseExceptionWithErrorBody(
-                        HttpStatus.SC_INTERNAL_SERVER_ERROR, ErrorResponse.DCS_RETURNED_AN_ERROR);
+        OAuthErrorResponseException expectedReturnedException =
+                new OAuthErrorResponseException(
+                        HttpStatus.SC_INTERNAL_SERVER_ERROR,
+                        ErrorResponse.DCS_RETURNED_AN_ERROR_RESPONSE);
 
-        OAuthHttpResponseExceptionWithErrorBody thrownException =
+        OAuthErrorResponseException thrownException =
                 assertThrows(
-                        OAuthHttpResponseExceptionWithErrorBody.class,
-                        () -> thirdPartyAPIService.performCheck(passportFormData),
-                        "Expected OAuthHttpResponseExceptionWithErrorBody");
+                        OAuthErrorResponseException.class,
+                        () -> dcsThirdPartyAPIService.performCheck(passportFormData),
+                        "Expected OAuthErrorResponseException");
 
         InOrder inOrder = inOrder(mockEventProbe);
-        inOrder.verify(mockEventProbe).counterMetric(THIRD_PARTY_REQUEST_CREATED);
-        inOrder.verify(mockEventProbe).counterMetric(THIRD_PARTY_REQUEST_SEND_OK);
-        inOrder.verify(mockEventProbe).counterMetric(THIRD_PARTY_API_RESPONSE_TYPE_ERROR);
+        inOrder.verify(mockEventProbe).counterMetric(DCS_REQUEST_CREATED.withEndpointPrefix());
+        inOrder.verify(mockEventProbe).counterMetric(DCS_REQUEST_SEND_OK.withEndpointPrefix());
+        inOrder.verify(mockEventProbe)
+                .counterMetric(DCS_RESPONSE_TYPE_EXPECTED_HTTP_STATUS.withEndpointPrefix());
+
+        inOrder.verify(mockEventProbe).counterMetric(DCS_RESPONSE_TYPE_ERROR.withEndpointPrefix());
         verifyNoMoreInteractions(mockEventProbe);
 
         assertEquals(TEST_ENDPOINT_URL, httpRequestCaptor.getValue().getURI().toString());
@@ -454,46 +478,26 @@ class ThirdPartyAPIServiceTest {
 
         ArgumentCaptor<HttpPost> httpRequestCaptor = ArgumentCaptor.forClass(HttpPost.class);
         CloseableHttpResponse httpResponse = createHttpResponse(httpStatusCode);
-        when(mockHttpClient.execute(httpRequestCaptor.capture())).thenReturn(httpResponse);
 
-        OAuthHttpResponseExceptionWithErrorBody expectedReturnedException;
-        if (httpStatusCode >= 300 && httpStatusCode <= 399) {
-            // Not Seen
-            expectedReturnedException =
-                    new OAuthHttpResponseExceptionWithErrorBody(
-                            HttpStatusCode.INTERNAL_SERVER_ERROR,
-                            ErrorResponse.THIRD_PARTY_ERROR_HTTP_30X);
-        } else if (httpStatusCode >= 400 && httpStatusCode <= 499) {
-            // Seen when a cert has expired
-            expectedReturnedException =
-                    new OAuthHttpResponseExceptionWithErrorBody(
-                            HttpStatusCode.INTERNAL_SERVER_ERROR,
-                            ErrorResponse.THIRD_PARTY_ERROR_HTTP_40X);
-        } else if (httpStatusCode >= 500 && httpStatusCode <= 599) {
-            // Error on third party side
-            expectedReturnedException =
-                    new OAuthHttpResponseExceptionWithErrorBody(
-                            HttpStatusCode.INTERNAL_SERVER_ERROR,
-                            ErrorResponse.THIRD_PARTY_ERROR_HTTP_50X);
-        } else {
-            // Any other status codes
-            expectedReturnedException =
-                    new OAuthHttpResponseExceptionWithErrorBody(
-                            HttpStatusCode.INTERNAL_SERVER_ERROR,
-                            ErrorResponse.THIRD_PARTY_ERROR_HTTP_X);
-        }
+        when(mockCloseableHttpClient.execute(httpRequestCaptor.capture())).thenReturn(httpResponse);
 
-        OAuthHttpResponseExceptionWithErrorBody thrownException =
+        OAuthErrorResponseException expectedReturnedException =
+                new OAuthErrorResponseException(
+                        HttpStatusCode.INTERNAL_SERVER_ERROR,
+                        ErrorResponse.ERROR_DCS_RETURNED_UNEXPECTED_HTTP_STATUS_CODE);
+        ;
+
+        OAuthErrorResponseException thrownException =
                 assertThrows(
-                        OAuthHttpResponseExceptionWithErrorBody.class,
-                        () -> thirdPartyAPIService.performCheck(passportFormData),
-                        "Expected OAuthHttpResponseExceptionWithErrorBody");
+                        OAuthErrorResponseException.class,
+                        () -> dcsThirdPartyAPIService.performCheck(passportFormData),
+                        "Expected OAuthErrorResponseException");
 
         InOrder inOrder = inOrder(mockEventProbe);
-        inOrder.verify(mockEventProbe).counterMetric(THIRD_PARTY_REQUEST_CREATED);
-        inOrder.verify(mockEventProbe).counterMetric(THIRD_PARTY_REQUEST_SEND_OK);
+        inOrder.verify(mockEventProbe).counterMetric(DCS_REQUEST_CREATED.withEndpointPrefix());
+        inOrder.verify(mockEventProbe).counterMetric(DCS_REQUEST_SEND_OK.withEndpointPrefix());
         inOrder.verify(mockEventProbe)
-                .counterMetric(THIRD_PARTY_API_RESPONSE_TYPE_UNEXPECTED_HTTP_STATUS);
+                .counterMetric(DCS_RESPONSE_TYPE_UNEXPECTED_HTTP_STATUS.withEndpointPrefix());
         verifyNoMoreInteractions(mockEventProbe);
 
         assertEquals(TEST_ENDPOINT_URL, httpRequestCaptor.getValue().getURI().toString());

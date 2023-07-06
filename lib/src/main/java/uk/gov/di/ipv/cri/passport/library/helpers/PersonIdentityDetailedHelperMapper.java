@@ -1,5 +1,6 @@
 package uk.gov.di.ipv.cri.passport.library.helpers;
 
+import lombok.experimental.UtilityClass;
 import uk.gov.di.ipv.cri.common.library.domain.personidentity.BirthDate;
 import uk.gov.di.ipv.cri.common.library.domain.personidentity.Name;
 import uk.gov.di.ipv.cri.common.library.domain.personidentity.NamePart;
@@ -16,11 +17,8 @@ import java.util.Objects;
 
 import static uk.gov.di.ipv.cri.passport.library.config.GlobalConstants.UK_ICAO_ISSUER_CODE;
 
+@UtilityClass
 public class PersonIdentityDetailedHelperMapper {
-
-    private PersonIdentityDetailedHelperMapper() {
-        throw new IllegalStateException("Instantiation is not valid for this class.");
-    }
 
     public static PersonIdentityDetailed mapPersonIdentityDetailedAndPassportDataToAuditRestricted(
             PersonIdentityDetailed personIdentityDetailed,
