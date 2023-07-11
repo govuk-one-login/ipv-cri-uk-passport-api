@@ -31,7 +31,8 @@ public class PassportAPIStepDefs extends PassportAPIPage {
         getSessionIdForPassport();
     }
 
-    @When("Passport user sends a POST request to Passport endpoint using jsonRequest (.*) and dvad is (.*)$")
+    @When(
+            "Passport user sends a POST request to Passport endpoint using jsonRequest (.*) and dvad is (.*)$")
     public void passport_user_sends_a_post_request_to_passport_end_point(
             String passportJsonRequestBody, boolean dvad) throws IOException, InterruptedException {
         postRequestToPassportEndpoint(passportJsonRequestBody, dvad);

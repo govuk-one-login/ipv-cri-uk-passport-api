@@ -116,7 +116,7 @@ public class PassportAPIPage extends PassportPageObject {
                 .setHeader("Content-Type", "application/json")
                 .setHeader("session_id", SESSION_ID)
                 .POST(HttpRequest.BodyPublishers.ofString(passportInputJsonString));
-        if(dvad) {
+        if (dvad) {
             builder.setHeader("new-api", "true");
         }
         HttpRequest request = builder.build();
