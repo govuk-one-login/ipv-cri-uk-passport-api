@@ -31,10 +31,10 @@ public class PassportAPIStepDefs extends PassportAPIPage {
         getSessionIdForPassport();
     }
 
-    @When("Passport user sends a POST request to Passport endpoint using jsonRequest (.*)$")
+    @When("Passport user sends a POST request to Passport endpoint using jsonRequest (.*) and dvad is (.*)$")
     public void passport_user_sends_a_post_request_to_passport_end_point(
-            String passportJsonRequestBody) throws IOException, InterruptedException {
-        postRequestToPassportEndpoint(passportJsonRequestBody);
+            String passportJsonRequestBody, boolean dvad) throws IOException, InterruptedException {
+        postRequestToPassportEndpoint(passportJsonRequestBody, dvad);
     }
 
     @And("Passport check response should contain Retry value as (.*)$")
