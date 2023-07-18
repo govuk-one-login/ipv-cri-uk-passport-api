@@ -1,6 +1,5 @@
 package uk.gov.di.ipv.cri.passport.checkpassport.services.dvad;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.apache.http.HttpStatus;
 import org.apache.http.client.config.RequestConfig;
@@ -14,19 +13,18 @@ import org.mockito.InOrder;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import uk.gov.di.ipv.cri.common.library.util.EventProbe;
-import uk.gov.di.ipv.cri.passport.checkpassport.domain.response.dvad.APIResponse;
 import uk.gov.di.ipv.cri.passport.checkpassport.domain.response.dvad.AccessTokenResponse;
-import uk.gov.di.ipv.cri.passport.checkpassport.domain.response.dvad.fields.Errors;
-import uk.gov.di.ipv.cri.passport.checkpassport.domain.response.dvad.fields.Extensions;
+import uk.gov.di.ipv.cri.passport.checkpassport.domain.response.dvad.GraphQLAPIResponse;
 import uk.gov.di.ipv.cri.passport.checkpassport.domain.response.dvad.fields.ResponseData;
-import uk.gov.di.ipv.cri.passport.checkpassport.domain.response.dvad.fields.ValidatePassportData;
-import uk.gov.di.ipv.cri.passport.checkpassport.domain.response.dvad.fields.ValidationResult;
+import uk.gov.di.ipv.cri.passport.checkpassport.domain.response.dvad.fields.errors.Errors;
 import uk.gov.di.ipv.cri.passport.checkpassport.domain.result.ThirdPartyAPIResult;
+import uk.gov.di.ipv.cri.passport.checkpassport.domain.result.dvad.endpoints.GraphQLServiceResult;
 import uk.gov.di.ipv.cri.passport.checkpassport.services.ThirdPartyAPIService;
 import uk.gov.di.ipv.cri.passport.checkpassport.services.dvad.endpoints.DvadAPIEndpointFactory;
 import uk.gov.di.ipv.cri.passport.checkpassport.services.dvad.endpoints.GraphQLRequestService;
 import uk.gov.di.ipv.cri.passport.checkpassport.services.dvad.endpoints.HealthCheckService;
 import uk.gov.di.ipv.cri.passport.checkpassport.services.dvad.endpoints.TokenRequestService;
+import uk.gov.di.ipv.cri.passport.checkpassport.services.dvad.util.dvad.responses.GraphQLAPIErrorDataGenerator;
 import uk.gov.di.ipv.cri.passport.checkpassport.services.dvad.util.dvad.responses.ResponseDataGenerator;
 import uk.gov.di.ipv.cri.passport.library.PassportFormTestDataGenerator;
 import uk.gov.di.ipv.cri.passport.library.domain.PassportFormData;
@@ -34,8 +32,10 @@ import uk.gov.di.ipv.cri.passport.library.error.ErrorResponse;
 import uk.gov.di.ipv.cri.passport.library.exceptions.OAuthErrorResponseException;
 import uk.gov.di.ipv.cri.passport.library.service.PassportConfigurationService;
 
-import java.io.IOException;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
+import java.util.UUID;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
@@ -43,21 +43,18 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.inOrder;
-import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verifyNoMoreInteractions;
 import static org.mockito.Mockito.when;
 import static uk.gov.di.ipv.cri.passport.library.config.ParameterStoreParameters.HMPO_API_HEADER_API_KEY;
-import static uk.gov.di.ipv.cri.passport.library.config.ParameterStoreParameters.HMPO_API_HEADER_AUDIENCE;
 import static uk.gov.di.ipv.cri.passport.library.config.ParameterStoreParameters.HMPO_API_HEADER_CLIENT_ID;
 import static uk.gov.di.ipv.cri.passport.library.config.ParameterStoreParameters.HMPO_API_HEADER_GRANT_TYPE;
+import static uk.gov.di.ipv.cri.passport.library.config.ParameterStoreParameters.HMPO_API_HEADER_NETWORK_TYPE;
 import static uk.gov.di.ipv.cri.passport.library.config.ParameterStoreParameters.HMPO_API_HEADER_SECRET;
 import static uk.gov.di.ipv.cri.passport.library.config.ParameterStoreParameters.HMPO_API_HEADER_USER_AGENT;
 import static uk.gov.di.ipv.cri.passport.library.config.ParameterStoreParameters.HMPO_GRAPHQL_QUERY_STRING;
 import static uk.gov.di.ipv.cri.passport.library.metrics.ThirdPartyAPIEndpointMetric.DVAD_GRAPHQL_RESPONSE_TYPE_ERROR;
 import static uk.gov.di.ipv.cri.passport.library.metrics.ThirdPartyAPIEndpointMetric.DVAD_GRAPHQL_RESPONSE_TYPE_INVALID;
 import static uk.gov.di.ipv.cri.passport.library.metrics.ThirdPartyAPIEndpointMetric.DVAD_GRAPHQL_RESPONSE_TYPE_VALID;
-import static uk.gov.di.ipv.cri.passport.library.metrics.ThirdPartyAPIEndpointMetric.DVAD_TOKEN_RESPONSE_TYPE_INVALID;
-import static uk.gov.di.ipv.cri.passport.library.metrics.ThirdPartyAPIEndpointMetric.DVAD_TOKEN_RESPONSE_TYPE_VALID;
 
 @ExtendWith(MockitoExtension.class)
 class DvadThirdPartyAPIServiceTest {
@@ -120,14 +117,13 @@ class DvadThirdPartyAPIServiceTest {
 
     @ParameterizedTest
     @CsvSource({
-        "true, SUCCESS", // API response found
-        "false, FAILURE" // API response not found
+        "true", // API response ValidationResult true
+        "false" // API response ValidationResult false
     })
     void shouldReturnIsValidTrueGivenValidDataAndAllThirdPartyEndpointsRespond(
-            boolean passportFound, ValidationResult validationResult)
-            throws OAuthErrorResponseException, IOException {
+            boolean validationResult) throws OAuthErrorResponseException {
 
-        boolean expectedIsValid = (passportFound && validationResult == ValidationResult.SUCCESS);
+        boolean expectedIsValid = validationResult;
 
         PassportFormData passportFormData = PassportFormTestDataGenerator.generate();
 
@@ -143,30 +139,32 @@ class DvadThirdPartyAPIServiceTest {
                         .build();
 
         // Generated a valid api response object to create the api response for this test
-        APIResponse testAPIResponseObject;
+        GraphQLServiceResult testGraphQLServiceResult;
+        GraphQLAPIResponse testGraphQLAPIResponseObject;
 
         if (expectedIsValid) {
-            testAPIResponseObject =
-                    APIResponse.builder()
-                            .data(ResponseDataGenerator.createValidSuccessResponseData())
+            testGraphQLAPIResponseObject =
+                    GraphQLAPIResponse.builder()
+                            .data(ResponseDataGenerator.createValidationResultTrueResponseData())
                             .build();
         } else {
-            testAPIResponseObject =
-                    APIResponse.builder()
-                            .data(ResponseDataGenerator.createValidNotFoundResponseData())
+            testGraphQLAPIResponseObject =
+                    GraphQLAPIResponse.builder()
+                            .data(ResponseDataGenerator.createValidationResultFalseResponseData())
                             .build();
         }
-
-        String testApiResultString = realObjectMapper.writeValueAsString(testAPIResponseObject);
+        testGraphQLServiceResult =
+                GraphQLServiceResult.builder()
+                        .graphQLAPIResponse(testGraphQLAPIResponseObject)
+                        .requestId(UUID.randomUUID().toString())
+                        .build();
 
         mockDvadAPIHeaderValues();
 
-        when(mockHealthCheckService.checkRemoteApiIsUp(
-                        any(String.class), any(DvadAPIHeaderValues.class)))
+        when(mockHealthCheckService.checkRemoteApiIsUp(any(DvadAPIHeaderValues.class)))
                 .thenReturn(testHealthCheckStatusUp);
 
-        when(mockTokenRequestService.requestAccessToken(
-                        any(String.class), any(DvadAPIHeaderValues.class)))
+        when(mockTokenRequestService.requestAccessToken(any(DvadAPIHeaderValues.class), eq(true)))
                 .thenReturn(testValidAccessTokenResponse);
 
         final String TEST_QUERY_STRING = "TEST_QUERY_STRING";
@@ -174,12 +172,11 @@ class DvadThirdPartyAPIServiceTest {
                 .thenReturn(TEST_QUERY_STRING);
 
         when(mockGraphQLRequestService.performGraphQLQuery(
-                        any(String.class),
                         eq(testValidAccessTokenResponse),
                         any(DvadAPIHeaderValues.class),
                         eq(TEST_QUERY_STRING),
                         eq(passportFormData)))
-                .thenReturn(testApiResultString);
+                .thenReturn(testGraphQLServiceResult);
 
         ThirdPartyAPIResult result = dvadThirdPartyAPIServiceTest.performCheck(passportFormData);
 
@@ -189,8 +186,6 @@ class DvadThirdPartyAPIServiceTest {
                 DvadThirdPartyAPIService.class.getSimpleName());
 
         InOrder inOrder = inOrder(mockEventProbe);
-        inOrder.verify(mockEventProbe)
-                .counterMetric(DVAD_TOKEN_RESPONSE_TYPE_VALID.withEndpointPrefix());
         inOrder.verify(mockEventProbe)
                 .counterMetric(DVAD_GRAPHQL_RESPONSE_TYPE_VALID.withEndpointPrefix());
         verifyNoMoreInteractions(mockEventProbe);
@@ -208,7 +203,7 @@ class DvadThirdPartyAPIServiceTest {
         "false" // API response is empty (invalid)
     })
     void shouldThrowOAuthErrorResponseExceptionWhenAPIResponseContainsErrorsOrIsEmpty(
-            boolean errors) throws OAuthErrorResponseException, IOException {
+            boolean errors) throws OAuthErrorResponseException {
 
         PassportFormData passportFormData = PassportFormTestDataGenerator.generate();
 
@@ -224,31 +219,31 @@ class DvadThirdPartyAPIServiceTest {
                         .build();
 
         // Generated a valid api response object to create the api response for this test
-        APIResponse testAPIResponseObject;
-
-        List<Errors> errorsList =
-                List.of(
-                        new Errors(
-                                "Provided data for Field1 is not possible", new Extensions("001")),
-                        new Errors(
-                                "Provided data for Field2 is not possible", new Extensions("002")));
+        GraphQLServiceResult testGraphQLServiceResult;
+        GraphQLAPIResponse testGraphQLAPIResponseObject;
 
         if (errors) {
-            testAPIResponseObject = APIResponse.builder().errors(errorsList).build();
-        } else {
-            testAPIResponseObject = APIResponse.builder().build();
-        }
+            List<Errors> errorsList =
+                    List.of(
+                            GraphQLAPIErrorDataGenerator.createAPIError("PassportNumber"),
+                            GraphQLAPIErrorDataGenerator.createAPIError("IssueDate"));
 
-        String testApiResultString = realObjectMapper.writeValueAsString(testAPIResponseObject);
+            testGraphQLAPIResponseObject = GraphQLAPIResponse.builder().errors(errorsList).build();
+        } else {
+            testGraphQLAPIResponseObject = GraphQLAPIResponse.builder().build();
+        }
+        testGraphQLServiceResult =
+                GraphQLServiceResult.builder()
+                        .graphQLAPIResponse(testGraphQLAPIResponseObject)
+                        .requestId(UUID.randomUUID().toString())
+                        .build();
 
         mockDvadAPIHeaderValues();
 
-        when(mockHealthCheckService.checkRemoteApiIsUp(
-                        any(String.class), any(DvadAPIHeaderValues.class)))
+        when(mockHealthCheckService.checkRemoteApiIsUp(any(DvadAPIHeaderValues.class)))
                 .thenReturn(testHealthCheckStatusUp);
 
-        when(mockTokenRequestService.requestAccessToken(
-                        any(String.class), any(DvadAPIHeaderValues.class)))
+        when(mockTokenRequestService.requestAccessToken(any(DvadAPIHeaderValues.class), eq(true)))
                 .thenReturn(testValidAccessTokenResponse);
 
         final String TEST_QUERY_STRING = "TEST_QUERY_STRING";
@@ -256,12 +251,11 @@ class DvadThirdPartyAPIServiceTest {
                 .thenReturn(TEST_QUERY_STRING);
 
         when(mockGraphQLRequestService.performGraphQLQuery(
-                        any(String.class),
                         eq(testValidAccessTokenResponse),
                         any(DvadAPIHeaderValues.class),
                         eq(TEST_QUERY_STRING),
                         eq(passportFormData)))
-                .thenReturn(testApiResultString);
+                .thenReturn(testGraphQLServiceResult);
 
         ErrorResponse errorResponse =
                 errors
@@ -284,12 +278,8 @@ class DvadThirdPartyAPIServiceTest {
         InOrder inOrder = inOrder(mockEventProbe);
         if (errors) {
             inOrder.verify(mockEventProbe)
-                    .counterMetric(DVAD_TOKEN_RESPONSE_TYPE_VALID.withEndpointPrefix());
-            inOrder.verify(mockEventProbe)
                     .counterMetric(DVAD_GRAPHQL_RESPONSE_TYPE_ERROR.withEndpointPrefix());
         } else {
-            inOrder.verify(mockEventProbe)
-                    .counterMetric(DVAD_TOKEN_RESPONSE_TYPE_VALID.withEndpointPrefix());
             inOrder.verify(mockEventProbe)
                     .counterMetric(DVAD_GRAPHQL_RESPONSE_TYPE_INVALID.withEndpointPrefix());
         }
@@ -309,8 +299,7 @@ class DvadThirdPartyAPIServiceTest {
 
         mockDvadAPIHeaderValues();
 
-        when(mockHealthCheckService.checkRemoteApiIsUp(
-                        any(String.class), any(DvadAPIHeaderValues.class)))
+        when(mockHealthCheckService.checkRemoteApiIsUp(any(DvadAPIHeaderValues.class)))
                 .thenReturn(testHealthCheckStatusUp);
 
         OAuthErrorResponseException expectedReturnedException =
@@ -330,131 +319,13 @@ class DvadThirdPartyAPIServiceTest {
 
     @ParameterizedTest
     @CsvSource({
-        // TokenType, expiresIn
-        "BAD_TOKEN_TYPE, 1800", // Bad type
-        "Bearer, 0", // expiry short
-        "Bearer, 1801", // bad expiry long
-    })
-    void shouldReturnOAuthErrorResponseExceptionWhenTokenTypeIsInvalid(
-            String tokenType, long expiresIn) throws OAuthErrorResponseException {
-
-        PassportFormData passportFormData = PassportFormTestDataGenerator.generate();
-
-        // Health service Response
-        boolean testHealthCheckStatusUp = true;
-
-        // Token service Response
-        AccessTokenResponse testInvalidAccessTokenResponse =
-                AccessTokenResponse.builder()
-                        .accessToken("A_TOKEN_VALUE")
-                        .tokenType(tokenType)
-                        .expiresIn(expiresIn)
-                        .build();
-
-        mockDvadAPIHeaderValues();
-
-        when(mockHealthCheckService.checkRemoteApiIsUp(
-                        any(String.class), any(DvadAPIHeaderValues.class)))
-                .thenReturn(testHealthCheckStatusUp);
-
-        when(mockTokenRequestService.requestAccessToken(
-                        any(String.class), any(DvadAPIHeaderValues.class)))
-                .thenReturn(testInvalidAccessTokenResponse);
-
-        OAuthErrorResponseException expectedReturnedException =
-                new OAuthErrorResponseException(
-                        HttpStatus.SC_INTERNAL_SERVER_ERROR,
-                        ErrorResponse.FAILED_TO_VERIFY_ACCESS_TOKEN);
-
-        OAuthErrorResponseException thrownException =
-                assertThrows(
-                        OAuthErrorResponseException.class,
-                        () -> dvadThirdPartyAPIServiceTest.performCheck(passportFormData),
-                        "Expected OAuthErrorResponseException");
-
-        InOrder inOrder = inOrder(mockEventProbe);
-        inOrder.verify(mockEventProbe)
-                .counterMetric(DVAD_TOKEN_RESPONSE_TYPE_INVALID.withEndpointPrefix());
-        inOrder.verify(mockEventProbe, never())
-                .counterMetric(DVAD_GRAPHQL_RESPONSE_TYPE_VALID.withEndpointPrefix());
-        inOrder.verify(mockEventProbe, never())
-                .counterMetric(DVAD_GRAPHQL_RESPONSE_TYPE_INVALID.withEndpointPrefix());
-        inOrder.verify(mockEventProbe, never())
-                .counterMetric(DVAD_GRAPHQL_RESPONSE_TYPE_ERROR.withEndpointPrefix());
-        verifyNoMoreInteractions(mockEventProbe);
-
-        assertEquals(expectedReturnedException.getStatusCode(), thrownException.getStatusCode());
-        assertEquals(expectedReturnedException.getErrorReason(), thrownException.getErrorReason());
-    }
-
-    @Test
-    void shouldReturnOAuthErrorResponseExceptionWhenGraphQLResponseCannotBeMapped()
-            throws OAuthErrorResponseException {
-
-        PassportFormData passportFormData = PassportFormTestDataGenerator.generate();
-
-        // Health service Response
-        boolean testHealthCheckStatusUp = true;
-
-        // Token service Response
-        AccessTokenResponse testValidAccessTokenResponse =
-                AccessTokenResponse.builder()
-                        .accessToken("A_TOKEN_VALUE")
-                        .tokenType("Bearer")
-                        .expiresIn(1800)
-                        .build();
-
-        mockDvadAPIHeaderValues();
-
-        when(mockHealthCheckService.checkRemoteApiIsUp(
-                        any(String.class), any(DvadAPIHeaderValues.class)))
-                .thenReturn(testHealthCheckStatusUp);
-
-        when(mockTokenRequestService.requestAccessToken(
-                        any(String.class), any(DvadAPIHeaderValues.class)))
-                .thenReturn(testValidAccessTokenResponse);
-
-        when(mockPassportConfigurationService.getEncryptedSsmParameter(HMPO_GRAPHQL_QUERY_STRING))
-                .thenReturn("Select * from PassportDB where passport.id=");
-
-        when(mockGraphQLRequestService.performGraphQLQuery(
-                        any(String.class),
-                        any(AccessTokenResponse.class),
-                        any(DvadAPIHeaderValues.class),
-                        any(String.class),
-                        eq(passportFormData)))
-                .thenReturn("BAD RESPONSE DATA");
-
-        OAuthErrorResponseException expectedReturnedException =
-                new OAuthErrorResponseException(
-                        HttpStatus.SC_INTERNAL_SERVER_ERROR,
-                        ErrorResponse.FAILED_TO_MAP_GRAPHQL_ENDPOINT_RESPONSE_BODY);
-
-        OAuthErrorResponseException thrownException =
-                assertThrows(
-                        OAuthErrorResponseException.class,
-                        () -> dvadThirdPartyAPIServiceTest.performCheck(passportFormData),
-                        "Expected OAuthErrorResponseException");
-
-        InOrder inOrder = inOrder(mockEventProbe);
-        inOrder.verify(mockEventProbe)
-                .counterMetric(DVAD_TOKEN_RESPONSE_TYPE_VALID.withEndpointPrefix());
-        inOrder.verify(mockEventProbe)
-                .counterMetric(DVAD_GRAPHQL_RESPONSE_TYPE_INVALID.withEndpointPrefix());
-        verifyNoMoreInteractions(mockEventProbe);
-
-        assertEquals(expectedReturnedException.getStatusCode(), thrownException.getStatusCode());
-        assertEquals(expectedReturnedException.getErrorReason(), thrownException.getErrorReason());
-    }
-
-    @ParameterizedTest
-    @CsvSource({
         "API Response Data is null",
-        "API Response ValidatePassportData is null",
-        "API Response ValidationResult is null",
+        "API Response ValidatePassport is null",
+        "API Response ValidatePassport is empty",
+        "API Response ValidatePassport is missing validationResult"
     })
     void shouldReturnOAuthErrorResponseExceptionWhenGraphQLResponseFailsValidation(
-            String forcedFailure) throws OAuthErrorResponseException, JsonProcessingException {
+            String forcedFailure) throws OAuthErrorResponseException {
 
         PassportFormData passportFormData = PassportFormTestDataGenerator.generate();
 
@@ -469,52 +340,67 @@ class DvadThirdPartyAPIServiceTest {
                         .expiresIn(1800)
                         .build();
 
-        APIResponse response = null;
+        GraphQLServiceResult testGraphQLServiceResult = null;
+        GraphQLAPIResponse testGraphQLAPIResponseObject = null;
 
-        if (forcedFailure.equals("API Response Data is null")) {
-            response = APIResponse.builder().data(null).build();
-        } else if (forcedFailure.equals("API Response ValidatePassportData is null")) {
+        switch (forcedFailure) {
+            case "API Response Data is null":
+                testGraphQLAPIResponseObject = GraphQLAPIResponse.builder().data(null).build();
+                break;
+            case "API Response ValidatePassport is null":
+                {
+                    ResponseData responseData =
+                            ResponseData.builder().validatePassport(null).build();
+                    testGraphQLAPIResponseObject =
+                            GraphQLAPIResponse.builder().data(responseData).build();
+                    break;
+                }
+            case "API Response ValidatePassport is empty":
+                {
+                    ResponseData responseData =
+                            ResponseData.builder().validatePassport(new HashMap<>()).build();
+                    testGraphQLAPIResponseObject =
+                            GraphQLAPIResponse.builder().data(responseData).build();
+                    break;
+                }
+            case "API Response ValidatePassport is missing validationResult":
+                {
+                    Map<String, String> testValidatePassportMissingValidationResult =
+                            new HashMap<>();
+                    testValidatePassportMissingValidationResult.put("Flag", "true");
 
-            ResponseData responseData = ResponseData.builder().validatePassportData(null).build();
-            response = APIResponse.builder().data(responseData).build();
-
-        } else if (forcedFailure.equals("API Response ValidationResult is null")) {
-
-            ValidatePassportData validatePassportData =
-                    ValidatePassportData.builder()
-                            .validationResult(null)
-                            .passportFound(true)
-                            .build();
-
-            ResponseData responseData =
-                    ResponseData.builder().validatePassportData(validatePassportData).build();
-            response = APIResponse.builder().data(responseData).build();
-        } else {
-            response = null;
+                    ResponseData responseData =
+                            ResponseData.builder()
+                                    .validatePassport(testValidatePassportMissingValidationResult)
+                                    .build();
+                    testGraphQLAPIResponseObject =
+                            GraphQLAPIResponse.builder().data(responseData).build();
+                    break;
+                }
         }
-
-        String testResponseBody = realObjectMapper.writeValueAsString(response);
+        testGraphQLServiceResult =
+                GraphQLServiceResult.builder()
+                        .graphQLAPIResponse(testGraphQLAPIResponseObject)
+                        .requestId(UUID.randomUUID().toString())
+                        .build();
 
         mockDvadAPIHeaderValues();
 
-        when(mockHealthCheckService.checkRemoteApiIsUp(
-                        any(String.class), any(DvadAPIHeaderValues.class)))
+        when(mockHealthCheckService.checkRemoteApiIsUp(any(DvadAPIHeaderValues.class)))
                 .thenReturn(testHealthCheckStatusUp);
 
-        when(mockTokenRequestService.requestAccessToken(
-                        any(String.class), any(DvadAPIHeaderValues.class)))
+        when(mockTokenRequestService.requestAccessToken(any(DvadAPIHeaderValues.class), eq(true)))
                 .thenReturn(testValidAccessTokenResponse);
 
         when(mockPassportConfigurationService.getEncryptedSsmParameter(HMPO_GRAPHQL_QUERY_STRING))
                 .thenReturn("Select * from PassportDB where passport.id=");
 
         when(mockGraphQLRequestService.performGraphQLQuery(
-                        any(String.class),
                         any(AccessTokenResponse.class),
                         any(DvadAPIHeaderValues.class),
                         any(String.class),
                         eq(passportFormData)))
-                .thenReturn(testResponseBody);
+                .thenReturn(testGraphQLServiceResult);
 
         OAuthErrorResponseException expectedReturnedException =
                 new OAuthErrorResponseException(
@@ -529,8 +415,6 @@ class DvadThirdPartyAPIServiceTest {
 
         InOrder inOrder = inOrder(mockEventProbe);
         inOrder.verify(mockEventProbe)
-                .counterMetric(DVAD_TOKEN_RESPONSE_TYPE_VALID.withEndpointPrefix());
-        inOrder.verify(mockEventProbe)
                 .counterMetric(DVAD_GRAPHQL_RESPONSE_TYPE_INVALID.withEndpointPrefix());
         verifyNoMoreInteractions(mockEventProbe);
 
@@ -543,13 +427,13 @@ class DvadThirdPartyAPIServiceTest {
                 .thenReturn("TEST_KEY");
         when(mockPassportConfigurationService.getParameterValue(HMPO_API_HEADER_USER_AGENT))
                 .thenReturn("TEST_USER_AGENT");
+        when(mockPassportConfigurationService.getParameterValue(HMPO_API_HEADER_NETWORK_TYPE))
+                .thenReturn("TEST_NETWORK_TYPE");
         when(mockPassportConfigurationService.getParameterValue(HMPO_API_HEADER_CLIENT_ID))
                 .thenReturn("TEST_CLIENT_ID");
         when(mockPassportConfigurationService.getParameterValue(HMPO_API_HEADER_SECRET))
                 .thenReturn("TEST_SECRET");
         when(mockPassportConfigurationService.getParameterValue(HMPO_API_HEADER_GRANT_TYPE))
                 .thenReturn("TEST_GRANT_TYPE");
-        when(mockPassportConfigurationService.getParameterValue(HMPO_API_HEADER_AUDIENCE))
-                .thenReturn("TEST_AUDIENCE");
     }
 }

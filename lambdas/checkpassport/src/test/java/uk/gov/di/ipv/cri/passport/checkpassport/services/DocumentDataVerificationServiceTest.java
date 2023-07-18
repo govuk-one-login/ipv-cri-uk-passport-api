@@ -18,6 +18,7 @@ import uk.gov.di.ipv.cri.common.library.service.AuditService;
 import uk.gov.di.ipv.cri.common.library.util.EventProbe;
 import uk.gov.di.ipv.cri.passport.checkpassport.domain.result.DocumentDataVerificationResult;
 import uk.gov.di.ipv.cri.passport.checkpassport.domain.result.ThirdPartyAPIResult;
+import uk.gov.di.ipv.cri.passport.checkpassport.domain.result.fields.APIResultSource;
 import uk.gov.di.ipv.cri.passport.checkpassport.validation.ValidationResult;
 import uk.gov.di.ipv.cri.passport.library.PassportFormTestDataGenerator;
 import uk.gov.di.ipv.cri.passport.library.domain.PassportFormData;
@@ -33,6 +34,7 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyMap;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.inOrder;
@@ -79,9 +81,15 @@ class DocumentDataVerificationServiceTest {
 
         PassportFormData passportFormData = PassportFormTestDataGenerator.generate();
         ThirdPartyAPIResult thirdPartyAPIResult = new ThirdPartyAPIResult();
+        thirdPartyAPIResult.setApiResultSource(APIResultSource.DCS);
         thirdPartyAPIResult.setValid(documentVerified);
         thirdPartyAPIResult.setTransactionId("12345");
-        thirdPartyAPIResult.setFlags(Map.of("TestMap", "NotUsed"));
+        thirdPartyAPIResult.setFlags(Map.of("TestFlag", "true"));
+
+        // Simulate mapping the TestFlag flag to a CI
+        if (!documentVerified) {
+            when(mockContraIndicatorMapper.mapFlagsToCIs(anyMap())).thenReturn(List.of("CI1"));
+        }
 
         when(mockFormDataValidator.validate(passportFormData))
                 .thenReturn(new ValidationResult<>(true, null));
@@ -114,7 +122,7 @@ class DocumentDataVerificationServiceTest {
         assertEquals(documentVerified, documentDataVerificationResult.isVerified());
         assertEquals(documentVerified ? 2 : 0, documentDataVerificationResult.getValidityScore());
         assertEquals(
-                documentVerified ? 0 : 1,
+                documentVerified ? 0 : 2,
                 documentDataVerificationResult.getContraIndicators().size());
         assertEquals(4, documentDataVerificationResult.getStrengthScore());
     }

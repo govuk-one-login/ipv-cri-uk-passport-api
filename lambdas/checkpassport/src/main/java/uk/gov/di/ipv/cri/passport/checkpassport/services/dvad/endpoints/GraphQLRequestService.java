@@ -16,6 +16,8 @@ import uk.gov.di.ipv.cri.passport.checkpassport.domain.request.dvad.GraphQLReque
 import uk.gov.di.ipv.cri.passport.checkpassport.domain.request.dvad.Input;
 import uk.gov.di.ipv.cri.passport.checkpassport.domain.request.dvad.Variables;
 import uk.gov.di.ipv.cri.passport.checkpassport.domain.response.dvad.AccessTokenResponse;
+import uk.gov.di.ipv.cri.passport.checkpassport.domain.response.dvad.GraphQLAPIResponse;
+import uk.gov.di.ipv.cri.passport.checkpassport.domain.result.dvad.endpoints.GraphQLServiceResult;
 import uk.gov.di.ipv.cri.passport.checkpassport.services.dvad.DvadAPIHeaderValues;
 import uk.gov.di.ipv.cri.passport.checkpassport.util.HTTPReply;
 import uk.gov.di.ipv.cri.passport.checkpassport.util.HTTPReplyHelper;
@@ -25,9 +27,11 @@ import uk.gov.di.ipv.cri.passport.library.exceptions.OAuthErrorResponseException
 
 import java.io.IOException;
 import java.net.URI;
+import java.util.UUID;
 
 import static uk.gov.di.ipv.cri.passport.checkpassport.domain.response.dvad.RequestHeaderKeys.HEADER_AUTHORIZATION;
 import static uk.gov.di.ipv.cri.passport.checkpassport.domain.response.dvad.RequestHeaderKeys.HEADER_CONTENT_TYPE;
+import static uk.gov.di.ipv.cri.passport.checkpassport.domain.response.dvad.RequestHeaderKeys.HEADER_DVAD_NETWORK_TYPE;
 import static uk.gov.di.ipv.cri.passport.checkpassport.domain.response.dvad.RequestHeaderKeys.HEADER_REQ_ID;
 import static uk.gov.di.ipv.cri.passport.checkpassport.domain.response.dvad.RequestHeaderKeys.HEADER_USER_AGENT;
 import static uk.gov.di.ipv.cri.passport.checkpassport.domain.response.dvad.RequestHeaderKeys.HEADER_X_API_KEY;
@@ -35,6 +39,7 @@ import static uk.gov.di.ipv.cri.passport.library.metrics.ThirdPartyAPIEndpointMe
 import static uk.gov.di.ipv.cri.passport.library.metrics.ThirdPartyAPIEndpointMetric.DVAD_GRAPHQL_REQUEST_SEND_ERROR;
 import static uk.gov.di.ipv.cri.passport.library.metrics.ThirdPartyAPIEndpointMetric.DVAD_GRAPHQL_REQUEST_SEND_OK;
 import static uk.gov.di.ipv.cri.passport.library.metrics.ThirdPartyAPIEndpointMetric.DVAD_GRAPHQL_RESPONSE_TYPE_EXPECTED_HTTP_STATUS;
+import static uk.gov.di.ipv.cri.passport.library.metrics.ThirdPartyAPIEndpointMetric.DVAD_GRAPHQL_RESPONSE_TYPE_INVALID;
 import static uk.gov.di.ipv.cri.passport.library.metrics.ThirdPartyAPIEndpointMetric.DVAD_GRAPHQL_RESPONSE_TYPE_UNEXPECTED_HTTP_STATUS;
 
 public class GraphQLRequestService {
@@ -65,13 +70,15 @@ public class GraphQLRequestService {
         this.eventProbe = eventProbe;
     }
 
-    public String performGraphQLQuery(
-            String requestId,
+    public GraphQLServiceResult performGraphQLQuery(
             AccessTokenResponse accessTokenResponse,
             DvadAPIHeaderValues dvadAPIHeaderValues,
             String queryString,
             PassportFormData passportFormData)
             throws OAuthErrorResponseException {
+
+        final String requestId = UUID.randomUUID().toString();
+        LOGGER.info("{} Request Id {}", ENDPOINT_NAME, requestId);
 
         final String accessTokenValue = accessTokenResponse.getAccessToken();
         final String tokenType = accessTokenResponse.getTokenType();
@@ -83,6 +90,7 @@ public class GraphQLRequestService {
         request.addHeader(HEADER_REQ_ID, requestId);
         request.addHeader(HEADER_X_API_KEY, dvadAPIHeaderValues.apiKey);
         request.addHeader(HEADER_USER_AGENT, dvadAPIHeaderValues.userAgent);
+        request.addHeader(HEADER_DVAD_NETWORK_TYPE, dvadAPIHeaderValues.networkType);
         request.addHeader(
                 HEADER_AUTHORIZATION, String.format("%s %s", tokenType, accessTokenValue));
 
@@ -94,15 +102,8 @@ public class GraphQLRequestService {
         try {
             Variables variables = new Variables(new Input(passportFormData));
 
-            // TODO Remove commented outcode, after confirming
-            //  variables is not inside a string in updated API spec
-            // String variablesAsString = objectMapper.writeValueAsString(variables);
-
             GraphQLRequest graphQLRequest =
-                    GraphQLRequest.builder()
-                            .query(queryString)
-                            .variables(variables /* variablesAsString */)
-                            .build();
+                    GraphQLRequest.builder().query(queryString).variables(variables).build();
 
             requestBody = objectMapper.writeValueAsString(graphQLRequest);
         } catch (JsonProcessingException e) {
@@ -149,11 +150,32 @@ public class GraphQLRequestService {
             eventProbe.counterMetric(
                     DVAD_GRAPHQL_RESPONSE_TYPE_EXPECTED_HTTP_STATUS.withEndpointPrefix());
 
-            return httpReply.responseBody;
+            LOGGER.debug("performGraphQLQuery response {}", httpReply.responseBody);
+
+            try {
+                GraphQLAPIResponse graphQLAPIResponse =
+                        objectMapper.readValue(httpReply.responseBody, GraphQLAPIResponse.class);
+
+                return GraphQLServiceResult.builder()
+                        .graphQLAPIResponse(graphQLAPIResponse)
+                        .requestId(requestId)
+                        .build();
+            } catch (JsonProcessingException e) {
+
+                LOGGER.error("JsonProcessingException mapping GraphQL response");
+                LOGGER.debug(e.getMessage());
+
+                // Invalid due to json mapping fail
+                eventProbe.counterMetric(DVAD_GRAPHQL_RESPONSE_TYPE_INVALID.withEndpointPrefix());
+
+                throw new OAuthErrorResponseException(
+                        HttpStatusCode.INTERNAL_SERVER_ERROR,
+                        ErrorResponse.FAILED_TO_MAP_GRAPHQL_ENDPOINT_RESPONSE_BODY);
+            }
         } else {
             // GraphQL endpoint responded but with an expected status code
             LOGGER.error(
-                    "GraphQL request response status code was : {} - body {}",
+                    "GraphQL response status code {} content - {}",
                     httpReply.statusCode,
                     httpReply.responseBody);
 

@@ -29,6 +29,7 @@ import java.util.Map;
 import java.util.UUID;
 import java.util.stream.Collectors;
 
+import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
@@ -40,9 +41,9 @@ import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verifyNoMoreInteractions;
 import static org.mockito.Mockito.when;
 import static uk.gov.di.ipv.cri.passport.library.config.ParameterStoreParameters.HMPO_API_HEADER_API_KEY;
-import static uk.gov.di.ipv.cri.passport.library.config.ParameterStoreParameters.HMPO_API_HEADER_AUDIENCE;
 import static uk.gov.di.ipv.cri.passport.library.config.ParameterStoreParameters.HMPO_API_HEADER_CLIENT_ID;
 import static uk.gov.di.ipv.cri.passport.library.config.ParameterStoreParameters.HMPO_API_HEADER_GRANT_TYPE;
+import static uk.gov.di.ipv.cri.passport.library.config.ParameterStoreParameters.HMPO_API_HEADER_NETWORK_TYPE;
 import static uk.gov.di.ipv.cri.passport.library.config.ParameterStoreParameters.HMPO_API_HEADER_SECRET;
 import static uk.gov.di.ipv.cri.passport.library.config.ParameterStoreParameters.HMPO_API_HEADER_USER_AGENT;
 import static uk.gov.di.ipv.cri.passport.library.metrics.ThirdPartyAPIEndpointMetric.DVAD_HEALTH_REQUEST_CREATED;
@@ -87,14 +88,14 @@ class HealthCheckServiceTest {
                 .thenReturn("TEST_KEY");
         when(mockPassportConfigurationService.getParameterValue(HMPO_API_HEADER_USER_AGENT))
                 .thenReturn("TEST_USER_AGENT");
+        when(mockPassportConfigurationService.getParameterValue(HMPO_API_HEADER_NETWORK_TYPE))
+                .thenReturn("TEST_NETWORK_TYPE");
         when(mockPassportConfigurationService.getParameterValue(HMPO_API_HEADER_CLIENT_ID))
                 .thenReturn("TEST_CLIENT_ID");
         when(mockPassportConfigurationService.getParameterValue(HMPO_API_HEADER_SECRET))
                 .thenReturn("TEST_SECRET");
         when(mockPassportConfigurationService.getParameterValue(HMPO_API_HEADER_GRANT_TYPE))
                 .thenReturn("TEST_GRANT_TYPE");
-        when(mockPassportConfigurationService.getParameterValue(HMPO_API_HEADER_AUDIENCE))
-                .thenReturn("TEST_AUDIENCE");
 
         realDvadAPIHeaderValues = new DvadAPIHeaderValues(mockPassportConfigurationService);
     }
@@ -117,9 +118,7 @@ class HealthCheckServiceTest {
         when(mockCloseableHttpClient.execute(httpRequestCaptor.capture()))
                 .thenReturn(healthCheckResponse);
 
-        String requestId = UUID.randomUUID().toString();
-
-        boolean apiIsUp = healthCheckService.checkRemoteApiIsUp(requestId, realDvadAPIHeaderValues);
+        boolean apiIsUp = healthCheckService.checkRemoteApiIsUp(realDvadAPIHeaderValues);
 
         // (GET) Health, (POST) Token, (POST) GraphQL
         InOrder inOrderMockCloseableHttpClientSequence = inOrder(mockCloseableHttpClient);
@@ -155,7 +154,7 @@ class HealthCheckServiceTest {
         assertEquals(apiStatus, apiIsUp);
 
         // Check Headers
-        assertHealthHeaders(requestId, httpRequestCaptor);
+        assertHealthHeaders(httpRequestCaptor);
     }
 
     @Test
@@ -174,7 +173,7 @@ class HealthCheckServiceTest {
 
         String requestId = UUID.randomUUID().toString();
 
-        boolean apiIsUp = healthCheckService.checkRemoteApiIsUp(requestId, realDvadAPIHeaderValues);
+        boolean apiIsUp = healthCheckService.checkRemoteApiIsUp(realDvadAPIHeaderValues);
 
         // (GET) Health, (POST) Token, (POST) GraphQL
         InOrder inOrderMockCloseableHttpClientSequence = inOrder(mockCloseableHttpClient);
@@ -197,7 +196,7 @@ class HealthCheckServiceTest {
         verifyNoMoreInteractions(mockEventProbe);
 
         assertFalse(apiIsUp);
-        assertHealthHeaders(requestId, httpRequestCaptor);
+        assertHealthHeaders(httpRequestCaptor);
     }
 
     @Test
@@ -223,9 +222,7 @@ class HealthCheckServiceTest {
         OAuthErrorResponseException thrownException =
                 assertThrows(
                         OAuthErrorResponseException.class,
-                        () ->
-                                healthCheckService.checkRemoteApiIsUp(
-                                        requestId, realDvadAPIHeaderValues),
+                        () -> healthCheckService.checkRemoteApiIsUp(realDvadAPIHeaderValues),
                         "Expected OAuthErrorResponseException");
 
         // (GET) Health
@@ -271,9 +268,7 @@ class HealthCheckServiceTest {
         OAuthErrorResponseException thrownException =
                 assertThrows(
                         OAuthErrorResponseException.class,
-                        () ->
-                                healthCheckService.checkRemoteApiIsUp(
-                                        requestId, realDvadAPIHeaderValues),
+                        () -> healthCheckService.checkRemoteApiIsUp(realDvadAPIHeaderValues),
                         "Expected OAuthErrorResponseException");
 
         // (GET) Health
@@ -298,14 +293,14 @@ class HealthCheckServiceTest {
         assertEquals(expectedReturnedException.getErrorReason(), thrownException.getErrorReason());
     }
 
-    private void assertHealthHeaders(String requestId, ArgumentCaptor<HttpGet> httpRequestCaptor) {
+    private void assertHealthHeaders(ArgumentCaptor<HttpGet> httpRequestCaptor) {
         // Check Headers
         Map<String, String> httpHeadersKV =
                 Arrays.stream(httpRequestCaptor.getValue().getAllHeaders())
                         .collect(Collectors.toMap(Header::getName, Header::getValue));
 
-        assertNotNull(httpHeadersKV.get("X-Request-id"));
-        assertEquals(requestId, httpHeadersKV.get("X-Request-id"));
+        assertNotNull(httpHeadersKV.get("X-REQUEST-ID"));
+        assertDoesNotThrow(() -> UUID.fromString(httpHeadersKV.get("X-REQUEST-ID")));
 
         assertNotNull(httpHeadersKV.get("X-API-Key"));
         assertEquals("TEST_KEY", httpHeadersKV.get("X-API-Key"));

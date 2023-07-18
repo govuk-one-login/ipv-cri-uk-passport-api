@@ -1,6 +1,5 @@
 package uk.gov.di.ipv.cri.passport.checkpassport.services.dvad;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.apache.http.client.config.RequestConfig;
 import org.apache.http.impl.client.CloseableHttpClient;
@@ -8,11 +7,13 @@ import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import software.amazon.awssdk.http.HttpStatusCode;
 import uk.gov.di.ipv.cri.common.library.util.EventProbe;
-import uk.gov.di.ipv.cri.passport.checkpassport.domain.response.dvad.APIResponse;
 import uk.gov.di.ipv.cri.passport.checkpassport.domain.response.dvad.AccessTokenResponse;
-import uk.gov.di.ipv.cri.passport.checkpassport.domain.response.dvad.fields.Errors;
-import uk.gov.di.ipv.cri.passport.checkpassport.domain.response.dvad.fields.ValidationResult;
+import uk.gov.di.ipv.cri.passport.checkpassport.domain.response.dvad.GraphQLAPIResponse;
+import uk.gov.di.ipv.cri.passport.checkpassport.domain.response.dvad.fields.errors.Classification;
+import uk.gov.di.ipv.cri.passport.checkpassport.domain.response.dvad.fields.errors.Errors;
 import uk.gov.di.ipv.cri.passport.checkpassport.domain.result.ThirdPartyAPIResult;
+import uk.gov.di.ipv.cri.passport.checkpassport.domain.result.dvad.endpoints.GraphQLServiceResult;
+import uk.gov.di.ipv.cri.passport.checkpassport.domain.result.fields.APIResultSource;
 import uk.gov.di.ipv.cri.passport.checkpassport.services.ThirdPartyAPIService;
 import uk.gov.di.ipv.cri.passport.checkpassport.services.dvad.endpoints.DvadAPIEndpointFactory;
 import uk.gov.di.ipv.cri.passport.checkpassport.services.dvad.endpoints.GraphQLRequestService;
@@ -27,18 +28,18 @@ import uk.gov.di.ipv.cri.passport.library.service.PassportConfigurationService;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
-import java.util.UUID;
 
+import static uk.gov.di.ipv.cri.passport.checkpassport.domain.result.fields.APIResultSource.DVAD;
 import static uk.gov.di.ipv.cri.passport.library.config.ParameterStoreParameters.HMPO_GRAPHQL_QUERY_STRING;
 import static uk.gov.di.ipv.cri.passport.library.metrics.ThirdPartyAPIEndpointMetric.DVAD_GRAPHQL_RESPONSE_TYPE_ERROR;
 import static uk.gov.di.ipv.cri.passport.library.metrics.ThirdPartyAPIEndpointMetric.DVAD_GRAPHQL_RESPONSE_TYPE_INVALID;
 import static uk.gov.di.ipv.cri.passport.library.metrics.ThirdPartyAPIEndpointMetric.DVAD_GRAPHQL_RESPONSE_TYPE_VALID;
-import static uk.gov.di.ipv.cri.passport.library.metrics.ThirdPartyAPIEndpointMetric.DVAD_TOKEN_RESPONSE_TYPE_INVALID;
-import static uk.gov.di.ipv.cri.passport.library.metrics.ThirdPartyAPIEndpointMetric.DVAD_TOKEN_RESPONSE_TYPE_VALID;
 
 public class DvadThirdPartyAPIService implements ThirdPartyAPIService {
 
     private static final Logger LOGGER = LogManager.getLogger();
+
+    private static final APIResultSource API_RESULT_SOURCE = DVAD;
 
     private static final String SERVICE_NAME = DvadThirdPartyAPIService.class.getSimpleName();
 
@@ -46,10 +47,7 @@ public class DvadThirdPartyAPIService implements ThirdPartyAPIService {
 
     private final PassportConfigurationService passportConfigurationService;
 
-    private static final long MAX_ALLOWED_ACCESS_TOKEN_LIFETIME = 1800L;
-    private static final String BEARER_TOKEN_TYPE = "Bearer";
-
-    private final ObjectMapper objectMapper;
+    private static final String VALIDATION_RESULT_FIELD = "validationResult";
 
     private final HealthCheckService healthCheckService;
     private final TokenRequestService tokenRequestService;
@@ -64,7 +62,6 @@ public class DvadThirdPartyAPIService implements ThirdPartyAPIService {
 
         this.passportConfigurationService = passportConfigurationService;
         this.eventProbe = eventProbe;
-        this.objectMapper = objectMapper;
 
         // Same on all endpoints
         final RequestConfig defaultRequestConfig =
@@ -91,20 +88,13 @@ public class DvadThirdPartyAPIService implements ThirdPartyAPIService {
     public ThirdPartyAPIResult performCheck(PassportFormData passportFormData)
             throws OAuthErrorResponseException {
 
-        // For DVAD txn is generated CRI side
-        final String requestId = UUID.randomUUID().toString();
-
-        // "API" Added to aid filtering log messages for this value
-        LOGGER.info("API Request Id {}", requestId);
-
         LOGGER.info(() -> String.format("%s reading header parameters", SERVICE_NAME));
         final DvadAPIHeaderValues dvadAPIHeaderValues =
                 new DvadAPIHeaderValues(passportConfigurationService);
         LOGGER.info(() -> String.format("%s header parameters set", SERVICE_NAME));
 
         // Perform API Health Check
-        final boolean remoteAPIsUP =
-                healthCheckService.checkRemoteApiIsUp(requestId, dvadAPIHeaderValues);
+        final boolean remoteAPIsUP = healthCheckService.checkRemoteApiIsUp(dvadAPIHeaderValues);
 
         if (!remoteAPIsUP) {
             LOGGER.error("Remote API is down");
@@ -114,111 +104,33 @@ public class DvadThirdPartyAPIService implements ThirdPartyAPIService {
         }
         LOGGER.info("Remote API is UP");
 
-        // Request an Access Token
-        final AccessTokenResponse accessTokenResponse =
-                tokenRequestService.requestAccessToken(requestId, dvadAPIHeaderValues);
-
-        // Fatal if any problems throws OAuthErrorResponseException
-        assertAccessTokenResponseIsValid(accessTokenResponse);
+        AccessTokenResponse accessTokenResponse =
+                tokenRequestService.requestAccessToken(dvadAPIHeaderValues, true);
 
         // Retrieved per connection to allow query change with-out re-deploy (power-tools cached)
         final String queryString =
                 passportConfigurationService.getEncryptedSsmParameter(HMPO_GRAPHQL_QUERY_STRING);
 
-        // Send GraphQL Request
-        String apiResponseAsString =
+        GraphQLServiceResult graphQLServiceResult =
                 graphQLRequestService.performGraphQLQuery(
-                        requestId,
-                        accessTokenResponse,
-                        dvadAPIHeaderValues,
-                        queryString,
-                        passportFormData);
-        LOGGER.debug("performGraphQLQuery response {}", apiResponseAsString);
+                        accessTokenResponse, dvadAPIHeaderValues, queryString, passportFormData);
 
-        // Map Response - all errors are thrown as OAuthErrorResponseException
-        ThirdPartyAPIResult result = processGraphQLResponse(apiResponseAsString);
-
-        // Record the requestId used for the successful transaction
-        result.setTransactionId(requestId);
-
-        return result;
-    }
-
-    private void assertAccessTokenResponseIsValid(AccessTokenResponse accessTokenResponse)
-            throws OAuthErrorResponseException {
-
-        if (LOGGER.isDebugEnabled()) {
-            LOGGER.debug(
-                    String.format(
-                            "BearerAccessToken is (T/V)  : %s %s %s",
-                            accessTokenResponse.getTokenType(),
-                            accessTokenResponse.getAccessToken(),
-                            accessTokenResponse.getExpiresIn()));
-        }
-
-        String tokenType = accessTokenResponse.getTokenType();
-        long tokenLifetime = accessTokenResponse.getExpiresIn();
-
-        if (!tokenType.equals(BEARER_TOKEN_TYPE)) {
-            LOGGER.error(
-                    "Access Token TokenType {} is not of type {}", tokenType, BEARER_TOKEN_TYPE);
-
-            eventProbe.counterMetric(DVAD_TOKEN_RESPONSE_TYPE_INVALID.withEndpointPrefix());
-
-            throw new OAuthErrorResponseException(
-                    HttpStatusCode.INTERNAL_SERVER_ERROR,
-                    ErrorResponse.FAILED_TO_VERIFY_ACCESS_TOKEN);
-        }
-
-        if (tokenLifetime <= 0 || tokenLifetime > MAX_ALLOWED_ACCESS_TOKEN_LIFETIME) {
-            LOGGER.error(
-                    "Access Token Lifetime is invalid - value {}, min 1, max {}",
-                    tokenLifetime,
-                    MAX_ALLOWED_ACCESS_TOKEN_LIFETIME);
-
-            eventProbe.counterMetric(DVAD_TOKEN_RESPONSE_TYPE_INVALID.withEndpointPrefix());
-
-            throw new OAuthErrorResponseException(
-                    HttpStatusCode.INTERNAL_SERVER_ERROR,
-                    ErrorResponse.FAILED_TO_VERIFY_ACCESS_TOKEN);
-        }
-
-        // No exceptions Token response is seen as valid
-        eventProbe.counterMetric(DVAD_TOKEN_RESPONSE_TYPE_VALID.withEndpointPrefix());
-    }
-
-    private ThirdPartyAPIResult processGraphQLResponse(String apiResponseAsString)
-            throws OAuthErrorResponseException {
-
-        APIResponse apiResponse;
-        try {
-            apiResponse = objectMapper.readValue(apiResponseAsString, APIResponse.class);
-        } catch (JsonProcessingException e) {
-
-            LOGGER.error("JsonProcessingException mapping GraphQL response");
-            LOGGER.debug(e.getMessage());
-
-            // Invalid due to json mapping fail
-            eventProbe.counterMetric(DVAD_GRAPHQL_RESPONSE_TYPE_INVALID.withEndpointPrefix());
-
-            throw new OAuthErrorResponseException(
-                    HttpStatusCode.INTERNAL_SERVER_ERROR,
-                    ErrorResponse.FAILED_TO_MAP_GRAPHQL_ENDPOINT_RESPONSE_BODY);
-        }
+        GraphQLAPIResponse graphQLAPIResponse = graphQLServiceResult.getGraphQLAPIResponse();
+        String graphQLRequestId = graphQLServiceResult.getRequestId();
 
         // Fatal - if errors found - Throws OAuthErrorResponseException
-        assertNoErrorsSetInGraphQLResponse(apiResponse);
+        assertNoErrorsSetInGraphQLResponse(graphQLAPIResponse);
 
         // Checks the response has the required fields for mapping
-        APIResponseValidationResult apiResponseValidationResult =
-                validateAPISuccessResponse(apiResponse);
+        GraphQLAPIResponseValidationResult graphQLAPIResponseValidationResult =
+                validateAPISuccessResponse(graphQLAPIResponse);
 
-        if (!apiResponseValidationResult.valid) {
+        if (!graphQLAPIResponseValidationResult.valid) {
 
             // We got an API response, but it's not valid for the CRI to process
             LOGGER.error(
                     "API Response Failed validation - {}",
-                    apiResponseValidationResult.failureReason);
+                    graphQLAPIResponseValidationResult.failureReason);
 
             eventProbe.counterMetric(DVAD_GRAPHQL_RESPONSE_TYPE_INVALID.withEndpointPrefix());
 
@@ -230,70 +142,19 @@ public class DvadThirdPartyAPIService implements ThirdPartyAPIService {
         // If there is failure after this point then validation needs updated
         eventProbe.counterMetric(DVAD_GRAPHQL_RESPONSE_TYPE_VALID.withEndpointPrefix());
 
-        // Creates and Returns ThirdPartyAPIResult
-        return mapAPIResponseToAPIResult(apiResponse);
-    }
+        ThirdPartyAPIResult result = mapAPIResponseToAPIResult(graphQLAPIResponse);
 
-    private APIResponseValidationResult validateAPISuccessResponse(APIResponse apiResponse) {
+        // Record the requestId used for the successful transaction
+        result.setTransactionId(graphQLRequestId);
 
-        if (apiResponse.getData() == null) {
-
-            return APIResponseValidationResult.builder()
-                    .valid(false)
-                    .failureReason("API Response Data is null")
-                    .build();
-        }
-
-        if (apiResponse.getData().getValidatePassportData() == null) {
-
-            return APIResponseValidationResult.builder()
-                    .valid(false)
-                    .failureReason("API Response ValidatePassportData is null")
-                    .build();
-        }
-
-        if (apiResponse.getData().getValidatePassportData().getValidationResult() == null) {
-            return APIResponseValidationResult.builder()
-                    .valid(false)
-                    .failureReason("API Response ValidationResult is null")
-                    .build();
-        }
-
-        // Matches if null is mapped as an empty map via Jackson
-
-        return APIResponseValidationResult.builder().valid(true).build();
-    }
-
-    private ThirdPartyAPIResult mapAPIResponseToAPIResult(APIResponse apiResponse) {
-
-        ThirdPartyAPIResult result = new ThirdPartyAPIResult();
-
-        boolean passportFound = apiResponse.getData().getValidatePassportData().isPassportFound();
-
-        ValidationResult validationResult =
-                apiResponse.getData().getValidatePassportData().getValidationResult();
-
-        // Was both the passport "found" and all overall validationResult a success
-        boolean isValid = passportFound && validationResult == ValidationResult.SUCCESS;
-
-        String message =
-                String.format(
-                        "passportFound %s, validationResult %s - isValid %s",
-                        passportFound, validationResult, isValid);
-        LOGGER.info(message);
-
-        Map<String, String> responseFlags =
-                apiResponse.getData().getValidatePassportData().getMatches();
-
-        result.setValid(isValid);
-        result.setFlags(responseFlags);
+        result.setApiResultSource(API_RESULT_SOURCE);
 
         return result;
     }
 
-    private void assertNoErrorsSetInGraphQLResponse(APIResponse apiResponse)
+    private void assertNoErrorsSetInGraphQLResponse(GraphQLAPIResponse graphQLAPIResponse)
             throws OAuthErrorResponseException {
-        final List<Errors> errors = apiResponse.getErrors();
+        final List<Errors> errors = graphQLAPIResponse.getErrors();
         boolean errorResponse = (errors != null);
 
         // Errors only exists if the remote API did not accept the request
@@ -302,10 +163,19 @@ public class DvadThirdPartyAPIService implements ThirdPartyAPIService {
             List<String> errorMessage = new ArrayList<>();
 
             for (Errors error : errors) {
+
+                Classification classification = error.getExtensions().getClassification();
+
                 String errorLine =
                         String.format(
-                                "Code: %s Message: %s",
-                                error.getExtensions().getCode(), error.getMessage());
+                                "Error : message %s, %s, path %s, type %s, validatedPath %s, constraint %s",
+                                error.getMessage(),
+                                error.getLocations(),
+                                error.getPath(),
+                                classification.getType(),
+                                classification.getValidatedPath(),
+                                classification.getConstraint());
+
                 errorMessage.add(errorLine);
             }
 
@@ -320,5 +190,72 @@ public class DvadThirdPartyAPIService implements ThirdPartyAPIService {
                     HttpStatusCode.INTERNAL_SERVER_ERROR,
                     ErrorResponse.GRAPHQL_ENDPOINT_RETURNED_AN_ERROR_RESPONSE);
         }
+    }
+
+    private GraphQLAPIResponseValidationResult validateAPISuccessResponse(
+            GraphQLAPIResponse graphQLAPIResponse) {
+
+        if (graphQLAPIResponse.getData() == null) {
+
+            return GraphQLAPIResponseValidationResult.builder()
+                    .valid(false)
+                    .failureReason("API Response Data is null")
+                    .build();
+        }
+
+        if (graphQLAPIResponse.getData().getValidatePassport() == null) {
+
+            return GraphQLAPIResponseValidationResult.builder()
+                    .valid(false)
+                    .failureReason("API Response ValidatePassport is null")
+                    .build();
+        }
+
+        if (graphQLAPIResponse.getData().getValidatePassport().size() == 0) {
+
+            return GraphQLAPIResponseValidationResult.builder()
+                    .valid(false)
+                    .failureReason("API Response ValidatePassport is empty")
+                    .build();
+        }
+
+        if (!graphQLAPIResponse
+                .getData()
+                .getValidatePassport()
+                .containsKey(VALIDATION_RESULT_FIELD)) {
+
+            return GraphQLAPIResponseValidationResult.builder()
+                    .valid(false)
+                    .failureReason(
+                            String.format(
+                                    "API Response ValidatePassport is missing %s",
+                                    VALIDATION_RESULT_FIELD))
+                    .build();
+        }
+
+        return GraphQLAPIResponseValidationResult.builder().valid(true).build();
+    }
+
+    private ThirdPartyAPIResult mapAPIResponseToAPIResult(GraphQLAPIResponse graphQLAPIResponse) {
+
+        ThirdPartyAPIResult result = new ThirdPartyAPIResult();
+
+        Map<String, String> validatePassportMap =
+                graphQLAPIResponse.getData().getValidatePassport();
+
+        // Remove the main validation field from the map
+        String validationResultValue = validatePassportMap.remove(VALIDATION_RESULT_FIELD);
+
+        boolean isValid = Boolean.parseBoolean(validationResultValue);
+
+        String message = String.format("isValid %s", isValid);
+        LOGGER.info(message);
+
+        result.setValid(isValid);
+
+        // Remaining fields are treated as response flags
+        result.setFlags(validatePassportMap);
+
+        return result;
     }
 }

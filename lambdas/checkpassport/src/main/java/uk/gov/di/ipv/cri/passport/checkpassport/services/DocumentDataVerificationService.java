@@ -12,6 +12,7 @@ import uk.gov.di.ipv.cri.common.library.service.AuditService;
 import uk.gov.di.ipv.cri.common.library.util.EventProbe;
 import uk.gov.di.ipv.cri.passport.checkpassport.domain.result.DocumentDataVerificationResult;
 import uk.gov.di.ipv.cri.passport.checkpassport.domain.result.ThirdPartyAPIResult;
+import uk.gov.di.ipv.cri.passport.checkpassport.domain.result.fields.APIResultSource;
 import uk.gov.di.ipv.cri.passport.checkpassport.validation.ValidationResult;
 import uk.gov.di.ipv.cri.passport.library.domain.PassportFormData;
 import uk.gov.di.ipv.cri.passport.library.error.ErrorResponse;
@@ -99,15 +100,21 @@ public class DocumentDataVerificationService {
 
             LOGGER.info("Third party response mapped");
 
+            APIResultSource apiResultSource = thirdPartyAPIResult.getApiResultSource();
+
             int documentStrengthScore = MAX_PASSPORT_GPG45_STRENGTH_VALUE;
             int documentValidityScore = calculateValidity(thirdPartyAPIResult);
 
             LOGGER.info("Mapping contra-indicators from Third party response");
             List<String> cis = calculateContraIndicators(thirdPartyAPIResult);
 
-            LOGGER.info("Generating Document Data Verification Result");
+            LOGGER.info(
+                    "Generating Document Data Verification Result from {} ThirdPartyAPIResult",
+                    apiResultSource.getName());
             DocumentDataVerificationResult documentDataVerificationResult =
                     new DocumentDataVerificationResult();
+
+            documentDataVerificationResult.setAPIResultSource(apiResultSource);
 
             documentDataVerificationResult.setContraIndicators(cis);
 
@@ -184,11 +191,10 @@ public class DocumentDataVerificationService {
         if (thirdPartyAPIResult.getFlags() != null) {
             Map<String, String> flagMap = thirdPartyAPIResult.getFlags();
 
-            LOGGER.debug("Matches : ");
             for (Map.Entry<String, String> entry : flagMap.entrySet()) {
                 String key = entry.getKey();
                 String value = entry.getValue();
-                String message = String.format("Match %s : %s", key, value);
+                String message = String.format("Flag %s : Value %s", key, value);
                 LOGGER.debug(message);
             }
 

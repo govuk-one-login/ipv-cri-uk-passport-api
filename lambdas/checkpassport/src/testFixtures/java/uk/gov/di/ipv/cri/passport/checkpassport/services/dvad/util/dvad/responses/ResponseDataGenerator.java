@@ -1,8 +1,6 @@
 package uk.gov.di.ipv.cri.passport.checkpassport.services.dvad.util.dvad.responses;
 
 import uk.gov.di.ipv.cri.passport.checkpassport.domain.response.dvad.fields.ResponseData;
-import uk.gov.di.ipv.cri.passport.checkpassport.domain.response.dvad.fields.ValidatePassportData;
-import uk.gov.di.ipv.cri.passport.checkpassport.domain.response.dvad.fields.ValidationResult;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -16,36 +14,21 @@ public class ResponseDataGenerator {
         throw new IllegalStateException("Test Fixtures");
     }
 
-    public static ResponseData createValidSuccessResponseData() {
+    public static ResponseData createValidationResultTrueResponseData() {
 
-        Map<String, String> matches = new HashMap<>();
+        Map<String, String> validatePassport = new HashMap<>();
 
-        matches.put("flag1", FALSE);
-        matches.put("flag2", FALSE);
-        matches.put("flag3", FALSE);
-        matches.put("flagA", FALSE);
-        matches.put("flagB", FALSE);
-        matches.put("flagC", FALSE);
+        validatePassport.put("validationResult", "true");
 
-        ValidatePassportData validatePassportData =
-                ValidatePassportData.builder()
-                        .validationResult(ValidationResult.SUCCESS)
-                        .passportFound(true)
-                        .matches(matches)
-                        .build();
-
-        return ResponseData.builder().validatePassportData(validatePassportData).build();
+        return ResponseData.builder().validatePassport(validatePassport).build();
     }
 
-    public static ResponseData createValidNotFoundResponseData() {
+    public static ResponseData createValidationResultFalseResponseData() {
 
-        ValidatePassportData validatePassportData =
-                ValidatePassportData.builder()
-                        .validationResult(ValidationResult.FAILURE)
-                        .passportFound(false)
-                        .matches(null)
-                        .build();
+        Map<String, String> validatePassport = new HashMap<>();
 
-        return ResponseData.builder().validatePassportData(validatePassportData).build();
+        validatePassport.put("validationResult", FALSE);
+
+        return ResponseData.builder().validatePassport(validatePassport).build();
     }
 }

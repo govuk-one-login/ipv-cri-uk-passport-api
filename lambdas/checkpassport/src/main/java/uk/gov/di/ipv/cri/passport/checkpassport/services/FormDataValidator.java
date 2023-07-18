@@ -31,10 +31,8 @@ public class FormDataValidator {
                     "DateOfBirth" + JsonValidationUtility.IS_NULL_ERROR_MESSAGE_SUFFIX);
         }
 
-        if (Objects.isNull(passportForm.getPassportNumber())) {
-            validationErrors.add(
-                    "PassportNumber" + JsonValidationUtility.IS_NULL_ERROR_MESSAGE_SUFFIX);
-        }
+        JsonValidationUtility.validateIntegerStringNullOrEmptyIsFail(
+                passportForm.getPassportNumber(), "PassportNumber", validationErrors);
 
         if (Objects.isNull(passportForm.getExpiryDate())) {
             validationErrors.add("ExpiryDate" + JsonValidationUtility.IS_NULL_ERROR_MESSAGE_SUFFIX);

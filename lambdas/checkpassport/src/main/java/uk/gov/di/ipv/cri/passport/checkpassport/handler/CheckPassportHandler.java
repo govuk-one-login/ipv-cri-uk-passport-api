@@ -62,6 +62,10 @@ public class CheckPassportHandler
 
     private static final Logger LOGGER = LogManager.getLogger();
 
+    // Header Keys
+    public static final String HEADER_DOCUMENT_CHECKING_ROUTE = "document-checking-route";
+
+    // Return values for retry scenario
     public static final String RESULT = "result";
     public static final String RESULT_RETRY = "retry";
 
@@ -172,7 +176,9 @@ public class CheckPassportHandler
             boolean dvaDigitalEnabled =
                     Boolean.parseBoolean(
                             passportConfigurationService.getParameterValue(DVA_DIGITAL_ENABLED));
-            boolean newThirdpartyAPI = (requestHeaders.get("new-api") != null);
+            boolean newThirdpartyAPI =
+                    "dvad".equals(requestHeaders.get(HEADER_DOCUMENT_CHECKING_ROUTE));
+
             ThirdPartyAPIService thirdPartyAPIService =
                     selectThirdPartyAPIService(dvaDigitalEnabled, newThirdpartyAPI);
 
@@ -343,6 +349,9 @@ public class CheckPassportHandler
             SessionItem sessionItem,
             PassportFormData passportFormData,
             DocumentDataVerificationResult documentDataVerificationResult) {
+
+        // TODO - DocumentDataVerificationResult - record only the form fields which are used in
+        // each specific API Request
 
         LOGGER.info("Saving person identity...");
         BirthDate birthDate = new BirthDate();

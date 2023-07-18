@@ -2,8 +2,8 @@ package uk.gov.di.ipv.cri.passport.checkpassport.services.dvad.util.dvad.respons
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.apache.http.client.methods.CloseableHttpResponse;
-import uk.gov.di.ipv.cri.passport.checkpassport.domain.response.dvad.APIResponse;
 import uk.gov.di.ipv.cri.passport.checkpassport.domain.response.dvad.AccessTokenResponse;
+import uk.gov.di.ipv.cri.passport.checkpassport.domain.response.dvad.GraphQLAPIResponse;
 import uk.gov.di.ipv.cri.passport.checkpassport.domain.response.dvad.HealthCheckResponse;
 import uk.gov.di.ipv.cri.passport.checkpassport.domain.response.dvad.fields.ResponseData;
 
@@ -57,9 +57,9 @@ public class DVADResponseFixtures {
     public static CloseableHttpResponse mockGraphQLAPIResponse(int statusCode, boolean validBody)
             throws IOException {
 
-        ResponseData responseData = ResponseDataGenerator.createValidSuccessResponseData();
+        ResponseData responseData = ResponseDataGenerator.createValidationResultTrueResponseData();
 
-        APIResponse response = APIResponse.builder().data(responseData).build();
+        GraphQLAPIResponse response = GraphQLAPIResponse.builder().data(responseData).build();
 
         String responseBody =
                 validBody ? new ObjectMapper().writeValueAsString(response) : INVALID_JSON;

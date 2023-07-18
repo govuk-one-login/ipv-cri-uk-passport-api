@@ -18,6 +18,7 @@ import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static uk.gov.di.ipv.cri.passport.library.metrics.ThirdPartyAPIMetricEndpointPrefix.DVAD_THIRD_PARTY_API_HEALTH_ENDPOINT;
+import static uk.gov.di.ipv.cri.passport.library.metrics.ThirdPartyAPIMetricEndpointPrefix.DVAD_THIRD_PARTY_API_TOKEN_ENDPOINT;
 
 @ExtendWith(MockitoExtension.class)
 class ThirdPartyAPIEndpointMetricTest {
@@ -76,6 +77,13 @@ class ThirdPartyAPIEndpointMetricTest {
                         .toLowerCase());
         expectedMetricsCaptureList.add(
                 String.format(expectedFormat, DVAD_THIRD_PARTY_API_HEALTH_ENDPOINT, "DOWN")
+                        .toLowerCase());
+        // Add Special case token reuse metric
+        expectedMetricsCaptureList.add(
+                String.format(
+                                expectedFormat,
+                                DVAD_THIRD_PARTY_API_TOKEN_ENDPOINT,
+                                "reusing_cached_token")
                         .toLowerCase());
 
         // Sort the two lists so the orders are the same

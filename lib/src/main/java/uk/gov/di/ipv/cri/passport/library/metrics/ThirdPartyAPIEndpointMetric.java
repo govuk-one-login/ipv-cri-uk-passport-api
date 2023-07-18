@@ -57,6 +57,9 @@ public enum ThirdPartyAPIEndpointMetric {
     ///////////////////////////////////////////////////////////////////////////////////////////////
     // DVAD Token End Point Metrics                                                              //
     ///////////////////////////////////////////////////////////////////////////////////////////////
+    DVAD_TOKEN_REQUEST_REUSING_CACHED_TOKEN(
+            DVAD_THIRD_PARTY_API_TOKEN_ENDPOINT, "reusing_cached_token"),
+
     DVAD_TOKEN_REQUEST_CREATED(DVAD_THIRD_PARTY_API_TOKEN_ENDPOINT, REQUEST_CREATED),
     DVAD_TOKEN_REQUEST_SEND_OK(DVAD_THIRD_PARTY_API_TOKEN_ENDPOINT, REQUEST_SEND_OK),
 

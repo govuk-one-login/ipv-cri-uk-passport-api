@@ -5,8 +5,8 @@ import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.Builder;
 import lombok.Data;
-import uk.gov.di.ipv.cri.passport.checkpassport.domain.response.dvad.fields.Errors;
 import uk.gov.di.ipv.cri.passport.checkpassport.domain.response.dvad.fields.ResponseData;
+import uk.gov.di.ipv.cri.passport.checkpassport.domain.response.dvad.fields.errors.Errors;
 
 import java.util.List;
 
@@ -15,7 +15,7 @@ import java.util.List;
 @JsonIgnoreProperties(ignoreUnknown = true)
 @Data
 @Builder
-public class APIResponse {
+public class GraphQLAPIResponse {
 
     @JsonProperty("data")
     private ResponseData data;
@@ -24,8 +24,8 @@ public class APIResponse {
     private List<Errors> errors;
 
     @JsonCreator
-    public APIResponse(
-            @JsonProperty(value = "data", required = false) ResponseData data,
+    public GraphQLAPIResponse(
+            @JsonProperty(value = "data", required = true) ResponseData data,
             @JsonProperty(value = "errors", required = false) List<Errors> errors) {
         this.data = data;
         this.errors = errors;

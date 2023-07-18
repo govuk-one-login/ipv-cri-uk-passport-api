@@ -55,12 +55,12 @@ public class ParameterStoreParameters {
 
     public static final String HMPO_API_HEADER_API_KEY = "HMPODVAD/API/Header/ApiKey";
     public static final String HMPO_API_HEADER_USER_AGENT = "HMPODVAD/API/Header/UserAgent";
+    public static final String HMPO_API_HEADER_NETWORK_TYPE = "HMPODVAD/API/Header/NetworkType";
 
     public static final String HMPO_API_HEADER_CLIENT_ID = "HMPODVAD/API/Header/ClientId";
     public static final String HMPO_API_HEADER_SECRET = "HMPODVAD/API/Header/Secret";
 
     public static final String HMPO_API_HEADER_GRANT_TYPE = "HMPODVAD/API/Header/GrantType";
-    public static final String HMPO_API_HEADER_AUDIENCE = "HMPODVAD/API/Header/Audience";
 
     public static final String MAX_JWT_TTL_UNIT = "JwtTtlUnit"; // Issue Cred VC TTL
 
