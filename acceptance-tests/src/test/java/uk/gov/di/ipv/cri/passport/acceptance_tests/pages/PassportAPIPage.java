@@ -103,21 +103,23 @@ public class PassportAPIPage extends PassportPageObject {
         assertTrue(StringUtils.isNotBlank(SESSION_ID));
     }
 
-    public void postRequestToPassportEndpoint(String passportJsonRequestBody)
+    public void postRequestToPassportEndpoint(String passportJsonRequestBody, boolean dvad)
             throws IOException, InterruptedException {
         String privateApiGatewayUrl = configurationService.getPrivateAPIEndpoint();
         JsonNode passportJson =
                 objectMapper.readTree(
                         new File("src/test/resources/Data/" + passportJsonRequestBody + ".json"));
         String passportInputJsonString = passportJson.toString();
-        HttpRequest request =
-                HttpRequest.newBuilder()
-                        .uri(URI.create(privateApiGatewayUrl + "/check-passport"))
-                        .setHeader("Accept", "application/json")
-                        .setHeader("Content-Type", "application/json")
-                        .setHeader("session_id", SESSION_ID)
-                        .POST(HttpRequest.BodyPublishers.ofString(passportInputJsonString))
-                        .build();
+        HttpRequest.Builder builder = HttpRequest.newBuilder();
+        builder.uri(URI.create(privateApiGatewayUrl + "/check-passport"))
+                .setHeader("Accept", "application/json")
+                .setHeader("Content-Type", "application/json")
+                .setHeader("session_id", SESSION_ID)
+                .POST(HttpRequest.BodyPublishers.ofString(passportInputJsonString));
+        if (dvad) {
+            builder.setHeader("new-api", "true");
+        }
+        HttpRequest request = builder.build();
         LOGGER.info("passport RequestBody = " + passportInputJsonString);
         String passportCheckResponse = sendHttpRequest(request).body();
 
