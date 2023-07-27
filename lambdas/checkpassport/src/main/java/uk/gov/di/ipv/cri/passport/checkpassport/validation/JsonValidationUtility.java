@@ -17,6 +17,9 @@ public final class JsonValidationUtility {
     public static final String FAIL_PARSING_TIMESTAMP_ERROR_MESSAGE_SUFFIX =
             " failed timestamp parsing.";
 
+    public static final String FAIL_PARSING_INTEGER_ERROR_MESSAGE_SUFFIX =
+            " failed integer parsing.";
+
     @ExcludeFromGeneratedCoverageReport
     private JsonValidationUtility() {
         throw new IllegalStateException("Instantiation is not valid for this class.");
@@ -148,6 +151,36 @@ public final class JsonValidationUtility {
                 } catch (DateTimeParseException e) {
                     validationErrors.add(name + FAIL_PARSING_TIMESTAMP_ERROR_MESSAGE_SUFFIX);
                     return false;
+                }
+            } else {
+                validationErrors.add(name + IS_EMPTY_ERROR_MESSAGE_SUFFIX);
+                return false;
+            }
+        } else {
+            validationErrors.add(name + IS_NULL_ERROR_MESSAGE_SUFFIX);
+            return false;
+        }
+
+        return true;
+    }
+
+    /**
+     * Test that an Integer stored in a String can be mapped back to an Int
+     *
+     * @param variable The variable being validated
+     * @param name String name of the field being validated
+     * @param validationErrors A list in which to collect validation errors
+     * @return true if validation passed or false if not.
+     */
+    public static boolean validateIntegerStringNullOrEmptyIsFail(
+            String variable, String name, final List<String> validationErrors) {
+
+        if (variable != null) {
+            if (!variable.isBlank()) {
+                try {
+                    Integer.parseInt(variable);
+                } catch (NumberFormatException e) {
+                    validationErrors.add(name + FAIL_PARSING_INTEGER_ERROR_MESSAGE_SUFFIX);
                 }
             } else {
                 validationErrors.add(name + IS_EMPTY_ERROR_MESSAGE_SUFFIX);

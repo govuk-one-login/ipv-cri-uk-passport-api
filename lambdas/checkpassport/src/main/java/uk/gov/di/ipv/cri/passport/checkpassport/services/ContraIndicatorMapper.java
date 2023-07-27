@@ -93,7 +93,7 @@ public class ContraIndicatorMapper {
     public List<String> mapFlagsToCIs(Map<String, String> flagMap) {
         Objects.requireNonNull(flagMap, "flagMap must not be null");
 
-        if (flagMap.size() == 0) {
+        if (flagMap.isEmpty()) {
             logger.info("No flags to map");
             return new ArrayList<>();
         }
@@ -126,14 +126,17 @@ public class ContraIndicatorMapper {
                         .collect(Collectors.toList());
 
         logger.info("PresentNotMatching ({})", presentNotMatching.size());
-        for (String pre : presentNotMatching) {
-            logger.debug("PresentNotMatching : {}", pre);
-        }
+        logger.debug(
+                "PresentNotMatching : {}",
+                !presentNotMatching.isEmpty() ? String.join(", ", presentNotMatching) : "[]");
 
         int flagsInitialQuery = flagMap.size();
         int flagPresentNotMatching = presentNotMatching.size();
 
         int contraIndicatorsFound = contraIndicators.size();
+        logger.debug(
+                "ContraIndicators : {}",
+                !contraIndicators.isEmpty() ? String.join(", ", contraIndicators) : "[]");
 
         // ContraIndicators+flagPresentNotMatching must equal the flagMap size
         // If not, then the mappingString needs updated with the flags

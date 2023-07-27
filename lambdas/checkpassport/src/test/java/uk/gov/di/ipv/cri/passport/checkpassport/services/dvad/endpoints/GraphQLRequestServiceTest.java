@@ -2,6 +2,7 @@ package uk.gov.di.ipv.cri.passport.checkpassport.services.dvad.endpoints;
 
 import com.fasterxml.jackson.core.exc.InputCoercionException;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import org.apache.http.Header;
 import org.apache.http.HttpStatus;
 import org.apache.http.client.config.RequestConfig;
 import org.apache.http.client.methods.CloseableHttpResponse;
@@ -18,8 +19,8 @@ import org.mockito.Mockito;
 import org.mockito.junit.jupiter.MockitoExtension;
 import uk.gov.di.ipv.cri.common.library.util.EventProbe;
 import uk.gov.di.ipv.cri.passport.checkpassport.domain.request.dvad.GraphQLRequest;
-import uk.gov.di.ipv.cri.passport.checkpassport.domain.response.dvad.APIResponse;
 import uk.gov.di.ipv.cri.passport.checkpassport.domain.response.dvad.AccessTokenResponse;
+import uk.gov.di.ipv.cri.passport.checkpassport.domain.result.dvad.endpoints.GraphQLServiceResult;
 import uk.gov.di.ipv.cri.passport.checkpassport.services.dvad.DvadAPIHeaderValues;
 import uk.gov.di.ipv.cri.passport.checkpassport.services.dvad.util.dvad.responses.DVADResponseFixtures;
 import uk.gov.di.ipv.cri.passport.library.PassportFormTestDataGenerator;
@@ -29,8 +30,12 @@ import uk.gov.di.ipv.cri.passport.library.exceptions.OAuthErrorResponseException
 import uk.gov.di.ipv.cri.passport.library.service.PassportConfigurationService;
 
 import java.io.IOException;
+import java.util.Arrays;
+import java.util.Map;
 import java.util.UUID;
+import java.util.stream.Collectors;
 
+import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
@@ -41,15 +46,16 @@ import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verifyNoMoreInteractions;
 import static org.mockito.Mockito.when;
 import static uk.gov.di.ipv.cri.passport.library.config.ParameterStoreParameters.HMPO_API_HEADER_API_KEY;
-import static uk.gov.di.ipv.cri.passport.library.config.ParameterStoreParameters.HMPO_API_HEADER_AUDIENCE;
 import static uk.gov.di.ipv.cri.passport.library.config.ParameterStoreParameters.HMPO_API_HEADER_CLIENT_ID;
 import static uk.gov.di.ipv.cri.passport.library.config.ParameterStoreParameters.HMPO_API_HEADER_GRANT_TYPE;
+import static uk.gov.di.ipv.cri.passport.library.config.ParameterStoreParameters.HMPO_API_HEADER_NETWORK_TYPE;
 import static uk.gov.di.ipv.cri.passport.library.config.ParameterStoreParameters.HMPO_API_HEADER_SECRET;
 import static uk.gov.di.ipv.cri.passport.library.config.ParameterStoreParameters.HMPO_API_HEADER_USER_AGENT;
 import static uk.gov.di.ipv.cri.passport.library.metrics.ThirdPartyAPIEndpointMetric.DVAD_GRAPHQL_REQUEST_CREATED;
 import static uk.gov.di.ipv.cri.passport.library.metrics.ThirdPartyAPIEndpointMetric.DVAD_GRAPHQL_REQUEST_SEND_ERROR;
 import static uk.gov.di.ipv.cri.passport.library.metrics.ThirdPartyAPIEndpointMetric.DVAD_GRAPHQL_REQUEST_SEND_OK;
 import static uk.gov.di.ipv.cri.passport.library.metrics.ThirdPartyAPIEndpointMetric.DVAD_GRAPHQL_RESPONSE_TYPE_EXPECTED_HTTP_STATUS;
+import static uk.gov.di.ipv.cri.passport.library.metrics.ThirdPartyAPIEndpointMetric.DVAD_GRAPHQL_RESPONSE_TYPE_INVALID;
 import static uk.gov.di.ipv.cri.passport.library.metrics.ThirdPartyAPIEndpointMetric.DVAD_GRAPHQL_RESPONSE_TYPE_UNEXPECTED_HTTP_STATUS;
 
 @ExtendWith(MockitoExtension.class)
@@ -86,14 +92,14 @@ class GraphQLRequestServiceTest {
                 .thenReturn("TEST_KEY");
         when(mockPassportConfigurationService.getParameterValue(HMPO_API_HEADER_USER_AGENT))
                 .thenReturn("TEST_USER_AGENT");
+        when(mockPassportConfigurationService.getParameterValue(HMPO_API_HEADER_NETWORK_TYPE))
+                .thenReturn("TEST_NETWORK_TYPE");
         when(mockPassportConfigurationService.getParameterValue(HMPO_API_HEADER_CLIENT_ID))
                 .thenReturn("TEST_CLIENT_ID");
         when(mockPassportConfigurationService.getParameterValue(HMPO_API_HEADER_SECRET))
                 .thenReturn("TEST_SECRET");
         when(mockPassportConfigurationService.getParameterValue(HMPO_API_HEADER_GRANT_TYPE))
                 .thenReturn("TEST_GRANT_TYPE");
-        when(mockPassportConfigurationService.getParameterValue(HMPO_API_HEADER_AUDIENCE))
-                .thenReturn("TEST_AUDIENCE");
 
         realDvadAPIHeaderValues = new DvadAPIHeaderValues(mockPassportConfigurationService);
     }
@@ -115,13 +121,16 @@ class GraphQLRequestServiceTest {
         // Method args
         String requestId = UUID.randomUUID().toString();
         AccessTokenResponse accessTokenResponse =
-                AccessTokenResponse.builder().accessToken("TOKEN VALUE").expiresIn(1800).build();
+                AccessTokenResponse.builder()
+                        .tokenType("Bearer")
+                        .accessToken("TOKEN VALUE")
+                        .expiresIn(1800)
+                        .build();
         String queryString = "Select * from PassportDB where passport.id=";
         PassportFormData passportFormData = PassportFormTestDataGenerator.generate();
 
-        String apiResponseAsString =
+        GraphQLServiceResult graphQLServiceResult =
                 graphQLRequestService.performGraphQLQuery(
-                        requestId,
                         accessTokenResponse,
                         realDvadAPIHeaderValues,
                         queryString,
@@ -148,10 +157,9 @@ class GraphQLRequestServiceTest {
         // Validity is checked later
         verifyNoMoreInteractions(mockEventProbe);
 
-        assertNotNull(apiResponseAsString);
-        APIResponse apiResponse =
-                realObjectMapper.readValue(apiResponseAsString, APIResponse.class);
-        assertNotNull(apiResponse);
+        assertNotNull(graphQLServiceResult);
+        assertNotNull(graphQLServiceResult.getGraphQLAPIResponse());
+        assertGraphQLQLHeaders(httpRequestCaptor);
     }
 
     @Test
@@ -177,7 +185,11 @@ class GraphQLRequestServiceTest {
         // Method args
         String requestId = UUID.randomUUID().toString();
         AccessTokenResponse accessTokenResponse =
-                AccessTokenResponse.builder().accessToken("TOKEN VALUE").expiresIn(1800).build();
+                AccessTokenResponse.builder()
+                        .tokenType("Bearer")
+                        .accessToken("TOKEN VALUE")
+                        .expiresIn(1800)
+                        .build();
         String queryString = "Select * from PassportDB where passport.id=";
         PassportFormData passportFormData = PassportFormTestDataGenerator.generate();
 
@@ -194,7 +206,6 @@ class GraphQLRequestServiceTest {
                         OAuthErrorResponseException.class,
                         () ->
                                 thisTestOnlyGraphQLRequestService.performGraphQLQuery(
-                                        requestId,
                                         accessTokenResponse,
                                         realDvadAPIHeaderValues,
                                         queryString,
@@ -220,7 +231,11 @@ class GraphQLRequestServiceTest {
         // Method args
         String requestId = UUID.randomUUID().toString();
         AccessTokenResponse accessTokenResponse =
-                AccessTokenResponse.builder().accessToken("TOKEN VALUE").expiresIn(1800).build();
+                AccessTokenResponse.builder()
+                        .tokenType("Bearer")
+                        .accessToken("TOKEN VALUE")
+                        .expiresIn(1800)
+                        .build();
         String queryString = "Select * from PassportDB where passport.id=";
         PassportFormData passportFormData = PassportFormTestDataGenerator.generate();
 
@@ -229,7 +244,6 @@ class GraphQLRequestServiceTest {
                         OAuthErrorResponseException.class,
                         () ->
                                 graphQLRequestService.performGraphQLQuery(
-                                        requestId,
                                         accessTokenResponse,
                                         realDvadAPIHeaderValues,
                                         queryString,
@@ -280,7 +294,11 @@ class GraphQLRequestServiceTest {
         // Method args
         String requestId = UUID.randomUUID().toString();
         AccessTokenResponse accessTokenResponse =
-                AccessTokenResponse.builder().accessToken("TOKEN VALUE").expiresIn(1800).build();
+                AccessTokenResponse.builder()
+                        .tokenType("Bearer")
+                        .accessToken("TOKEN VALUE")
+                        .expiresIn(1800)
+                        .build();
         String queryString = "Select * from PassportDB where passport.id=";
         PassportFormData passportFormData = PassportFormTestDataGenerator.generate();
 
@@ -289,7 +307,6 @@ class GraphQLRequestServiceTest {
                         OAuthErrorResponseException.class,
                         () ->
                                 graphQLRequestService.performGraphQLQuery(
-                                        requestId,
                                         accessTokenResponse,
                                         realDvadAPIHeaderValues,
                                         queryString,
@@ -318,5 +335,101 @@ class GraphQLRequestServiceTest {
 
         assertEquals(expectedReturnedException.getStatusCode(), thrownException.getStatusCode());
         assertEquals(expectedReturnedException.getErrorReason(), thrownException.getErrorReason());
+    }
+
+    @Test
+    void shouldReturnOAuthErrorResponseExceptionWhenGraphQLResponseCannotBeMapped()
+            throws IOException {
+        ArgumentCaptor<HttpEntityEnclosingRequestBase> httpRequestCaptor =
+                ArgumentCaptor.forClass(HttpPost.class);
+
+        // A GraphQLAPIResponse but status not 200
+        CloseableHttpResponse graphQLAPIResponse =
+                DVADResponseFixtures.mockGraphQLAPIResponse(200, false);
+
+        // HttpClient response
+        when(mockCloseableHttpClient.execute(httpRequestCaptor.capture()))
+                .thenReturn(graphQLAPIResponse);
+
+        OAuthErrorResponseException expectedReturnedException =
+                new OAuthErrorResponseException(
+                        HttpStatus.SC_INTERNAL_SERVER_ERROR,
+                        ErrorResponse.FAILED_TO_MAP_GRAPHQL_ENDPOINT_RESPONSE_BODY);
+
+        // Method args
+        String requestId = UUID.randomUUID().toString();
+        AccessTokenResponse accessTokenResponse =
+                AccessTokenResponse.builder()
+                        .tokenType("Bearer")
+                        .accessToken("TOKEN VALUE")
+                        .expiresIn(1800)
+                        .build();
+        String queryString = "Select * from PassportDB where passport.id=";
+        PassportFormData passportFormData = PassportFormTestDataGenerator.generate();
+
+        OAuthErrorResponseException thrownException =
+                assertThrows(
+                        OAuthErrorResponseException.class,
+                        () ->
+                                graphQLRequestService.performGraphQLQuery(
+                                        accessTokenResponse,
+                                        realDvadAPIHeaderValues,
+                                        queryString,
+                                        passportFormData),
+                        "Expected OAuthErrorResponseException");
+
+        // (Post) GraphQl
+        InOrder inOrderMockHttpClientSequence = inOrder(mockCloseableHttpClient);
+        inOrderMockHttpClientSequence
+                .verify(mockCloseableHttpClient, times(1))
+                .execute(any(HttpPost.class));
+        verifyNoMoreInteractions(mockCloseableHttpClient);
+
+        InOrder inOrderMockEventProbeSequence = inOrder(mockEventProbe);
+        inOrderMockEventProbeSequence
+                .verify(mockEventProbe)
+                .counterMetric(DVAD_GRAPHQL_REQUEST_CREATED.withEndpointPrefix());
+        inOrderMockEventProbeSequence
+                .verify(mockEventProbe)
+                .counterMetric(DVAD_GRAPHQL_REQUEST_SEND_OK.withEndpointPrefix());
+        inOrderMockEventProbeSequence
+                .verify(mockEventProbe)
+                .counterMetric(
+                        DVAD_GRAPHQL_RESPONSE_TYPE_EXPECTED_HTTP_STATUS.withEndpointPrefix());
+        inOrderMockEventProbeSequence
+                .verify(mockEventProbe)
+                .counterMetric(DVAD_GRAPHQL_RESPONSE_TYPE_INVALID.withEndpointPrefix());
+        verifyNoMoreInteractions(mockEventProbe);
+
+        assertEquals(expectedReturnedException.getStatusCode(), thrownException.getStatusCode());
+        assertEquals(expectedReturnedException.getErrorReason(), thrownException.getErrorReason());
+    }
+
+    private void assertGraphQLQLHeaders(
+            ArgumentCaptor<HttpEntityEnclosingRequestBase> httpRequestCaptor) {
+        // Check Headers
+        Map<String, String> httpHeadersKV =
+                Arrays.stream(httpRequestCaptor.getValue().getAllHeaders())
+                        .collect(Collectors.toMap(Header::getName, Header::getValue));
+
+        assertNotNull(httpHeadersKV.get("Content-Type"));
+        assertEquals("application/json", httpHeadersKV.get("Content-Type"));
+
+        assertNotNull(httpHeadersKV.get("X-REQUEST-ID"));
+        assertDoesNotThrow(() -> UUID.fromString(httpHeadersKV.get("X-REQUEST-ID")));
+
+        assertNotNull(httpHeadersKV.get("X-API-Key"));
+        assertEquals("TEST_KEY", httpHeadersKV.get("X-API-Key"));
+
+        assertNotNull(httpHeadersKV.get("User-Agent"));
+        assertEquals("TEST_USER_AGENT", httpHeadersKV.get("User-Agent"));
+
+        assertNotNull(httpHeadersKV.get("X-DVAD-NETWORK-TYPE"));
+        assertEquals("TEST_NETWORK_TYPE", httpHeadersKV.get("X-DVAD-NETWORK-TYPE"));
+
+        assertNotNull(httpHeadersKV.get("Authorization"));
+        assertEquals(
+                String.format("%s %s", "Bearer", "TOKEN VALUE"),
+                httpHeadersKV.get("Authorization"));
     }
 }

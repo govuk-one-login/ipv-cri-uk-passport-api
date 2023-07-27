@@ -4,6 +4,8 @@ import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.CsvSource;
 import org.mockito.junit.jupiter.MockitoExtension;
 import uk.gov.di.ipv.cri.passport.checkpassport.validation.JsonValidationUtility;
 import uk.gov.di.ipv.cri.passport.checkpassport.validation.ValidationResult;
@@ -75,25 +77,40 @@ class FormDataValidatorTest {
         assertFalse(validationResult.isValid());
     }
 
-    @Test
-    void testFormDataValidatorPassportCannotBeNull() {
+    @ParameterizedTest
+    @CsvSource(
+            value = {
+                "null", // null
+                "''", // Empty
+                "NOT A NUMBER" // not an integer
+            },
+            nullValues = {"null"})
+    void testFormDataValidatorPassportCannotBeNull(String invalidPassportNumber) {
 
-        final String TEST_PASSPORT = null;
+        final String FIELD_NAME = "PassportNumber";
 
         PassportFormData passportFormData = PassportFormTestDataGenerator.generate();
         FormDataValidator formDataValidator = new FormDataValidator();
 
-        passportFormData.setPassportNumber(TEST_PASSPORT);
+        passportFormData.setPassportNumber(invalidPassportNumber);
 
         ValidationResult<List<String>> validationResult =
                 formDataValidator.validate(passportFormData);
 
-        final String EXPECTED_ERROR =
-                "PassportNumber" + JsonValidationUtility.IS_NULL_ERROR_MESSAGE_SUFFIX;
+        String EXPECTED_ERROR = null;
+
+        if (invalidPassportNumber == null) {
+            EXPECTED_ERROR = FIELD_NAME + JsonValidationUtility.IS_NULL_ERROR_MESSAGE_SUFFIX;
+        } else if (invalidPassportNumber.isEmpty()) {
+            EXPECTED_ERROR = FIELD_NAME + JsonValidationUtility.IS_EMPTY_ERROR_MESSAGE_SUFFIX;
+        } else if (invalidPassportNumber.equals("NOT A NUMBER")) {
+            EXPECTED_ERROR =
+                    FIELD_NAME + JsonValidationUtility.FAIL_PARSING_INTEGER_ERROR_MESSAGE_SUFFIX;
+        }
 
         LOGGER.info(validationResult.getError().toString());
 
-        assertEquals(TEST_PASSPORT, passportFormData.getPassportNumber());
+        assertEquals(invalidPassportNumber, passportFormData.getPassportNumber());
         assertEquals(1, validationResult.getError().size());
         assertEquals(EXPECTED_ERROR, validationResult.getError().get(0));
         assertFalse(validationResult.isValid());

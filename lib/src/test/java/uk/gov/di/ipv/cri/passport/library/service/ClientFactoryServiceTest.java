@@ -4,16 +4,25 @@ import org.apache.http.impl.client.CloseableHttpClient;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.CsvSource;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import software.amazon.awssdk.services.kms.KmsClient;
 import software.amazon.awssdk.services.sqs.SqsClient;
 import software.amazon.awssdk.services.ssm.SsmClient;
+import uk.gov.di.ipv.cri.passport.library.exceptions.HttpClientException;
 import uk.org.webcompere.systemstubs.environment.EnvironmentVariables;
 import uk.org.webcompere.systemstubs.jupiter.SystemStub;
 import uk.org.webcompere.systemstubs.jupiter.SystemStubsExtension;
 
+import java.security.cert.CertificateException;
+import java.security.spec.InvalidKeySpecException;
+import java.util.Base64;
+
+import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.Mockito.when;
 import static uk.gov.di.ipv.cri.passport.library.CertAndKeyTestFixtures.TEST_ROOT_CRT;
 import static uk.gov.di.ipv.cri.passport.library.CertAndKeyTestFixtures.TEST_TLS_CRT;
@@ -107,6 +116,80 @@ class ClientFactoryServiceTest {
                         true, mockPassportConfigurationService);
 
         assertNotNull(closeableHttpClient);
+    }
+
+    @ParameterizedTest
+    @CsvSource({
+        "CertificateException, true",
+        "CertificateException, false",
+        "InvalidKeySpecException, true",
+        "InvalidKeySpecException, false"
+    })
+    void shouldCatchExceptionAndThrowHttpClientExceptionForExceptionsGettingHttpClient(
+            String exceptionName, boolean legaccy) {
+
+        String badData = new String(Base64.getEncoder().encode("TEST1234".getBytes()));
+
+        HttpClientException expectedReturnedException = null;
+
+        switch (exceptionName) {
+            case "CertificateException":
+                expectedReturnedException = new HttpClientException(new CertificateException());
+
+                if (legaccy) {
+                    when(mockPassportConfigurationService.getEncryptedSsmParameter(
+                                    DCS_HTTPCLIENT_TLS_CERT))
+                            .thenReturn(badData);
+                } else {
+                    when(mockPassportConfigurationService.getEncryptedSsmParameter(
+                                    HMPO_HTTPCLIENT_TLS_CERT))
+                            .thenReturn(badData);
+                }
+
+                break;
+            case "InvalidKeySpecException":
+                if (legaccy) {
+                    when(mockPassportConfigurationService.getEncryptedSsmParameter(
+                                    DCS_HTTPCLIENT_TLS_CERT))
+                            .thenReturn(TEST_TLS_CRT);
+                    when(mockPassportConfigurationService.getEncryptedSsmParameter(
+                                    DCS_HTTPCLIENT_TLS_KEY))
+                            .thenReturn(badData);
+                } else {
+                    when(mockPassportConfigurationService.getEncryptedSsmParameter(
+                                    HMPO_HTTPCLIENT_TLS_CERT))
+                            .thenReturn(TEST_TLS_CRT);
+                    when(mockPassportConfigurationService.getEncryptedSsmParameter(
+                                    HMPO_HTTPCLIENT_TLS_KEY))
+                            .thenReturn(badData);
+                }
+
+                expectedReturnedException = new HttpClientException(new InvalidKeySpecException());
+                break;
+        }
+
+        HttpClientException thrownException;
+        if (legaccy) {
+
+            thrownException =
+                    assertThrows(
+                            HttpClientException.class,
+                            () ->
+                                    clientFactoryService.getLegacyCloseableHttpClient(
+                                            true, mockPassportConfigurationService),
+                            "An Error Message");
+        } else {
+            thrownException =
+                    assertThrows(
+                            HttpClientException.class,
+                            () ->
+                                    clientFactoryService.getCloseableHttpClient(
+                                            true, mockPassportConfigurationService),
+                            "An Error Message");
+        }
+
+        assert expectedReturnedException != null;
+        assertEquals(expectedReturnedException.getClass(), thrownException.getClass());
     }
 
     @Test

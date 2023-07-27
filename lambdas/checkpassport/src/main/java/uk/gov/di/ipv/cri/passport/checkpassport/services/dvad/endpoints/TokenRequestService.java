@@ -13,6 +13,7 @@ import org.apache.logging.log4j.Logger;
 import software.amazon.awssdk.http.HttpStatusCode;
 import uk.gov.di.ipv.cri.common.library.util.EventProbe;
 import uk.gov.di.ipv.cri.passport.checkpassport.domain.response.dvad.AccessTokenResponse;
+import uk.gov.di.ipv.cri.passport.checkpassport.services.dvad.AccessTokenResponseCache;
 import uk.gov.di.ipv.cri.passport.checkpassport.services.dvad.DvadAPIHeaderValues;
 import uk.gov.di.ipv.cri.passport.checkpassport.util.HTTPReply;
 import uk.gov.di.ipv.cri.passport.checkpassport.util.HTTPReplyHelper;
@@ -21,23 +22,33 @@ import uk.gov.di.ipv.cri.passport.library.exceptions.OAuthErrorResponseException
 
 import java.io.IOException;
 import java.net.URI;
+import java.time.Instant;
+import java.time.ZoneId;
+import java.util.UUID;
 
 import static uk.gov.di.ipv.cri.passport.checkpassport.domain.response.dvad.RequestHeaderKeys.HEADER_CONTENT_TYPE;
+import static uk.gov.di.ipv.cri.passport.checkpassport.domain.response.dvad.RequestHeaderKeys.HEADER_DVAD_NETWORK_TYPE;
 import static uk.gov.di.ipv.cri.passport.checkpassport.domain.response.dvad.RequestHeaderKeys.HEADER_REQ_ID;
 import static uk.gov.di.ipv.cri.passport.checkpassport.domain.response.dvad.RequestHeaderKeys.HEADER_USER_AGENT;
 import static uk.gov.di.ipv.cri.passport.checkpassport.domain.response.dvad.RequestHeaderKeys.HEADER_X_API_KEY;
 import static uk.gov.di.ipv.cri.passport.library.metrics.ThirdPartyAPIEndpointMetric.DVAD_TOKEN_REQUEST_CREATED;
+import static uk.gov.di.ipv.cri.passport.library.metrics.ThirdPartyAPIEndpointMetric.DVAD_TOKEN_REQUEST_REUSING_CACHED_TOKEN;
 import static uk.gov.di.ipv.cri.passport.library.metrics.ThirdPartyAPIEndpointMetric.DVAD_TOKEN_REQUEST_SEND_ERROR;
 import static uk.gov.di.ipv.cri.passport.library.metrics.ThirdPartyAPIEndpointMetric.DVAD_TOKEN_REQUEST_SEND_OK;
 import static uk.gov.di.ipv.cri.passport.library.metrics.ThirdPartyAPIEndpointMetric.DVAD_TOKEN_RESPONSE_TYPE_EXPECTED_HTTP_STATUS;
 import static uk.gov.di.ipv.cri.passport.library.metrics.ThirdPartyAPIEndpointMetric.DVAD_TOKEN_RESPONSE_TYPE_INVALID;
 import static uk.gov.di.ipv.cri.passport.library.metrics.ThirdPartyAPIEndpointMetric.DVAD_TOKEN_RESPONSE_TYPE_UNEXPECTED_HTTP_STATUS;
+import static uk.gov.di.ipv.cri.passport.library.metrics.ThirdPartyAPIEndpointMetric.DVAD_TOKEN_RESPONSE_TYPE_VALID;
 
 public class TokenRequestService {
 
     private static final Logger LOGGER = LogManager.getLogger();
 
     private static final String ENDPOINT_NAME = "token endpoint";
+
+    public static final long MAX_ALLOWED_ACCESS_TOKEN_LIFETIME_SECONDS = 1800L;
+    public static final long ACCESS_TOKEN_EXPIRATION_WINDOW_SECONDS = 30L;
+    private static final String BEARER_TOKEN_TYPE = "Bearer";
 
     private final URI requestURI;
 
@@ -47,6 +58,8 @@ public class TokenRequestService {
     private final ObjectMapper objectMapper;
 
     private final EventProbe eventProbe;
+
+    private AccessTokenResponseCache accessTokenResponseCache = null;
 
     public TokenRequestService(
             String endpoint,
@@ -62,8 +75,72 @@ public class TokenRequestService {
     }
 
     public AccessTokenResponse requestAccessToken(
-            String requestId, DvadAPIHeaderValues dvadAPIHeaderValues)
+            DvadAPIHeaderValues dvadAPIHeaderValues, boolean alwaysRequestNewToken)
             throws OAuthErrorResponseException {
+
+        boolean existingCachedToken = accessTokenResponseCache != null;
+        boolean existingCachedTokenNearExpiry =
+                existingCachedToken
+                        && accessTokenResponseCache.isNearExpiration(
+                                ACCESS_TOKEN_EXPIRATION_WINDOW_SECONDS);
+
+        if (alwaysRequestNewToken) {
+            LOGGER.info("AccessToken cache override enabled - always requesting a new token");
+        }
+
+        boolean newTokenRequest =
+                alwaysRequestNewToken || (!existingCachedToken || existingCachedTokenNearExpiry);
+
+        // Request an Access Token
+        if (newTokenRequest) {
+
+            if (existingCachedToken) {
+                long oldExpiresTime = accessTokenResponseCache.getExpiresTime();
+
+                LOGGER.info(
+                        "Requesting new AccessToken - cached token is nearing or passed expiration time of {} UTC",
+                        Instant.ofEpochMilli(oldExpiresTime)
+                                .atZone(ZoneId.systemDefault())
+                                .toLocalDateTime());
+            } else {
+                LOGGER.info("Requesting new AccessToken - no existing cached token");
+            }
+
+            AccessTokenResponse newAccessTokenResponse =
+                    performNewTokenRequest(dvadAPIHeaderValues);
+
+            // Fatal if any problems throws OAuthErrorResponseException
+            assertAccessTokenResponseIsValid(newAccessTokenResponse);
+
+            // Token response is valid and cached until near expiry
+            accessTokenResponseCache = new AccessTokenResponseCache(newAccessTokenResponse);
+
+            long newExpiresTime = accessTokenResponseCache.getExpiresTime();
+            LOGGER.info(
+                    "AccessToken cached - expires {} UTC",
+                    Instant.ofEpochMilli(newExpiresTime)
+                            .atZone(ZoneId.systemDefault())
+                            .toLocalDateTime());
+        } else {
+            long expiresTime = accessTokenResponseCache.getExpiresTime();
+
+            LOGGER.info(
+                    "Re-using cached AccessToken - expires {} UTC",
+                    Instant.ofEpochMilli(expiresTime)
+                            .atZone(ZoneId.systemDefault())
+                            .toLocalDateTime());
+
+            eventProbe.counterMetric(DVAD_TOKEN_REQUEST_REUSING_CACHED_TOKEN.withEndpointPrefix());
+        }
+
+        return accessTokenResponseCache.getCachedAccessTokenResponse();
+    }
+
+    private AccessTokenResponse performNewTokenRequest(DvadAPIHeaderValues dvadAPIHeaderValues)
+            throws OAuthErrorResponseException {
+
+        final String requestId = UUID.randomUUID().toString();
+        LOGGER.info("{} Request Id {}", ENDPOINT_NAME, requestId);
 
         // Token Request is posted as if via a form
         final HttpPost request = new HttpPost();
@@ -73,6 +150,7 @@ public class TokenRequestService {
         request.addHeader(HEADER_REQ_ID, requestId);
         request.addHeader(HEADER_X_API_KEY, dvadAPIHeaderValues.apiKey);
         request.addHeader(HEADER_USER_AGENT, dvadAPIHeaderValues.userAgent);
+        request.addHeader(HEADER_DVAD_NETWORK_TYPE, dvadAPIHeaderValues.networkType);
 
         // Enforce connection timeout values
         request.setConfig(requestConfig);
@@ -81,20 +159,9 @@ public class TokenRequestService {
         final String clientId = dvadAPIHeaderValues.clientId;
         final String secret = dvadAPIHeaderValues.secret;
         final String grantType = dvadAPIHeaderValues.grantType;
-        final String audience = dvadAPIHeaderValues.audience;
 
         String requestBody =
-                "clientId="
-                        + clientId
-                        + "&"
-                        + "grantType="
-                        + grantType
-                        + "&"
-                        + "secret="
-                        + secret
-                        + "&"
-                        + "audience="
-                        + audience;
+                "clientId=" + clientId + "&secret=" + secret + "&grantType=" + grantType;
 
         LOGGER.debug("Token request body : {}", requestBody);
 
@@ -150,7 +217,10 @@ public class TokenRequestService {
             }
         } else {
             // The token request responded but with an unexpected status code
-            LOGGER.error("Token response status code was - {}", httpReply.statusCode);
+            LOGGER.error(
+                    "Token response status code {} content - {}",
+                    httpReply.statusCode,
+                    httpReply.responseBody);
 
             eventProbe.counterMetric(
                     DVAD_TOKEN_RESPONSE_TYPE_UNEXPECTED_HTTP_STATUS.withEndpointPrefix());
@@ -159,5 +229,39 @@ public class TokenRequestService {
                     HttpStatusCode.INTERNAL_SERVER_ERROR,
                     ErrorResponse.ERROR_TOKEN_ENDPOINT_RETURNED_UNEXPECTED_HTTP_STATUS_CODE);
         }
+    }
+
+    private void assertAccessTokenResponseIsValid(AccessTokenResponse accessTokenResponse)
+            throws OAuthErrorResponseException {
+
+        String tokenType = accessTokenResponse.getTokenType();
+        long tokenLifetime = accessTokenResponse.getExpiresIn();
+
+        if (!tokenType.equals(BEARER_TOKEN_TYPE)) {
+            LOGGER.error(
+                    "Access Token TokenType {} is not of type {}", tokenType, BEARER_TOKEN_TYPE);
+
+            eventProbe.counterMetric(DVAD_TOKEN_RESPONSE_TYPE_INVALID.withEndpointPrefix());
+
+            throw new OAuthErrorResponseException(
+                    HttpStatusCode.INTERNAL_SERVER_ERROR,
+                    ErrorResponse.FAILED_TO_VERIFY_ACCESS_TOKEN);
+        }
+
+        if (tokenLifetime <= 0 || tokenLifetime > MAX_ALLOWED_ACCESS_TOKEN_LIFETIME_SECONDS) {
+            LOGGER.error(
+                    "Access Token Lifetime is invalid - value {}, min 1, max {}",
+                    tokenLifetime,
+                    MAX_ALLOWED_ACCESS_TOKEN_LIFETIME_SECONDS);
+
+            eventProbe.counterMetric(DVAD_TOKEN_RESPONSE_TYPE_INVALID.withEndpointPrefix());
+
+            throw new OAuthErrorResponseException(
+                    HttpStatusCode.INTERNAL_SERVER_ERROR,
+                    ErrorResponse.FAILED_TO_VERIFY_ACCESS_TOKEN);
+        }
+
+        // No exceptions Token response is seen as valid
+        eventProbe.counterMetric(DVAD_TOKEN_RESPONSE_TYPE_VALID.withEndpointPrefix());
     }
 }

@@ -19,8 +19,4 @@ public class OAuthErrorResponseException extends Exception {
     public int getStatusCode() {
         return this.statusCode;
     }
-
-    public ErrorResponse getErrorResponse() {
-        return this.errorResponse;
-    }
 }

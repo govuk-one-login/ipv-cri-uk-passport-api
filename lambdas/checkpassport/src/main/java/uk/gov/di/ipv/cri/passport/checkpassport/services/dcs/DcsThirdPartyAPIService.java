@@ -16,6 +16,7 @@ import software.amazon.awssdk.http.HttpStatusCode;
 import uk.gov.di.ipv.cri.common.library.util.EventProbe;
 import uk.gov.di.ipv.cri.passport.checkpassport.domain.response.dcs.DcsResponse;
 import uk.gov.di.ipv.cri.passport.checkpassport.domain.result.ThirdPartyAPIResult;
+import uk.gov.di.ipv.cri.passport.checkpassport.domain.result.fields.APIResultSource;
 import uk.gov.di.ipv.cri.passport.checkpassport.exception.dcs.IpvCryptoException;
 import uk.gov.di.ipv.cri.passport.checkpassport.services.ThirdPartyAPIService;
 import uk.gov.di.ipv.cri.passport.checkpassport.util.HTTPReply;
@@ -33,6 +34,7 @@ import java.security.cert.CertificateException;
 import java.security.spec.InvalidKeySpecException;
 import java.text.ParseException;
 
+import static uk.gov.di.ipv.cri.passport.checkpassport.domain.result.fields.APIResultSource.DCS;
 import static uk.gov.di.ipv.cri.passport.library.config.ParameterStoreParameters.DCS_POST_URL;
 import static uk.gov.di.ipv.cri.passport.library.config.ParameterStoreParameters.LOG_DCS_RESPONSE;
 import static uk.gov.di.ipv.cri.passport.library.metrics.ThirdPartyAPIEndpointMetric.DCS_REQUEST_CREATED;
@@ -48,8 +50,9 @@ public class DcsThirdPartyAPIService implements ThirdPartyAPIService {
 
     private static final Logger LOGGER = LogManager.getLogger();
 
+    private static final APIResultSource API_RESULT_SOURCE = DCS;
+
     private static final String SERVICE_NAME = DcsThirdPartyAPIService.class.getSimpleName();
-    private static final String ENDPOINT_NAME = "dcs";
 
     private final EventProbe eventProbe;
 
@@ -110,7 +113,8 @@ public class DcsThirdPartyAPIService implements ThirdPartyAPIService {
             eventProbe.counterMetric(DCS_REQUEST_SEND_OK.withEndpointPrefix());
             // throws OAuthErrorResponseException on error
             httpReply =
-                    HTTPReplyHelper.retrieveStatusCodeAndBodyFromResponse(response, ENDPOINT_NAME);
+                    HTTPReplyHelper.retrieveStatusCodeAndBodyFromResponse(
+                            response, API_RESULT_SOURCE.getName());
 
             if (Boolean.parseBoolean(
                     passportConfigurationService.getParameterValue(LOG_DCS_RESPONSE))) {
@@ -124,7 +128,11 @@ public class DcsThirdPartyAPIService implements ThirdPartyAPIService {
                     ErrorResponse.ERROR_INVOKING_LEGACY_THIRD_PARTY_API);
         }
 
-        return thirdPartyAPIResponseHandler(httpReply);
+        ThirdPartyAPIResult thirdPartyAPIResult = thirdPartyAPIResponseHandler(httpReply);
+
+        thirdPartyAPIResult.setApiResultSource(API_RESULT_SOURCE);
+
+        return thirdPartyAPIResult;
     }
 
     private ThirdPartyAPIResult thirdPartyAPIResponseHandler(HTTPReply httpReply)
@@ -188,7 +196,6 @@ public class DcsThirdPartyAPIService implements ThirdPartyAPIService {
             ThirdPartyAPIResult thirdPartyAPIResult = new ThirdPartyAPIResult();
             thirdPartyAPIResult.setTransactionId(unwrappedDcsResponse.getRequestId());
             thirdPartyAPIResult.setValid(unwrappedDcsResponse.isValid());
-
             LOGGER.info("Third party response Valid");
             eventProbe.counterMetric(DCS_RESPONSE_TYPE_VALID.withEndpointPrefix());
 

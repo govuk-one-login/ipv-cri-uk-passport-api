@@ -19,7 +19,9 @@ import uk.gov.di.ipv.cri.passport.library.exceptions.OAuthErrorResponseException
 
 import java.io.IOException;
 import java.net.URI;
+import java.util.UUID;
 
+import static uk.gov.di.ipv.cri.passport.checkpassport.domain.response.dvad.RequestHeaderKeys.HEADER_DVAD_NETWORK_TYPE;
 import static uk.gov.di.ipv.cri.passport.checkpassport.domain.response.dvad.RequestHeaderKeys.HEADER_REQ_ID;
 import static uk.gov.di.ipv.cri.passport.checkpassport.domain.response.dvad.RequestHeaderKeys.HEADER_USER_AGENT;
 import static uk.gov.di.ipv.cri.passport.checkpassport.domain.response.dvad.RequestHeaderKeys.HEADER_X_API_KEY;
@@ -61,14 +63,18 @@ public class HealthCheckService {
         this.eventProbe = eventProbe;
     }
 
-    public boolean checkRemoteApiIsUp(String requestId, DvadAPIHeaderValues dvadAPIHeaderValues)
+    public boolean checkRemoteApiIsUp(DvadAPIHeaderValues dvadAPIHeaderValues)
             throws OAuthErrorResponseException {
+
+        final String requestId = UUID.randomUUID().toString();
+        LOGGER.info("{} Request Id {}", ENDPOINT_NAME, requestId);
 
         HttpGet request = new HttpGet();
         request.setURI(requestURI);
         request.addHeader(HEADER_REQ_ID, requestId);
         request.addHeader(HEADER_X_API_KEY, dvadAPIHeaderValues.apiKey);
         request.addHeader(HEADER_USER_AGENT, dvadAPIHeaderValues.userAgent);
+        request.addHeader(HEADER_DVAD_NETWORK_TYPE, dvadAPIHeaderValues.networkType);
 
         // Enforce connection timeout values
         request.setConfig(requestConfig);
@@ -143,7 +149,10 @@ public class HealthCheckService {
             }
         } else {
             // The health check responded but with an expected status code
-            LOGGER.error("HealthCheck status code was : {}", httpReply.statusCode);
+            LOGGER.error(
+                    "HealthCheck response status code {} content - {}",
+                    httpReply.statusCode,
+                    httpReply.responseBody);
 
             eventProbe.counterMetric(
                     DVAD_HEALTH_RESPONSE_TYPE_UNEXPECTED_HTTP_STATUS.withEndpointPrefix());

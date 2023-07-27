@@ -1,9 +1,14 @@
 package uk.gov.di.ipv.cri.passport.checkpassport.domain.result;
 
+import uk.gov.di.ipv.cri.passport.checkpassport.domain.result.fields.APIResultSource;
+
 import java.util.ArrayList;
 import java.util.List;
 
 public class DocumentDataVerificationResult {
+
+    private APIResultSource apiResultSource;
+
     private boolean verified;
     private List<String> contraIndicators;
     private int strengthScore;
@@ -13,6 +18,14 @@ public class DocumentDataVerificationResult {
 
     private List<String> checksSucceeded = new ArrayList<>();
     private List<String> checksFailed = new ArrayList<>();
+
+    public APIResultSource getAPIResultSource() {
+        return apiResultSource;
+    }
+
+    public void setAPIResultSource(APIResultSource apiResultSource) {
+        this.apiResultSource = apiResultSource;
+    }
 
     public boolean isVerified() {
         return verified;

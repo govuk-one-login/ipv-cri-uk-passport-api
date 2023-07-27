@@ -103,7 +103,8 @@ public class PassportAPIPage extends PassportPageObject {
         assertTrue(StringUtils.isNotBlank(SESSION_ID));
     }
 
-    public void postRequestToPassportEndpoint(String passportJsonRequestBody, boolean dvad)
+    public void postRequestToPassportEndpoint(
+            String passportJsonRequestBody, String documentCheckingRoute)
             throws IOException, InterruptedException {
         String privateApiGatewayUrl = configurationService.getPrivateAPIEndpoint();
         JsonNode passportJson =
@@ -116,8 +117,8 @@ public class PassportAPIPage extends PassportPageObject {
                 .setHeader("Content-Type", "application/json")
                 .setHeader("session_id", SESSION_ID)
                 .POST(HttpRequest.BodyPublishers.ofString(passportInputJsonString));
-        if (dvad) {
-            builder.setHeader("new-api", "true");
+        if (documentCheckingRoute != null && !"not-provided".equals(documentCheckingRoute)) {
+            builder.setHeader("document-checking-route", documentCheckingRoute);
         }
         HttpRequest request = builder.build();
         LOGGER.info("passport RequestBody = " + passportInputJsonString);
