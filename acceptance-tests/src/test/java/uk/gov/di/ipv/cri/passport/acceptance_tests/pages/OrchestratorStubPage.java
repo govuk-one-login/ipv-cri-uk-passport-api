@@ -1,5 +1,6 @@
 package uk.gov.di.ipv.cri.passport.acceptance_tests.pages;
 
+import io.cucumber.java.en.Then;
 import net.minidev.json.JSONObject;
 import org.junit.Assert;
 import org.openqa.selenium.By;
@@ -34,6 +35,7 @@ public class OrchestratorStubPage {
     public WebElement postcodeField;
     @FindBy(id = "continue")
     public WebElement continueButton;
+
     public void clickOnFullJourneyRouteButton() {
         fullJourneyRouteButton.click();
     }
@@ -43,7 +45,7 @@ public class OrchestratorStubPage {
         Driver.get().navigate().back();
     }
 
-    public void userIsOnPassportcris(String expectedText) {
+    public void userIsOnPassportcris(String page, String expectedText) {
         Assert.assertEquals(expectedText, new PassportPageObject().pageHeader.getText());
     }
 
@@ -56,4 +58,10 @@ public class OrchestratorStubPage {
         PageFactory.initElements(Driver.get(), this);
     }
 
+    public void validateUserInformationTitle(String expectedText) {
+        Assert.assertTrue(
+                expectedText,
+                (new PassportPageObject().pageHeader.getText().contains("User information")));
+
+    }
 }

@@ -16,9 +16,9 @@ public class IPV_E2E_PassportStepDefs {
         orchestratorStubPage.clickBrowserButton();
     }
 
-    @Then("^User should be on page with with heading as (.*)$")
-    public void userIsRedirectedBackToThePassportCRIStub(String expectedText) {
-        orchestratorStubPage.userIsOnPassportcris(expectedText);
+    @Then("^User should be on (.*) page with heading as (.*)$")
+    public void userIsRedirectedBackToThePassportCRIStub(String page, String expectedText) {
+        orchestratorStubPage.userIsOnPassportcris(page, expectedText);
         orchestratorStubPage.continueSubmitButton.click();
     }
 
@@ -32,5 +32,11 @@ public class IPV_E2E_PassportStepDefs {
         orchestratorStubPage.CheckingYourDetailsPage();
         orchestratorStubPage.continueButton.click();
     }
+
+    @Then("^User should see message as (.*) and title should contain the text user information$")
+        public void theUserShouldSeeThatTheyHaveProvedTheirIdentityOrchestratorStub(
+                String expectedText) {
+        orchestratorStubPage.validateUserInformationTitle(expectedText);
+        }
 
 }
