@@ -11,7 +11,6 @@ jobs:
   deploy:
     name: pre-merge-integration-tests
     runs-on: ubuntu-latest
-    environment: di-ipv-cri-dev
     timeout-minutes: 15
     env:
       AWS_REGION: eu-west-2
@@ -33,7 +32,7 @@ jobs:
 
       - uses: gradle/gradle-build-action@v2
         with:
-          gradle-version: 7.6
+          gradle-version: wrapper
 
       - name: Setup SAM
         uses: aws-actions/setup-sam@v1
@@ -41,11 +40,11 @@ jobs:
       - name: Assume temporary AWS role
         uses: aws-actions/configure-aws-credentials@v2
         with:
-          role-to-assume: ${{ secrets.AWS_PASSPORT_DEV_ROLE_ARN }}
+          role-to-assume: ${{ secrets.AWS_PRE_MERGE_ROLE_ARN }}
           aws-region: ${{ env.AWS_REGION }}
 
       - name: SAM build
-        run: sam build -t deploy/template.yaml
+        run: sam build -t infrastructure/lambda/template.yaml
 
       - name: Set short SHA
         id: vars
@@ -54,34 +53,35 @@ jobs:
       - name: SAM deploy integration test stack
         run: |
           STACK_NAME=${{ env.STACK_NAME_PREFIX }}-${{ steps.vars.outputs.sha_short }}
-
+  
           sam deploy \
             --no-fail-on-empty-changeset \
             --no-confirm-changeset \
-            --parameter-overrides "Environment=${{ env.ENVIRONMENT }} CodeSigningEnabled=false VpcStackName=none" \
+            --parameter-overrides "ParameterPrefix=${{ secrets.PREMERGE_PARAMETER_PREFIX_STACK_NAME }} Environment=${{ env.ENVIRONMENT }} CodeSigningEnabled=false VpcStackName=${{ secrets.PREMERGE_VPC_STACK_NAME }}" \
             --stack-name $STACK_NAME \
-            --s3-bucket ${{ secrets.AWS_PASSPORT_DEV_CONFIG_BUCKET }} \
+            --s3-bucket ${{ secrets.AWS_PRE_MERGE_S3_BUCKET_NAME }} \
             --s3-prefix $STACK_NAME \
             --region ${{ env.AWS_REGION }} \
             --capabilities CAPABILITY_IAM
 
       - name: Run API integration tests
         env:
-          ENVIRONMENT: ${{ env.ENVIRONMENT }}
+          ENVIRONMENT: ${{ secrets.PREMERGE_TEST_ENVIRONMENT }}
+          APIGW_API_KEY: ${{ secrets.API_KEY_PASSPORTA_DEV }}
+          coreStubUrl: ${{ secrets.PASSPORT_CORE_STUB_URL }}
+          coreStubUsername: ${{ secrets.PASSPORT_CORE_STUB_USERNAME }}
+          coreStubPassword: ${{ secrets.PASSPORT_CORE_STUB_PASSWORD }}
+          orchestratorStubUrl: ${{ secrets.ORCHESTRATOR_STUB_URL }}
+          CUCUMBER_PUBLISH_ENABLED: true
           BROWSER: chrome-headless
-          coreStubUrl: ${{ secrets.CORE_STUB_URL }}
-          coreStubUsername: ${{ secrets.CORE_STUB_USERNAME }}
-          coreStubPassword: ${{ secrets.CORE_STUB_PASSWORD }}
         run: |
           echo "🤞 now run integration tests..."
           STACK_NAME=${{ env.STACK_NAME_PREFIX }}-${{ steps.vars.outputs.sha_short }}
-          API_GATEWAY_ID_PRIVATE=$(aws cloudformation describe-stacks --stack-name $STACK_NAME | jq -r '.Stacks[].Outputs[] | select(.OutputKey == "IPVCriUkPassportPrivateAPIGatewayID").OutputValue')
-          API_GATEWAY_ID_PUBLIC=$(aws cloudformation describe-stacks --stack-name $STACK_NAME | jq -r '.Stacks[].Outputs[] | select(.OutputKey == "IPVCriUkPassportBackAPIGatewayID").OutputValue')
-          API_GATEWAY_KEY_ID=$(aws cloudformation describe-stacks --stack-name $STACK_NAME | jq -r '.Stacks[].Outputs[] | select(.OutputKey == "IpvCoreBackApiKeyId").OutputValue')
-          API_GATEWAY_KEY=$(aws apigateway get-api-key --api-key $API_GATEWAY_KEY_ID --include-value | jq '.value' | tr -d '"')
+          API_GATEWAY_ID_PRIVATE=$(aws cloudformation describe-stacks --stack-name $STACK_NAME | jq -r '.Stacks[].Outputs[] | select(.OutputKey == "PrivateUKPassportAPIGatewayID").OutputValue')
+          API_GATEWAY_ID_PUBLIC=$(aws cloudformation describe-stacks --stack-name $STACK_NAME | jq -r '.Stacks[].Outputs[] | select(.OutputKey == "PublicUKPassportAPIGatewayID").OutputValue')
           export API_GATEWAY_ID_PRIVATE=$API_GATEWAY_ID_PRIVATE
           export API_GATEWAY_ID_PUBLIC=$API_GATEWAY_ID_PUBLIC
-          export API_GATEWAY_KEY=$API_GATEWAY_KEY
+          export API_GATEWAY_KEY=${{ secrets.API_KEY_PASSPORTA_DEV }}
           cd acceptance-tests && ./gradlew clean cucumber -P tags=@pre-merge
 
       - name: Delete integration test stack

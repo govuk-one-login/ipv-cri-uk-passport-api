@@ -103,3 +103,16 @@ edit deploy.sh and set DevEnvironment=cri-dev
 The command to run is:
 
 `gds aws ROLE -- sam delete --config-env dev --stack-name <unique-stack-name>`
+
+### Parameter prefix
+
+This allows a deploying stack to use parameters of another stack.
+Created to enable pre-merge integration tests to use the parameters of the pipeline stack.
+
+ParameterPrefix if set, this value is used in place of AWS::Stackname for parameter store paths.
+- Default is "none", which will use AWS::StackName as the prefix.
+
+Can also be used with the following limitations in development.
+- Existing stack needs to have all the parameters needed for the stack with the prefix enabled.
+- Existing stack parameters values if changed will trigger behaviour changes in the stack with the prefix enabled.
+- Existing stack if deleted will cause errors in the deployed stack.
