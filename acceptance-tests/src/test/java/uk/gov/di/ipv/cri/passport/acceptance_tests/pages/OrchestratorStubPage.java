@@ -36,12 +36,15 @@ public class OrchestratorStubPage {
     @FindBy(id = "continue")
     public WebElement continueButton;
 
+    @FindBy(xpath = "//*[@id=\"main-content\"]/div[1]/h1")
+    public WebElement header;
+
+
     public void clickOnFullJourneyRouteButton() {
         fullJourneyRouteButton.click();
     }
 
     public void clickBrowserButton() {
-
         Driver.get().navigate().back();
     }
 
@@ -61,7 +64,7 @@ public class OrchestratorStubPage {
     public void validateUserInformationTitle(String expectedText) {
         Assert.assertTrue(
                 expectedText,
-                (new PassportPageObject().pageHeader.getText().contains("User information")));
+                header.getText().contains("User information"));
 
     }
 }

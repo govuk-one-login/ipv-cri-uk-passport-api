@@ -10,15 +10,20 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.NoSuchFileException;
 import java.nio.file.Paths;
+import java.util.HashMap;
+import java.util.Map;
 
 public class IPV_GlobalPage extends IPV_PageObjectSupport {
+
+    static final By CONTINUE_BUTTON = By.xpath("//button[@class='govuk-button button']");
+
+    private static Map<String, String> jsonFileResponses = new HashMap<>();
+
     WebDriver driver;
 
     public IPV_GlobalPage() {
         this.driver = getCurrentDriver();
     }
-
-    static final By CONTINUE_BUTTON = By.xpath("//button[@class='govuk-button button']");
 
     public void clickContinue() {
         clickElement(CONTINUE_BUTTON);
@@ -42,12 +47,16 @@ public class IPV_GlobalPage extends IPV_PageObjectSupport {
 
     public static String generateStringFromJsonPayloadResource(
             String jsonResourcePath, String fileName) throws IOException {
+        if (jsonFileResponses.containsKey(fileName)) {
+            return jsonFileResponses.get(fileName);
+        }
         String jsonPayloadString = "";
         try {
             jsonPayloadString =
                     new String(Files.readAllBytes(Paths.get(jsonResourcePath + fileName + ".json")))
                             .replaceAll("\n", "");
             System.out.println("Json Payload Path is: " + jsonResourcePath + fileName + ".json");
+            jsonFileResponses.put(fileName, jsonPayloadString);
         } catch (NoSuchFileException e) {
             jsonPayloadString =
                     new String(
@@ -60,6 +69,7 @@ public class IPV_GlobalPage extends IPV_PageObjectSupport {
                             .replaceAll("\n", "");
             System.out.println(
                     "Json Payload Path is: " + jsonResourcePath + "JSON/" + fileName + ".json");
+            jsonFileResponses.put(fileName, jsonPayloadString);
         }
         return jsonPayloadString;
     }

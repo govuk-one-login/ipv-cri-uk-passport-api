@@ -37,8 +37,8 @@ public class IPV_ChooseYourAddressPage extends IPV_GlobalPage {
         select.selectByValue("Kenneth Decerqueira (Valid Experian) Address");
         clickElement(SELECT_USER);
         clickElement(JWT_CHECK_BOX);
-        new IpvCoreFrontPageArchive().JWT_EXP_HR.clear();
-        new IpvCoreFrontPageArchive().JWT_EXP_HR.sendKeys("4");
+        //new IpvCoreFrontPageArchive().JWT_EXP_HR.clear();
+        //new IpvCoreFrontPageArchive().JWT_EXP_HR.sendKeys("4");
         clickElement(SUBMIT_AUTH);
     }
 

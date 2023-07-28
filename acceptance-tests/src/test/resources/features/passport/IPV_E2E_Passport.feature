@@ -1,6 +1,6 @@
 Feature: E2E
 
-  @Staging @Integration
+  @Staging1 @Integration
   Scenario Outline: Passport cri back button recovery page staging - <PassportSubject>
 #   Auth
     Given I am on Orchestrator Stub

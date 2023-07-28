@@ -1,6 +1,5 @@
 package uk.gov.di.ipv.cri.passport.acceptance_tests.pages;
 
-import net.minidev.json.JSONObject;
 import org.json.JSONObject;
 import org.openqa.selenium.By;
 
