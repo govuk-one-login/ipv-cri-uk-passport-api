@@ -1,5 +1,6 @@
 package uk.gov.di.ipv.cri.passport.acceptance_tests.step_definitions;
 
+import io.cucumber.java.en.And;
 import io.cucumber.java.en.Given;
 import io.cucumber.java.en.When;
 import uk.gov.di.ipv.cri.passport.acceptance_tests.pages.OrchestratorStubPage;
@@ -19,5 +20,11 @@ public class CommonSteps {
     public void i_click_on_debug_route() {
         new OrchestratorStubPage().DebugRoute.click();
         BrowserUtils.waitForPageToLoad(10);
+    }
+
+    @And("^I click on Full journey route and Continue$")
+    public void clickOnFullJourneyRoute() {
+        new OrchestratorStubPage().clickOnFullJourneyRouteButton();
+        new OrchestratorStubPage().continueSubmitButton.click();
     }
 }
