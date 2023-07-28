@@ -46,4 +46,5 @@ sam deploy --stack-name "$stack_name" \
    Environment=dev \
    AuditEventNamePrefix=$audit_event_name_prefix \
    CriIdentifier=$cri_identifier \
+   ParameterPrefix="none" \
    CommonStackName=passport-common-cri-api-local

@@ -22,7 +22,8 @@ public final class PassportConfigurationService extends ConfigurationService {
         this(
                 ParamManager.getSsmProvider(clientFactoryService.getSsmClient())
                         .defaultMaxAge(getCacheTTLInMinutes(), ChronoUnit.MINUTES),
-                System.getenv("AWS_STACK_NAME"));
+                Optional.ofNullable(System.getenv("PARAMETER_PREFIX"))
+                        .orElse(System.getenv("AWS_STACK_NAME")));
     }
 
     public PassportConfigurationService(SSMProvider ssmProvider, String parameterPrefix) {
@@ -43,5 +44,13 @@ public final class PassportConfigurationService extends ConfigurationService {
         return Optional.ofNullable(System.getenv(CONFIG_SERVICE_CACHE_TTL_MINS))
                 .map(Integer::valueOf)
                 .orElse(5);
+    }
+
+    // Borrowed From CRI-LIB to allow parameterPrefix override
+    // Todo delete when PARAMETER_PREFIX is added to ConfigurationService constructor
+    @Override
+    public String getParameterValue(String parameterName) {
+        return ssmProvider.get(
+                String.format(PARAMETER_NAME_FORMAT, parameterPrefix, parameterName));
     }
 }
