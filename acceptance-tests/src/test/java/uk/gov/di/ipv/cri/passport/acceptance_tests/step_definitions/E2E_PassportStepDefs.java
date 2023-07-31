@@ -7,8 +7,7 @@ import uk.gov.di.ipv.cri.passport.acceptance_tests.pages.OrchestratorStubPage;
 
 public class E2E_PassportStepDefs {
 
-    private final OrchestratorStubPage orchestratorStubPage =
-            new OrchestratorStubPage();
+    private final OrchestratorStubPage orchestratorStubPage = new OrchestratorStubPage();
 
     @When("user clicks on browser back button")
     public void userClicksOnBrowserBackButton() {
@@ -38,9 +37,8 @@ public class E2E_PassportStepDefs {
     }
 
     @Then("^User should see message as (.*) and title should contain the text user information$")
-        public void theUserShouldSeeThatTheyHaveProvedTheirIdentityOrchestratorStub(
-                String expectedText) {
+    public void theUserShouldSeeThatTheyHaveProvedTheirIdentityOrchestratorStub(
+            String expectedText) {
         orchestratorStubPage.validateUserInformationTitle(expectedText);
-        }
-
+    }
 }

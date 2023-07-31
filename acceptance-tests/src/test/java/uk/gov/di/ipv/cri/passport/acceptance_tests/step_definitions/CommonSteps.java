@@ -13,8 +13,7 @@ public class CommonSteps {
     private final ConfigurationService configurationService =
             new ConfigurationService(System.getenv("ENVIRONMENT"));
 
-    private final OrchestratorStubPage orchestratorStubPage =
-            new OrchestratorStubPage();
+    private final OrchestratorStubPage orchestratorStubPage = new OrchestratorStubPage();
 
     @Given("I am on Orchestrator Stub")
     public void i_am_on_orchestrator_stub() {

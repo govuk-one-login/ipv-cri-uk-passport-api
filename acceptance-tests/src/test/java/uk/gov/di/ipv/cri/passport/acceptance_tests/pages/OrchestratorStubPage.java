@@ -14,18 +14,21 @@ public class OrchestratorStubPage {
 
     @FindBy(xpath = "//input[@value='Debug route']")
     public WebElement DebugRoute;
+
     @FindBy(xpath = "//*[@value=\"Full journey route\"]")
     public WebElement fullJourneyRouteButton;
+
     @FindBy(id = "submitButton")
     public WebElement continueSubmitButton;
+
     @FindBy(id = "addressSearch")
     public WebElement postcodeField;
+
     @FindBy(id = "continue")
     public WebElement continueButton;
 
     @FindBy(xpath = "//*[@id=\"main-content\"]/div[1]/h1")
     public WebElement header;
-
 
     public void clickOnFullJourneyRouteButton() {
         fullJourneyRouteButton.click();
@@ -49,8 +52,6 @@ public class OrchestratorStubPage {
     }
 
     public void validateUserInformationTitle(String expectedText) {
-        Assert.assertTrue(
-                expectedText,
-                header.getText().contains("User information"));
+        Assert.assertTrue(expectedText, header.getText().contains("User information"));
     }
 }

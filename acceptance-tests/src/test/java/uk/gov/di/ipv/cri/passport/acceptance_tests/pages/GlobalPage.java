@@ -3,7 +3,7 @@ package uk.gov.di.ipv.cri.passport.acceptance_tests.pages;
 import org.openqa.selenium.By;
 import org.openqa.selenium.WebDriver;
 import org.openqa.selenium.WebElement;
-import uk.gov.di.ipv.cri.passport.acceptance_tests.utilities.IPV_PageObjectSupport;
+import uk.gov.di.ipv.cri.passport.acceptance_tests.utilities.PageObjectSupport;
 
 import java.io.IOException;
 import java.nio.file.Files;
@@ -12,7 +12,7 @@ import java.nio.file.Paths;
 import java.util.HashMap;
 import java.util.Map;
 
-public class GlobalPage extends IPV_PageObjectSupport {
+public class GlobalPage extends PageObjectSupport {
 
     static final By CONTINUE_BUTTON = By.xpath("//button[@class='govuk-button button']");
 

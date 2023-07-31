@@ -9,8 +9,7 @@ import static org.junit.jupiter.api.Assertions.fail;
 
 public class KbvCriSteps {
     private final KbvQuestionPage kbvQuestionPage = new KbvQuestionPage();
-    private final OrchestratorStubPage orchestratorStubPage =
-        new OrchestratorStubPage();
+    private final OrchestratorStubPage orchestratorStubPage = new OrchestratorStubPage();
     private final String SUCCESSFULLY = "Successfully";
     private final String UNSUCCESSFULLY = "Unsuccessfully";
 
