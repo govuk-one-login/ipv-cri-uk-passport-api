@@ -1,8 +1,8 @@
 package uk.gov.di.ipv.cri.passport.acceptance_tests.utilities;
 
-//import com.jayway.jsonpath.JsonPath;
-//import net.minidev.json.JSONObject;
-//import org.json.simple.JSONObject;
+// import com.jayway.jsonpath.JsonPath;
+// import net.minidev.json.JSONObject;
+// import org.json.simple.JSONObject;
 import org.openqa.selenium.*;
 import org.openqa.selenium.support.ui.ExpectedConditions;
 import org.openqa.selenium.support.ui.WebDriverWait;
@@ -80,9 +80,9 @@ public class IPV_PageObjectSupport {
         }
     }
 
-//    public String getAttribute(JSONObject json, String path) {
-//        return JsonPath.read(json.toString(), path);
-//    }
+    //    public String getAttribute(JSONObject json, String path) {
+    //        return JsonPath.read(json.toString(), path);
+    //    }
 
     public static WebDriver getCurrentDriver() {
         return Driver.get();
