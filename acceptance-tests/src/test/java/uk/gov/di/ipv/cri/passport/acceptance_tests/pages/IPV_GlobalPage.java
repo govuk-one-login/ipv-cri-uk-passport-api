@@ -1,7 +1,6 @@
 package uk.gov.di.ipv.cri.passport.acceptance_tests.pages;
 
 import org.openqa.selenium.By;
-import org.openqa.selenium.Keys;
 import org.openqa.selenium.WebDriver;
 import org.openqa.selenium.WebElement;
 import uk.gov.di.ipv.cri.passport.acceptance_tests.utilities.IPV_PageObjectSupport;
@@ -23,20 +22,6 @@ public class IPV_GlobalPage extends IPV_PageObjectSupport {
 
     public IPV_GlobalPage() {
         this.driver = getCurrentDriver();
-    }
-
-    public void clickContinue() {
-        clickElement(CONTINUE_BUTTON);
-    }
-
-    public String getCurrentPageUrl() {
-        return getCurrentDriver().getCurrentUrl();
-    }
-
-    public void populateDetailsInFields(By detailsSelector, String fieldValue) {
-        waitForElementVisible(detailsSelector, 60);
-        WebElement field = getCurrentDriver().findElement(detailsSelector);
-        field.sendKeys(Keys.HOME, Keys.chord(Keys.SHIFT, Keys.END), fieldValue);
     }
 
     public void populateField(By selector, String value) {
@@ -73,8 +58,4 @@ public class IPV_GlobalPage extends IPV_PageObjectSupport {
         }
         return jsonPayloadString;
     }
-
-//    public static Integer extractIntegerValueFromJsonString(String jsonString, String jsonPath) {
-//        return com.jayway.jsonpath.JsonPath.read(jsonString, jsonPath);
-//    }
 }

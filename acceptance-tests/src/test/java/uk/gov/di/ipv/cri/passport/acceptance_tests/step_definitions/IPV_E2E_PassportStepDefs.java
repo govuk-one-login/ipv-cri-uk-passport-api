@@ -1,7 +1,6 @@
 package uk.gov.di.ipv.cri.passport.acceptance_tests.step_definitions;
 
 import io.cucumber.java.en.And;
-import io.cucumber.java.en.Given;
 import io.cucumber.java.en.Then;
 import io.cucumber.java.en.When;
 import uk.gov.di.ipv.cri.passport.acceptance_tests.pages.OrchestratorStubPage;
@@ -17,9 +16,14 @@ public class IPV_E2E_PassportStepDefs {
     }
 
     @Then("^User should be on (.*) page with heading as (.*)$")
-    public void userIsRedirectedBackToThePassportCRIStub(String page, String expectedText) {
-        orchestratorStubPage.userIsOnPassportcris(page, expectedText);
+    public void userIsNavigatedToPageWithHeading(String page, String expectedText) {
+        orchestratorStubPage.userIsOnPageWithHeading(page, expectedText);
         orchestratorStubPage.continueSubmitButton.click();
+    }
+
+    @Then("^User should be navigated to (.*) page with text (.*)$")
+    public void userIsNavigatedToPage(String page, String expectedText) {
+        orchestratorStubPage.userIsOnPageWithHeading(page, expectedText);
     }
 
     @And("^I enter (.*) in the Postcode field and find address$")

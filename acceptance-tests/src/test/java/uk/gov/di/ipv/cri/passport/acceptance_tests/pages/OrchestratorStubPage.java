@@ -1,21 +1,12 @@
 package uk.gov.di.ipv.cri.passport.acceptance_tests.pages;
 
-import io.cucumber.java.en.Then;
-import net.minidev.json.JSONObject;
 import org.junit.Assert;
-import org.openqa.selenium.By;
 import org.openqa.selenium.WebElement;
 import org.openqa.selenium.support.FindBy;
 import org.openqa.selenium.support.PageFactory;
-import org.openqa.selenium.support.ui.Select;
 import uk.gov.di.ipv.cri.passport.acceptance_tests.utilities.Driver;
-import uk.gov.di.ipv.cri.passport.acceptance_tests.utilities.IPV_PageObjectSupport;
-
-import java.io.IOException;
 
 public class OrchestratorStubPage {
-
-    private static final String USER_DATA_DIRECTORY = "src/test/resources/Data/";
 
     public OrchestratorStubPage() {
         PageFactory.initElements(Driver.get(), this);
@@ -23,10 +14,6 @@ public class OrchestratorStubPage {
 
     @FindBy(xpath = "//input[@value='Debug route']")
     public WebElement DebugRoute;
-
-    @FindBy(xpath = "//*[@id='cri-link-ukPassport']")
-    public WebElement UkPassport;
-
     @FindBy(xpath = "//*[@value=\"Full journey route\"]")
     public WebElement fullJourneyRouteButton;
     @FindBy(id = "submitButton")
@@ -48,7 +35,7 @@ public class OrchestratorStubPage {
         Driver.get().navigate().back();
     }
 
-    public void userIsOnPassportcris(String page, String expectedText) {
+    public void userIsOnPageWithHeading(String page, String expectedText) {
         Assert.assertEquals(expectedText, new PassportPageObject().pageHeader.getText());
     }
 
@@ -65,6 +52,5 @@ public class OrchestratorStubPage {
         Assert.assertTrue(
                 expectedText,
                 header.getText().contains("User information"));
-
     }
 }
