@@ -12,7 +12,7 @@ import java.nio.file.Paths;
 import java.util.HashMap;
 import java.util.Map;
 
-public class IPV_GlobalPage extends IPV_PageObjectSupport {
+public class GlobalPage extends IPV_PageObjectSupport {
 
     static final By CONTINUE_BUTTON = By.xpath("//button[@class='govuk-button button']");
 
@@ -20,7 +20,7 @@ public class IPV_GlobalPage extends IPV_PageObjectSupport {
 
     WebDriver driver;
 
-    public IPV_GlobalPage() {
+    public GlobalPage() {
         this.driver = getCurrentDriver();
     }
 

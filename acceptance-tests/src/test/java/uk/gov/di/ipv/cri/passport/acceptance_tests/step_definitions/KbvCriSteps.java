@@ -7,8 +7,8 @@ import java.io.IOException;
 
 import static org.junit.jupiter.api.Assertions.fail;
 
-public class IPV_KbvCriSteps {
-    private final IPV_KbvQuestionPage kbvQuestionPage = new IPV_KbvQuestionPage();
+public class KbvCriSteps {
+    private final KbvQuestionPage kbvQuestionPage = new KbvQuestionPage();
     private final OrchestratorStubPage orchestratorStubPage =
         new OrchestratorStubPage();
     private final String SUCCESSFULLY = "Successfully";

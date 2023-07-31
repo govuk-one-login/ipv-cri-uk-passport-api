@@ -6,7 +6,7 @@ import org.openqa.selenium.By;
 
 import java.io.IOException;
 
-public class IPV_FindYourAddressPage extends IPV_GlobalPage {
+public class FindYourAddressPage extends GlobalPage {
 
     private static final By ADDRESS_HDR = By.cssSelector("#header");
     private static final By POSTCODE_FIELD = By.cssSelector("#addressSearch");

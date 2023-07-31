@@ -2,7 +2,7 @@ package uk.gov.di.ipv.cri.passport.acceptance_tests.pages;
 
 import org.openqa.selenium.By;
 
-public class IPV_PassportDocCheckPage extends IPV_GlobalPage {
+public class PassportDocCheckPage extends GlobalPage {
 
     private static final By CONTINUE_CHECKBOX = By.cssSelector("#journey-2");
     private static final By CONTINUE_GOV_UK = By.cssSelector("#submitButton");

@@ -2,7 +2,7 @@ package uk.gov.di.ipv.cri.passport.acceptance_tests.pages;
 
 import org.openqa.selenium.By;
 
-public class IPV_DeviceSelectionPage extends IPV_GlobalPage {
+public class DeviceSelectionPage extends GlobalPage {
 
     private static final By USER_NOT_ON_MOBILE_DEVICE = By.cssSelector("#select-device-choice-2");
     private static final By CONTINUE_BUTTON = By.xpath("//button[@type='submit']");

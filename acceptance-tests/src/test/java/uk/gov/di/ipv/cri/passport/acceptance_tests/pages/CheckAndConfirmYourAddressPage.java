@@ -5,7 +5,7 @@ import org.openqa.selenium.By;
 
 import java.io.IOException;
 
-public class IPV_CheckAndConfirmYourAddressPage extends IPV_GlobalPage {
+public class CheckAndConfirmYourAddressPage extends GlobalPage {
 
     private static final By WHEN_DID_YOU_START_LIVING_HERE = By.cssSelector("#addressYearFrom");
     private static final By CONFIRM_ADDRESS_DETATILS = By.xpath("//button[@data-id='next']");

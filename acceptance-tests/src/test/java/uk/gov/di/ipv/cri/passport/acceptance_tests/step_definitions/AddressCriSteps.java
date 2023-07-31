@@ -2,18 +2,18 @@ package uk.gov.di.ipv.cri.passport.acceptance_tests.step_definitions;
 
 import io.cucumber.java.en.And;
 import io.cucumber.java.en.Then;
-import uk.gov.di.ipv.cri.passport.acceptance_tests.pages.IPV_CheckAndConfirmYourAddressPage;
-import uk.gov.di.ipv.cri.passport.acceptance_tests.pages.IPV_ChooseYourAddressPage;
-import uk.gov.di.ipv.cri.passport.acceptance_tests.pages.IPV_FindYourAddressPage;
+import uk.gov.di.ipv.cri.passport.acceptance_tests.pages.CheckAndConfirmYourAddressPage;
+import uk.gov.di.ipv.cri.passport.acceptance_tests.pages.ChooseYourAddressPage;
+import uk.gov.di.ipv.cri.passport.acceptance_tests.pages.FindYourAddressPage;
 
 import java.io.IOException;
 
-public class IPV_AddressCriSteps {
+public class AddressCriSteps {
 
-    private final IPV_FindYourAddressPage findYourAddressPage = new IPV_FindYourAddressPage();
-    private final IPV_ChooseYourAddressPage chooseYourAddressPage = new IPV_ChooseYourAddressPage();
-    private final IPV_CheckAndConfirmYourAddressPage checkAndConfirmYourAddressPage =
-            new IPV_CheckAndConfirmYourAddressPage();
+    private final FindYourAddressPage findYourAddressPage = new FindYourAddressPage();
+    private final ChooseYourAddressPage chooseYourAddressPage = new ChooseYourAddressPage();
+    private final CheckAndConfirmYourAddressPage checkAndConfirmYourAddressPage =
+            new CheckAndConfirmYourAddressPage();
 
     @Then("User should be on Address CRI Page")
     public void userShouldBeOnAddressCRIPage() {

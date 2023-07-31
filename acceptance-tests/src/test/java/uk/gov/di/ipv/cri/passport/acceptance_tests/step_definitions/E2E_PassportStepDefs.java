@@ -5,7 +5,7 @@ import io.cucumber.java.en.Then;
 import io.cucumber.java.en.When;
 import uk.gov.di.ipv.cri.passport.acceptance_tests.pages.OrchestratorStubPage;
 
-public class IPV_E2E_PassportStepDefs {
+public class E2E_PassportStepDefs {
 
     private final OrchestratorStubPage orchestratorStubPage =
             new OrchestratorStubPage();

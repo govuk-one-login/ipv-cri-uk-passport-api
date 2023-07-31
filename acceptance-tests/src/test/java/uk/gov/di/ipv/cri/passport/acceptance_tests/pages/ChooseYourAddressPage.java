@@ -7,7 +7,7 @@ import org.openqa.selenium.support.ui.Select;
 
 import java.io.IOException;
 
-public class IPV_ChooseYourAddressPage extends IPV_GlobalPage {
+public class ChooseYourAddressPage extends GlobalPage {
 
     private static final By ADDRESS_DROPDOWN = By.cssSelector("#addressResults");
     private static final By CHOOSE_ADDRESS_BUTTON = By.cssSelector("#continue");

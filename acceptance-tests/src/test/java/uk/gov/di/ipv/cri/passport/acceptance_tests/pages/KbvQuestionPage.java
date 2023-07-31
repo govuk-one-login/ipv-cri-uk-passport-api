@@ -8,7 +8,7 @@ import java.io.IOException;
 
 import static org.junit.jupiter.api.Assertions.fail;
 
-public class IPV_KbvQuestionPage extends IPV_GlobalPage {
+public class KbvQuestionPage extends GlobalPage {
 
     private static final By QUESTION_FIELD_SET = By.cssSelector(".govuk-fieldset");
     private static final By FIRST_ANSWER_RADIO_BUTTON =
