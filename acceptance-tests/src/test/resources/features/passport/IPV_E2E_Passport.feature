@@ -1,6 +1,6 @@
 Feature: E2E
 
-  @Staging1 @Integration
+  @E2E
   Scenario Outline: Passport cri back button recovery page staging - <PassportSubject>
 #   Auth
     Given I am on Orchestrator Stub
@@ -27,7 +27,7 @@ Feature: E2E
       | PassportSubject           | userName                   |
       | PassportSubjectHappyBilly |   KennethDecerqueira       |
 
-  @Staging @Integration
+  @E2E
   Scenario Outline: address cri back button recovery page staging  - <userName>
 #   Auth
     Given I am on Orchestrator Stub
@@ -53,7 +53,7 @@ Feature: E2E
       | PassportSubject           | userName                   |
       | PassportSubjectHappyBilly |   KennethDecerqueira       |
 
-  @Staging @Integration
+  @E2E
   Scenario Outline: fraud cri back button recovery page staging  - <userName>
 #   Auth
     Given I am on Orchestrator Stub
@@ -80,7 +80,7 @@ Feature: E2E
       | PassportSubject           | userName                   |
       | PassportSubjectHappyBilly |   KennethDecerqueira       |
 
-  @Staging @Integration
+  @E2E
   Scenario Outline: Passport cri back button recovery page through hyperlink staging - <userName>
 #   Auth
     Given I am on Orchestrator Stub
