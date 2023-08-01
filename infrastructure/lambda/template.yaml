@@ -110,7 +110,7 @@ Globals:
       Variables:
         JAVA_TOOL_OPTIONS: -XX:+TieredCompilation -XX:TieredStopAtLevel=1
         AWS_STACK_NAME: !Sub ${AWS::StackName}
-        POWERTOOLS_LOG_LEVEL: INFO
+        POWERTOOLS_LOG_LEVEL: DEBUG
         SQS_AUDIT_EVENT_QUEUE_URL: !ImportValue AuditEventQueueUrl
         SQS_AUDIT_EVENT_PREFIX: !Ref AuditEventNamePrefix
         POWERTOOLS_METRICS_NAMESPACE: !Ref CriIdentifier
