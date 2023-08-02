@@ -5,6 +5,7 @@ import software.amazon.awssdk.enhanced.dynamodb.mapper.annotations.DynamoDbParti
 import uk.gov.di.ipv.cri.common.library.annotations.ExcludeFromGeneratedCoverageReport;
 
 import java.util.List;
+import java.util.Objects;
 import java.util.UUID;
 
 @DynamoDbBean
@@ -103,5 +104,36 @@ public class DocumentCheckResultItem {
 
     public void setTtl(long ttl) {
         this.ttl = ttl;
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+        DocumentCheckResultItem that = (DocumentCheckResultItem) o;
+        return strengthScore == that.strengthScore
+                && validityScore == that.validityScore
+                && Objects.equals(sessionId, that.sessionId)
+                && Objects.equals(transactionId, that.transactionId)
+                && Objects.equals(contraIndicators, that.contraIndicators)
+                && Objects.equals(documentNumber, that.documentNumber)
+                && Objects.equals(expiryDate, that.expiryDate)
+                && Objects.equals(checkDetails, that.checkDetails)
+                && Objects.equals(failedCheckDetails, that.failedCheckDetails);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(
+                sessionId,
+                transactionId,
+                strengthScore,
+                validityScore,
+                contraIndicators,
+                documentNumber,
+                expiryDate,
+                checkDetails,
+                failedCheckDetails,
+                ttl);
     }
 }

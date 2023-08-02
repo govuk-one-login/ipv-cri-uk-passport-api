@@ -42,6 +42,7 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.verifyNoMoreInteractions;
 import static org.mockito.Mockito.when;
+import static uk.gov.di.ipv.cri.passport.library.domain.CheckType.DOCUMENT_DATA_VERIFICATION;
 import static uk.gov.di.ipv.cri.passport.library.metrics.Definitions.DOCUMENT_DATA_VERIFICATION_REQUEST_FAILED;
 import static uk.gov.di.ipv.cri.passport.library.metrics.Definitions.DOCUMENT_DATA_VERIFICATION_REQUEST_SUCCEEDED;
 import static uk.gov.di.ipv.cri.passport.library.metrics.Definitions.FORM_DATA_VALIDATION_FAIL;
@@ -125,6 +126,15 @@ class DocumentDataVerificationServiceTest {
                 documentVerified ? 0 : 2,
                 documentDataVerificationResult.getContraIndicators().size());
         assertEquals(4, documentDataVerificationResult.getStrengthScore());
+        if (!documentVerified) {
+            assertEquals(
+                    DOCUMENT_DATA_VERIFICATION.toString(),
+                    documentDataVerificationResult.getChecksFailed().get(0));
+        } else {
+            assertEquals(
+                    DOCUMENT_DATA_VERIFICATION.toString(),
+                    documentDataVerificationResult.getChecksSucceeded().get(0));
+        }
     }
 
     @Test
