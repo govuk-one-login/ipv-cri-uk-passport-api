@@ -1,3 +1,4 @@
+@hmpoDVAD
 Feature: Passport Language Test
 
   Background: @Language-regression
@@ -6,6 +7,7 @@ Feature: Passport Language Test
     Then I search for passport user number 5 in the Experian table
     And I add a cookie to change the language to Welsh
     And I assert the url path contains details
+    And I set the document checking route
 
   @Language-regression
   Scenario: Beta Banner
