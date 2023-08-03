@@ -8,7 +8,7 @@ public class HttpRequestConfig {
     // HTTP client connection stage timeouts Totals are additive.
 
     // Initial connection attempt
-    private static final int HTTP_INITIAL_CONNECTION_TIMEOUT_MS = 5000;
+    private static final int HTTP_INITIAL_CONNECTION_TIMEOUT_MS = 10000;
 
     // Reading a packet
     private static final int HTTP_SOCKET_READ_TIMEOUT_MS = 5000;

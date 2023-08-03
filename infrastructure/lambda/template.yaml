@@ -50,11 +50,18 @@ Parameters:
     Type: String
     Default: "none"
     Description: If set the this value will be used for ParameterStore prefix instead of AWS::StackName
+  DeploymentType:
+    Type: String
+    Default: "pipeline"
+    Description: Private Api gateway resources are not be reachable in stacks deployed via pipelines, this override enables less restrictive settings for manual/pre-merge-test deployments.
 
 Conditions:
-  CreateDevResources: !Equals
-    - !Ref Environment
-    - dev
+  IsDeployedFromPipeline: !Equals
+    - !Ref DeploymentType
+    - "pipeline"
+# Don't send logs in dev to avoid overwhelming the destination with debug
+#  LogSendingEnabled:
+#    !Not [!Equals [!Ref Environment, "dev"]]
   IsProdEnvironment: !Equals
     - !Ref Environment
     - production
@@ -62,11 +69,11 @@ Conditions:
 #    - !Equals [ !Ref Environment, staging ]
 #    - !Equals [ !Ref Environment, integration ]
 #    - !Equals [ !Ref Environment, production ]
-  IsDevEnvironment: !Equals
+  # This is a special case fix to avoid setting this environment wide feature flag in dev.
+  # As it becomes owned by the first stack using it. Remove once the feature flag is removed and feature is permanent.
+  OverrideSettingOfEnvironmentWideFeatureFlag: !Equals
     - !Ref Environment
     - dev
-  IsNotDevEnvironment: !Not
-    - Condition: IsDevEnvironment
   IsNotCRIDevEnv:
     Fn::Not:
       - Fn::Equals:
@@ -260,7 +267,7 @@ Resources:
                   type: "string"
           securitySchemes:
             !If
-            - IsNotDevEnvironment
+            - IsDeployedFromPipeline
             -
               api_key:
                 type: "apiKey"
@@ -278,13 +285,15 @@ Resources:
       RetentionInDays: 365
       KmsKeyId: !GetAtt LoggingKmsKey.Arn
 
-  # PublicUKPassportAPILogGroupSubscriptionFilter:
-  #   Type: AWS::Logs::SubscriptionFilter
-  #   Condition: IsNotDevEnvironment
-  #   Properties:
-  #     DestinationArn: "arn:aws:logs:eu-west-2:885513274347:destination:csls_cw_logs_destination_prodpython"
-  #     FilterPattern: ""
-  #     LogGroupName: !Ref PublicUKPassportAPILogGroup
+#  PublicUKPassportAPILogGroupSubscriptionFilter:
+#    Type: AWS::Logs::SubscriptionFilter
+#    Condition: !And
+#      - IsDeployedFromPipeline
+#      - LogSendingEnabled
+#    Properties:
+#      DestinationArn: "arn:aws:logs:eu-west-2:885513274347:destination:csls_cw_logs_destination_prodpython"
+#      FilterPattern: ""
+#      LogGroupName: !Ref PublicUKPassportAPILogGroup
 
   PrivateUKPassportAPI:
     Type: AWS::Serverless::Api
@@ -329,7 +338,7 @@ Resources:
             Location: './private-api.yaml'
       OpenApiVersion: 3.0.1
       EndpointConfiguration:
-        Type: !If [IsNotDevEnvironment, PRIVATE, REGIONAL]
+        Type: !If [IsDeployedFromPipeline, PRIVATE, REGIONAL]
       Auth:
         ResourcePolicy:
           CustomStatements:
@@ -338,18 +347,19 @@ Resources:
               Principal: '*'
               Resource:
                 - 'execute-api:/*'
-            - Action: 'execute-api:Invoke'
-              Effect: !If [IsNotDevEnvironment, Deny, Allow]
-              Principal: '*'
-              Resource:
-                - 'execute-api:/*'
-              Condition:
-                StringNotEquals:
-                  aws:SourceVpce: !If
-                    - CreateDevResources
-                    - vpce-082cab7c78139eb54
-                    - Fn::ImportValue:
-                        !Sub "${VpcStackName}-ExecuteApiGatewayEndpointId"
+            - !If
+              - IsDeployedFromPipeline
+              - Action: 'execute-api:Invoke'
+                Effect: Deny
+                Principal: '*'
+                Resource:
+                  - 'execute-api:/*'
+                Condition:
+                  StringNotEquals:
+                    aws:SourceVpce:
+                      - Fn::ImportValue:
+                          !Sub "${VpcStackName}-ExecuteApiGatewayEndpointId"
+              - !Ref AWS::NoValue
 
   PrivateUKPassportAPILogGroup:
     Type: AWS::Logs::LogGroup
@@ -358,13 +368,15 @@ Resources:
       RetentionInDays: 365
       KmsKeyId: !GetAtt LoggingKmsKey.Arn
 
-  # PrivateUKPassportAPILogGroupSubscriptionFilter:
-  #   Type: AWS::Logs::SubscriptionFilter
-  #   Condition: IsNotDevEnvironment
-  #   Properties:
-  #     DestinationArn: "arn:aws:logs:eu-west-2:885513274347:destination:csls_cw_logs_destination_prodpython"
-  #     FilterPattern: ""
-  #     LogGroupName: !Ref PrivateUKPassportAPILogGroup
+#  PrivateUKPassportAPILogGroupSubscriptionFilter:
+#    Type: AWS::Logs::SubscriptionFilter
+#    Condition: !And
+#      - IsDeployedFromPipeline
+#      - LogSendingEnabled
+#    Properties:
+#      DestinationArn: "arn:aws:logs:eu-west-2:885513274347:destination:csls_cw_logs_destination_prodpython"
+#      FilterPattern: ""
+#      LogGroupName: !Ref PrivateUKPassportAPILogGroup
 
 ####################################################################
 #                                                                  #
@@ -494,13 +506,15 @@ Resources:
       LogGroupName: !Sub "/aws/lambda/${CheckPassportFunction}"
       RetentionInDays: 30
 
-  # CheckPassportFunctionLogGroupSubscriptionFilterCsls:
-  #   Type: AWS::Logs::SubscriptionFilter
-  #   Condition: IsNotDevEnvironment
-  #   Properties:
-  #     DestinationArn: "arn:aws:logs:eu-west-2:885513274347:destination:csls_cw_logs_destination_prodpython"
-  #     FilterPattern: ""
-  #     LogGroupName: !Ref CheckPassportFunctionLogGroup
+#  CheckPassportFunctionLogGroupSubscriptionFilterCsls:
+#    Type: AWS::Logs::SubscriptionFilter
+#    Condition: !And
+#      - IsDeployedFromPipeline
+#      - LogSendingEnabled
+#    Properties:
+#      DestinationArn: "arn:aws:logs:eu-west-2:885513274347:destination:csls_cw_logs_destination_prodpython"
+#      FilterPattern: ""
+#      LogGroupName: !Ref CheckPassportFunctionLogGroup
 
   CheckPassportFunctionPermission:
     Type: AWS::Lambda::Permission
@@ -591,13 +605,15 @@ Resources:
       LogGroupName: !Sub "/aws/lambda/${IssueCredentialFunction}"
       RetentionInDays: 30
 
-  # IssueCredentialFunctionLogGroupSubscriptionFilterCsls:
-  #   Type: AWS::Logs::SubscriptionFilter
-  #   Condition: IsNotDevEnvironment
-  #   Properties:
-  #     DestinationArn: "arn:aws:logs:eu-west-2:885513274347:destination:csls_cw_logs_destination_prodpython"
-  #     FilterPattern: ""
-  #     LogGroupName: !Ref IssueCredentialFunctionLogGroup
+#  IssueCredentialFunctionLogGroupSubscriptionFilterCsls:
+#    Type: AWS::Logs::SubscriptionFilter
+#    Condition: !And
+#      - IsDeployedFromPipeline
+#      - LogSendingEnabled
+#    Properties:
+#      DestinationArn: "arn:aws:logs:eu-west-2:885513274347:destination:csls_cw_logs_destination_prodpython"
+#      FilterPattern: ""
+#      LogGroupName: !Ref IssueCredentialFunctionLogGroup
 
   IssueCredentialFunctionPermission:
     Type: AWS::Lambda::Permission
@@ -668,7 +684,7 @@ Resources:
         RateLimit: 50 # allowed requests per second
 
   LinkUsagePlanApiKey1:
-    #Condition: IsNotDevEnvironment
+    #Condition: IsDeployedFromPipeline
     Type: AWS::ApiGateway::UsagePlanKey
     Properties:
       KeyId: !ImportValue core-infrastructure-ApiKey1
@@ -676,7 +692,7 @@ Resources:
       UsagePlanId: !Ref PublicUKPassportAPIUsagePlan
 
   LinkUsagePlanApiKey2:
-    #Condition: IsNotDevEnvironment
+    #Condition: IsDeployedFromPipeline
     Type: AWS::ApiGateway::UsagePlanKey
     Properties:
       KeyId: !ImportValue core-infrastructure-ApiKey2
@@ -693,7 +709,7 @@ Resources:
     Type: AWS::SSM::Parameter
     Properties:
       Name: !If
-        - IsDevEnvironment
+        - OverrideSettingOfEnvironmentWideFeatureFlag
         - !Sub "/${AWS::StackName}/release-flags-vc-expiry-removed-not-used-in-dev"
         - !Sub "/release-flags/vc-expiry-removed"
       Value: !FindInMap [ VcExpiryRemoved, Environment, !Ref Environment ]
