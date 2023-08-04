@@ -200,8 +200,6 @@ Resources:
       Name: !Sub ${AWS::StackName}-PublicUKPassportApi
       Description: Public UK Passport CRI API
       StageName: !Ref Environment
-      Auth:
-        ApiKeyRequired: true
       MethodSettings:
         - LoggingLevel: INFO
           ResourcePath: '/*'
@@ -438,24 +436,25 @@ Resources:
               Action:
                 - ssm:GetParameter
               Resource:
-                - !Sub
-                  - "arn:aws:ssm:${AWS::Region}:${AWS::AccountId}:parameter/${PREFIX}/ContraindicationMappings"
-                  - PREFIX: !If [UseParameterPrefix, !Ref ParameterPrefix , !Ref AWS::StackName]
-
                 - !Sub "arn:aws:ssm:${AWS::Region}:${AWS::AccountId}:parameter/${AWS::StackName}/DocumentCheckResultTableName"
                 - !Sub "arn:aws:ssm:${AWS::Region}:${AWS::AccountId}:parameter/${AWS::StackName}/MaximumAttemptCount"
-                - !Sub "arn:aws:ssm:${AWS::Region}:${AWS::AccountId}:parameter/${AWS::StackName}/isDCSPerformanceStub"
-                - !Sub "arn:aws:ssm:${AWS::Region}:${AWS::AccountId}:parameter/${AWS::StackName}/isDVADPerformanceStub"
                 - !Sub "arn:aws:ssm:${AWS::Region}:${AWS::AccountId}:parameter/${AWS::StackName}/DvaDigitalEnabled"
                 - !Sub "arn:aws:ssm:${AWS::Region}:${AWS::AccountId}:parameter/${AWS::StackName}/logDcsResponse"
                 - !Sub
+                  - "arn:aws:ssm:${AWS::Region}:${AWS::AccountId}:parameter/${PREFIX}/ContraindicationMappings"
+                  - PREFIX: !If [UseParameterPrefix, !Ref ParameterPrefix , !Ref AWS::StackName]
+                - !Sub
+                  - "arn:aws:ssm:${AWS::Region}:${AWS::AccountId}:parameter/${PREFIX}/isDCSPerformanceStub"
+                  - PREFIX: !If [UseParameterPrefix, !Ref ParameterPrefix , !Ref AWS::StackName]
+                - !Sub
                   - "arn:aws:ssm:${AWS::Region}:${AWS::AccountId}:parameter/${PREFIX}/DCS*"
                   - PREFIX: !If [UseParameterPrefix, !Ref ParameterPrefix , !Ref AWS::StackName]
-
+                - !Sub
+                  - "arn:aws:ssm:${AWS::Region}:${AWS::AccountId}:parameter/${PREFIX}/isDVADPerformanceStub"
+                  - PREFIX: !If [UseParameterPrefix, !Ref ParameterPrefix , !Ref AWS::StackName]
                 - !Sub
                   - "arn:aws:ssm:${AWS::Region}:${AWS::AccountId}:parameter/${PREFIX}/HMPODVAD*"
                   - PREFIX: !If [UseParameterPrefix, !Ref ParameterPrefix , !Ref AWS::StackName]
-
                 - !Sub "arn:aws:ssm:${AWS::Region}:${AWS::AccountId}:parameter/${CommonStackName}/SessionTableName"
                 - !Sub "arn:aws:ssm:${AWS::Region}:${AWS::AccountId}:parameter/${CommonStackName}/PersonIdentityTableName"
                 - !Sub "arn:aws:ssm:${AWS::Region}:${AWS::AccountId}:parameter/${CommonStackName}/SessionTtl"
@@ -554,15 +553,10 @@ Resources:
                 - ssm:GetParameter
               Resource:
                 - !Sub "arn:aws:ssm:${AWS::Region}:${AWS::AccountId}:parameter/release-flags/vc-expiry-removed"
-
                 - !Sub "arn:aws:ssm:${AWS::Region}:${AWS::AccountId}:parameter/${AWS::StackName}/DocumentCheckResultTableName"
-
                 - !Sub "arn:aws:ssm:${AWS::Region}:${AWS::AccountId}:parameter/${AWS::StackName}/JwtTtlUnit"
-
-                # Used by common lib methods specific to these parameters - cannot be prefixed without changing cri-lib
                 - !Sub "arn:aws:ssm:${AWS::Region}:${AWS::AccountId}:parameter/${AWS::StackName}/MaxJwtTtl"
                 - !Sub "arn:aws:ssm:${AWS::Region}:${AWS::AccountId}:parameter/${AWS::StackName}/verifiableCredentialKmsSigningKeyId"
-
                 - !Sub "arn:aws:ssm:${AWS::Region}:${AWS::AccountId}:parameter/${CommonStackName}/SessionTableName"
                 - !Sub "arn:aws:ssm:${AWS::Region}:${AWS::AccountId}:parameter/${CommonStackName}/PersonIdentityTableName"
                 - !Sub "arn:aws:ssm:${AWS::Region}:${AWS::AccountId}:parameter/${CommonStackName}/verifiable-credential/issuer"
@@ -629,6 +623,7 @@ Resources:
 
   PublicUKPassportAPIUsagePlan:
     Type: AWS::ApiGateway::UsagePlan
+    Condition: IsDeployedFromPipeline
     DependsOn:
       - PublicUKPassportAPIStage
     Properties:
@@ -644,6 +639,7 @@ Resources:
 
   PrivateUKPassportAPIUsagePlan:
     Type: AWS::ApiGateway::UsagePlan
+    Condition: IsDeployedFromPipeline
     DependsOn:
       - PrivateUKPassportAPIStage
     Properties:
@@ -658,7 +654,7 @@ Resources:
         RateLimit: 50 # allowed requests per second
 
   LinkUsagePlanApiKey1:
-    #Condition: IsDeployedFromPipeline
+    Condition: IsDeployedFromPipeline
     Type: AWS::ApiGateway::UsagePlanKey
     Properties:
       KeyId: !ImportValue core-infrastructure-ApiKey1
@@ -666,7 +662,7 @@ Resources:
       UsagePlanId: !Ref PublicUKPassportAPIUsagePlan
 
   LinkUsagePlanApiKey2:
-    #Condition: IsDeployedFromPipeline
+    Condition: IsDeployedFromPipeline
     Type: AWS::ApiGateway::UsagePlanKey
     Properties:
       KeyId: !ImportValue core-infrastructure-ApiKey2
@@ -988,5 +984,6 @@ Outputs:
       Name: !Sub ${AWS::StackName}-PrivateUKPassportApiBaseUrl
 
   IpvCoreBackApiKeyId:
+    Condition: IsDeployedFromPipeline
     Description: The key id of the api key used by IPV Core to access passport back external api gateway
     Value: !Ref LinkUsagePlanApiKey1

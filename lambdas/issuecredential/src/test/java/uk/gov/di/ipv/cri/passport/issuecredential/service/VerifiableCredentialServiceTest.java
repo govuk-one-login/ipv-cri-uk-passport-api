@@ -115,7 +115,7 @@ class VerifiableCredentialServiceTest implements VerifiableCredentialServiceTest
         }
 
         when(mockPassportConfigurationService.getMaxJwtTtl()).thenReturn(TTL);
-        when(mockPassportConfigurationService.getParameterValue(MAX_JWT_TTL_UNIT))
+        when(mockPassportConfigurationService.getStackParameterValue(MAX_JWT_TTL_UNIT))
                 .thenReturn(JWT_TTL_UNIT);
         when(mockPassportConfigurationService.getVerifiableCredentialIssuer())
                 .thenReturn(UNIT_TEST_VC_ISSUER);

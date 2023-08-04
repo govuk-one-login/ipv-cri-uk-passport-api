@@ -158,10 +158,10 @@ class CheckPassportHandlerTest {
                         eq(requestHeaders)))
                 .thenReturn(testDocumentDataVerificationResult);
 
-        when(mockPassportConfigurationService.getParameterValue(MAXIMUM_ATTEMPT_COUNT))
+        when(mockPassportConfigurationService.getStackParameterValue(MAXIMUM_ATTEMPT_COUNT))
                 .thenReturn("2");
 
-        when(mockPassportConfigurationService.getParameterValue(DVA_DIGITAL_ENABLED))
+        when(mockPassportConfigurationService.getStackParameterValue(DVA_DIGITAL_ENABLED))
                 .thenReturn("false");
 
         when(mockPassportConfigurationService.getCommonParameterValue(
@@ -252,7 +252,7 @@ class CheckPassportHandlerTest {
                             eq(requestHeaders)))
                     .thenReturn(testDocumentDataVerificationResult);
 
-            when(mockPassportConfigurationService.getParameterValue(DVA_DIGITAL_ENABLED))
+            when(mockPassportConfigurationService.getStackParameterValue(DVA_DIGITAL_ENABLED))
                     .thenReturn("false");
 
             when(mockPassportConfigurationService.getCommonParameterValue(
@@ -260,7 +260,7 @@ class CheckPassportHandlerTest {
                     .thenReturn("7200");
         }
 
-        when(mockPassportConfigurationService.getParameterValue(MAXIMUM_ATTEMPT_COUNT))
+        when(mockPassportConfigurationService.getStackParameterValue(MAXIMUM_ATTEMPT_COUNT))
                 .thenReturn(String.valueOf(MAX_ATTEMPTS));
 
         when(mockLambdaContext.getFunctionName()).thenReturn("functionName");
@@ -433,7 +433,7 @@ class CheckPassportHandlerTest {
         // parsePassportFormRequest
         when(mockRequestEvent.getBody()).thenReturn(testRequestBody);
 
-        when(mockPassportConfigurationService.getParameterValue(MAXIMUM_ATTEMPT_COUNT))
+        when(mockPassportConfigurationService.getStackParameterValue(MAXIMUM_ATTEMPT_COUNT))
                 .thenReturn(String.valueOf(MAX_ATTEMPTS));
 
         when(mockLambdaContext.getFunctionName()).thenReturn("functionName");
@@ -504,7 +504,7 @@ class CheckPassportHandlerTest {
                         eq(requestHeaders)))
                 .thenThrow(new RuntimeException("An Unhandled exception that has occurred"));
 
-        when(mockPassportConfigurationService.getParameterValue(MAXIMUM_ATTEMPT_COUNT))
+        when(mockPassportConfigurationService.getStackParameterValue(MAXIMUM_ATTEMPT_COUNT))
                 .thenReturn("2");
 
         when(mockLambdaContext.getFunctionName()).thenReturn("functionName");

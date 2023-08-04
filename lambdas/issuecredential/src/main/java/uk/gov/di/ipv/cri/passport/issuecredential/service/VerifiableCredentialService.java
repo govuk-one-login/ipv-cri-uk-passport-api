@@ -53,7 +53,7 @@ public class VerifiableCredentialService {
 
         ChronoUnit jwtTtlUnit =
                 ChronoUnit.valueOf(
-                        passportConfigurationService.getParameterValue(MAX_JWT_TTL_UNIT));
+                        passportConfigurationService.getStackParameterValue(MAX_JWT_TTL_UNIT));
 
         var claimsSet =
                 this.vcClaimsSetBuilder
