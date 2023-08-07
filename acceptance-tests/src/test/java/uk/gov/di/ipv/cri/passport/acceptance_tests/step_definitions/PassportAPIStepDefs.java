@@ -67,4 +67,12 @@ public class PassportAPIStepDefs extends PassportAPIPage {
             throws IOException, InterruptedException, ParseException, URISyntaxException {
         validityScoreAndStrengthScoreInVC(validityScore, strengthScore);
     }
+
+    @And("Passport VC should contain ci (.*), validityScore (.*) and strengthScore (.*)$")
+    public void passport_vc_should_contain_ci_validity_score_and_strength_score(
+            String ci, String validityScore, String strengthScore)
+            throws IOException, InterruptedException, ParseException, URISyntaxException {
+        ciInPassportCriVc(ci);
+        validityScoreAndStrengthScoreInVC(validityScore, strengthScore);
+    }
 }
