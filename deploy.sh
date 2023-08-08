@@ -48,4 +48,5 @@ sam deploy --stack-name "$stack_name" \
    CommonStackName=passport-common-cri-api-local \
    CriIdentifier=$cri_identifier \
    ParameterPrefix="ipv-cri-passport-api" \
+   UseApiKey="' '" \
    DeploymentType="not-pipeline"

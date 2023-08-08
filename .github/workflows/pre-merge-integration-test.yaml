@@ -57,7 +57,7 @@ jobs:
           sam deploy \
             --no-fail-on-empty-changeset \
             --no-confirm-changeset \
-            --parameter-overrides "DeploymentType=pre-merge-integration ParameterPrefix=${{ secrets.PREMERGE_PARAMETER_PREFIX_STACK_NAME }} Environment=${{ env.ENVIRONMENT }} CodeSigningEnabled=false VpcStackName=${{ secrets.PREMERGE_VPC_STACK_NAME }}" \
+            --parameter-overrides "DeploymentType=pre-merge-integration UseApiKey=\"\" ParameterPrefix=${{ secrets.PREMERGE_PARAMETER_PREFIX_STACK_NAME }} Environment=${{ env.ENVIRONMENT }} CodeSigningEnabled=false VpcStackName=${{ secrets.PREMERGE_VPC_STACK_NAME }}" \
             --stack-name $STACK_NAME \
             --s3-bucket ${{ secrets.AWS_PRE_MERGE_S3_BUCKET_NAME }} \
             --s3-prefix $STACK_NAME \

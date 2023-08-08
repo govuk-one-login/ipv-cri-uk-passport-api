@@ -54,6 +54,10 @@ Parameters:
     Type: String
     Default: "pipeline"
     Description: Private Api gateway resources are not be reachable in stacks deployed via pipelines, this override enables less restrictive settings for manual/pre-merge-test deployments.
+  UseApiKey:
+    Type: String
+    Default: "true"
+    Description: Value used to indicate if the public api should be protected by a api key.
 
 Conditions:
   IsDeployedFromPipeline: !Equals
@@ -200,6 +204,8 @@ Resources:
       Name: !Sub ${AWS::StackName}-PublicUKPassportApi
       Description: Public UK Passport CRI API
       StageName: !Ref Environment
+      Auth:
+        ApiKeyRequired: !Ref UseApiKey
       MethodSettings:
         - LoggingLevel: INFO
           ResourcePath: '/*'
