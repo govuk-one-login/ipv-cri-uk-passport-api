@@ -115,7 +115,7 @@ class VerifiableCredentialServiceTest implements VerifiableCredentialServiceTest
         }
 
         when(mockPassportConfigurationService.getMaxJwtTtl()).thenReturn(TTL);
-        when(mockPassportConfigurationService.getParameterValue(MAX_JWT_TTL_UNIT))
+        when(mockPassportConfigurationService.getStackParameterValue(MAX_JWT_TTL_UNIT))
                 .thenReturn(JWT_TTL_UNIT);
         when(mockPassportConfigurationService.getVerifiableCredentialIssuer())
                 .thenReturn(UNIT_TEST_VC_ISSUER);
@@ -194,11 +194,14 @@ class VerifiableCredentialServiceTest implements VerifiableCredentialServiceTest
         if (verified) {
             // Verified VC has no CI
             assertNull(evidence.get("ci"));
+            assertEquals("[{\"checkMethod\":\"data\"}]", evidence.get("checkDetails").toString());
 
         } else {
             assertEquals(
                     documentCheckResultItem.getContraIndicators().get(0),
                     evidence.get("ci").get(0).asText());
+            assertEquals(
+                    "[{\"checkMethod\":\"data\"}]", evidence.get("failedCheckDetails").toString());
         }
 
         ECDSAVerifier ecVerifier =

@@ -47,6 +47,7 @@ import uk.org.webcompere.systemstubs.jupiter.SystemStubsExtension;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.net.URI;
+import java.util.List;
 import java.util.Map;
 import java.util.UUID;
 
@@ -55,6 +56,7 @@ import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.mockito.ArgumentMatchers.*;
 import static org.mockito.Mockito.inOrder;
 import static org.mockito.Mockito.spy;
+import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoMoreInteractions;
 import static org.mockito.Mockito.when;
 import static uk.gov.di.ipv.cri.common.library.error.ErrorResponse.SESSION_EXPIRED;
@@ -66,6 +68,7 @@ import static uk.gov.di.ipv.cri.passport.library.config.ParameterStoreParameters
 import static uk.gov.di.ipv.cri.passport.library.config.ParameterStoreParameters.IS_DCS_PERFORMANCE_STUB;
 import static uk.gov.di.ipv.cri.passport.library.config.ParameterStoreParameters.IS_DVAD_PERFORMANCE_STUB;
 import static uk.gov.di.ipv.cri.passport.library.config.ParameterStoreParameters.MAXIMUM_ATTEMPT_COUNT;
+import static uk.gov.di.ipv.cri.passport.library.domain.CheckType.DOCUMENT_DATA_VERIFICATION;
 import static uk.gov.di.ipv.cri.passport.library.metrics.Definitions.FORM_DATA_PARSE_FAIL;
 import static uk.gov.di.ipv.cri.passport.library.metrics.Definitions.FORM_DATA_PARSE_PASS;
 import static uk.gov.di.ipv.cri.passport.library.metrics.Definitions.LAMBDA_CHECK_PASSPORT_ATTEMPT_STATUS_RETRY;
@@ -131,6 +134,8 @@ class CheckPassportHandlerTest {
 
         DocumentDataVerificationResult testDocumentDataVerificationResult =
                 DocumentDataVerificationServiceResultDataGenerator.generate(passportFormData);
+        testDocumentDataVerificationResult.setChecksSucceeded(
+                List.of(DOCUMENT_DATA_VERIFICATION.toString()));
 
         APIGatewayProxyRequestEvent mockRequestEvent =
                 Mockito.mock(APIGatewayProxyRequestEvent.class);
@@ -153,10 +158,10 @@ class CheckPassportHandlerTest {
                         eq(requestHeaders)))
                 .thenReturn(testDocumentDataVerificationResult);
 
-        when(mockPassportConfigurationService.getParameterValue(MAXIMUM_ATTEMPT_COUNT))
+        when(mockPassportConfigurationService.getStackParameterValue(MAXIMUM_ATTEMPT_COUNT))
                 .thenReturn("2");
 
-        when(mockPassportConfigurationService.getParameterValue(DVA_DIGITAL_ENABLED))
+        when(mockPassportConfigurationService.getStackParameterValue(DVA_DIGITAL_ENABLED))
                 .thenReturn("false");
 
         when(mockPassportConfigurationService.getCommonParameterValue(
@@ -175,6 +180,10 @@ class CheckPassportHandlerTest {
         inOrder.verify(mockEventProbe).counterMetric(LAMBDA_CHECK_PASSPORT_COMPLETED_OK);
         verifyNoMoreInteractions(mockEventProbe);
 
+        DocumentCheckResultItem documentCheckResultItem =
+                mapDocumentDataVerificationResultToDocumentCheckResultItem(
+                        sessionItem, testDocumentDataVerificationResult, passportFormData);
+        verify(mockDocumentCheckResultStore).create(documentCheckResultItem);
         JsonNode responseTreeRootNode = realObjectMapper.readTree(responseEvent.getBody());
 
         assertNotNull(responseEvent);
@@ -208,6 +217,13 @@ class CheckPassportHandlerTest {
 
         DocumentDataVerificationResult testDocumentDataVerificationResult =
                 DocumentDataVerificationServiceResultDataGenerator.generate(passportFormData);
+        if (documentVerified) {
+            testDocumentDataVerificationResult.setChecksSucceeded(
+                    List.of(DOCUMENT_DATA_VERIFICATION.toString()));
+        } else {
+            testDocumentDataVerificationResult.setChecksFailed(
+                    List.of(DOCUMENT_DATA_VERIFICATION.toString()));
+        }
 
         testDocumentDataVerificationResult.setVerified(documentVerified); // Test Parameter
 
@@ -236,7 +252,7 @@ class CheckPassportHandlerTest {
                             eq(requestHeaders)))
                     .thenReturn(testDocumentDataVerificationResult);
 
-            when(mockPassportConfigurationService.getParameterValue(DVA_DIGITAL_ENABLED))
+            when(mockPassportConfigurationService.getStackParameterValue(DVA_DIGITAL_ENABLED))
                     .thenReturn("false");
 
             when(mockPassportConfigurationService.getCommonParameterValue(
@@ -244,7 +260,7 @@ class CheckPassportHandlerTest {
                     .thenReturn("7200");
         }
 
-        when(mockPassportConfigurationService.getParameterValue(MAXIMUM_ATTEMPT_COUNT))
+        when(mockPassportConfigurationService.getStackParameterValue(MAXIMUM_ATTEMPT_COUNT))
                 .thenReturn(String.valueOf(MAX_ATTEMPTS));
 
         when(mockLambdaContext.getFunctionName()).thenReturn("functionName");
@@ -269,6 +285,11 @@ class CheckPassportHandlerTest {
             assertEquals(SESSION_ID, responseTreeRootNode.get("session_id").textValue());
             assertEquals(STATE, responseTreeRootNode.get("state").textValue());
             assertEquals(REDIRECT_URI, responseTreeRootNode.get("redirect_uri").textValue());
+
+            DocumentCheckResultItem documentCheckResultItem =
+                    mapDocumentDataVerificationResultToDocumentCheckResultItem(
+                            sessionItem, testDocumentDataVerificationResult, passportFormData);
+            verify(mockDocumentCheckResultStore).create(documentCheckResultItem);
         } else if (sessionItem.getAttemptCount() < MAX_ATTEMPTS && !documentVerified) {
             // Any attempt below max attempts where the document is NOT verified
             inOrder.verify(mockEventProbe).counterMetric(FORM_DATA_PARSE_PASS);
@@ -285,6 +306,11 @@ class CheckPassportHandlerTest {
             assertEquals(SESSION_ID, responseTreeRootNode.get("session_id").textValue());
             assertEquals(STATE, responseTreeRootNode.get("state").textValue());
             assertEquals(REDIRECT_URI, responseTreeRootNode.get("redirect_uri").textValue());
+
+            DocumentCheckResultItem documentCheckResultItem =
+                    mapDocumentDataVerificationResultToDocumentCheckResultItem(
+                            sessionItem, testDocumentDataVerificationResult, passportFormData);
+            verify(mockDocumentCheckResultStore).create(documentCheckResultItem);
         } else {
             // A form is submitted but max attempts is already reached.
             // No form parsing, no attempt - user redirected
@@ -407,7 +433,7 @@ class CheckPassportHandlerTest {
         // parsePassportFormRequest
         when(mockRequestEvent.getBody()).thenReturn(testRequestBody);
 
-        when(mockPassportConfigurationService.getParameterValue(MAXIMUM_ATTEMPT_COUNT))
+        when(mockPassportConfigurationService.getStackParameterValue(MAXIMUM_ATTEMPT_COUNT))
                 .thenReturn(String.valueOf(MAX_ATTEMPTS));
 
         when(mockLambdaContext.getFunctionName()).thenReturn("functionName");
@@ -478,7 +504,7 @@ class CheckPassportHandlerTest {
                         eq(requestHeaders)))
                 .thenThrow(new RuntimeException("An Unhandled exception that has occurred"));
 
-        when(mockPassportConfigurationService.getParameterValue(MAXIMUM_ATTEMPT_COUNT))
+        when(mockPassportConfigurationService.getStackParameterValue(MAXIMUM_ATTEMPT_COUNT))
                 .thenReturn("2");
 
         when(mockLambdaContext.getFunctionName()).thenReturn("functionName");
@@ -575,5 +601,32 @@ class CheckPassportHandlerTest {
 
         when(mockServiceFactory.getDocumentCheckResultStore())
                 .thenReturn(mockDocumentCheckResultStore);
+    }
+
+    private DocumentCheckResultItem mapDocumentDataVerificationResultToDocumentCheckResultItem(
+            SessionItem sessionItem,
+            DocumentDataVerificationResult documentDataVerificationResult,
+            PassportFormData passportFormData) {
+        DocumentCheckResultItem documentCheckResultItem = new DocumentCheckResultItem();
+
+        documentCheckResultItem.setSessionId(sessionItem.getSessionId());
+
+        documentCheckResultItem.setTransactionId(documentDataVerificationResult.getTransactionId());
+        documentCheckResultItem.setContraIndicators(
+                documentDataVerificationResult.getContraIndicators());
+        documentCheckResultItem.setStrengthScore(documentDataVerificationResult.getStrengthScore());
+        documentCheckResultItem.setValidityScore(documentDataVerificationResult.getValidityScore());
+
+        String passportNo = passportFormData.getPassportNumber();
+        String passportExpiryDate = String.valueOf(passportFormData.getExpiryDate());
+        documentCheckResultItem.setDocumentNumber(passportNo);
+        documentCheckResultItem.setExpiryDate(passportExpiryDate);
+
+        documentCheckResultItem.setCheckDetails(
+                documentDataVerificationResult.getChecksSucceeded());
+        documentCheckResultItem.setFailedCheckDetails(
+                documentDataVerificationResult.getChecksFailed());
+
+        return documentCheckResultItem;
     }
 }

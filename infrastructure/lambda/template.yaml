@@ -54,6 +54,10 @@ Parameters:
     Type: String
     Default: "pipeline"
     Description: Private Api gateway resources are not be reachable in stacks deployed via pipelines, this override enables less restrictive settings for manual/pre-merge-test deployments.
+  UseApiKey:
+    Type: String
+    Default: "true"
+    Description: Value used to indicate if the public api should be protected by a api key.
 
 Conditions:
   IsDeployedFromPipeline: !Equals
@@ -201,7 +205,7 @@ Resources:
       Description: Public UK Passport CRI API
       StageName: !Ref Environment
       Auth:
-        ApiKeyRequired: true
+        ApiKeyRequired: !Ref UseApiKey
       MethodSettings:
         - LoggingLevel: INFO
           ResourcePath: '/*'
@@ -430,9 +434,7 @@ Resources:
         - DynamoDBWritePolicy:
             TableName: !Sub "{{resolve:ssm:/${CommonStackName}/PersonIdentityTableName}}"
         - DynamoDBWritePolicy:
-            TableName: !Sub
-                        - "{{resolve:ssm:/${PREFIX}/DocumentCheckResultTableName}}"
-                        - PREFIX: !If [UseParameterPrefix, !Ref ParameterPrefix , !Ref AWS::StackName]
+            TableName: !Ref DocumentCheckResultTable
         - SQSSendMessagePolicy:
             QueueName: !ImportValue AuditEventQueueName
         - Statement:
@@ -440,41 +442,25 @@ Resources:
               Action:
                 - ssm:GetParameter
               Resource:
+                - !Sub "arn:aws:ssm:${AWS::Region}:${AWS::AccountId}:parameter/${AWS::StackName}/DocumentCheckResultTableName"
+                - !Sub "arn:aws:ssm:${AWS::Region}:${AWS::AccountId}:parameter/${AWS::StackName}/MaximumAttemptCount"
+                - !Sub "arn:aws:ssm:${AWS::Region}:${AWS::AccountId}:parameter/${AWS::StackName}/DvaDigitalEnabled"
+                - !Sub "arn:aws:ssm:${AWS::Region}:${AWS::AccountId}:parameter/${AWS::StackName}/logDcsResponse"
                 - !Sub
                   - "arn:aws:ssm:${AWS::Region}:${AWS::AccountId}:parameter/${PREFIX}/ContraindicationMappings"
                   - PREFIX: !If [UseParameterPrefix, !Ref ParameterPrefix , !Ref AWS::StackName]
-
-                - !Sub
-                  - "arn:aws:ssm:${AWS::Region}:${AWS::AccountId}:parameter/${PREFIX}/DocumentCheckResultTableName"
-                  - PREFIX: !If [UseParameterPrefix, !Ref ParameterPrefix , !Ref AWS::StackName]
-                - !Sub
-                  - "arn:aws:ssm:${AWS::Region}:${AWS::AccountId}:parameter/${PREFIX}/MaximumAttemptCount"
-                  - PREFIX: !If [UseParameterPrefix, !Ref ParameterPrefix , !Ref AWS::StackName]
-
                 - !Sub
                   - "arn:aws:ssm:${AWS::Region}:${AWS::AccountId}:parameter/${PREFIX}/isDCSPerformanceStub"
                   - PREFIX: !If [UseParameterPrefix, !Ref ParameterPrefix , !Ref AWS::StackName]
-
-                - !Sub
-                  - "arn:aws:ssm:${AWS::Region}:${AWS::AccountId}:parameter/${PREFIX}/isDVADPerformanceStub"
-                  - PREFIX: !If [UseParameterPrefix, !Ref ParameterPrefix , !Ref AWS::StackName]
-
-                - !Sub
-                  - "arn:aws:ssm:${AWS::Region}:${AWS::AccountId}:parameter/${PREFIX}/DvaDigitalEnabled"
-                  - PREFIX: !If [UseParameterPrefix, !Ref ParameterPrefix , !Ref AWS::StackName]
-
-                - !Sub
-                  - "arn:aws:ssm:${AWS::Region}:${AWS::AccountId}:parameter/${PREFIX}/logDcsResponse"
-                  - PREFIX: !If [UseParameterPrefix, !Ref ParameterPrefix , !Ref AWS::StackName]
-
                 - !Sub
                   - "arn:aws:ssm:${AWS::Region}:${AWS::AccountId}:parameter/${PREFIX}/DCS*"
                   - PREFIX: !If [UseParameterPrefix, !Ref ParameterPrefix , !Ref AWS::StackName]
-
+                - !Sub
+                  - "arn:aws:ssm:${AWS::Region}:${AWS::AccountId}:parameter/${PREFIX}/isDVADPerformanceStub"
+                  - PREFIX: !If [UseParameterPrefix, !Ref ParameterPrefix , !Ref AWS::StackName]
                 - !Sub
                   - "arn:aws:ssm:${AWS::Region}:${AWS::AccountId}:parameter/${PREFIX}/HMPODVAD*"
                   - PREFIX: !If [UseParameterPrefix, !Ref ParameterPrefix , !Ref AWS::StackName]
-
                 - !Sub "arn:aws:ssm:${AWS::Region}:${AWS::AccountId}:parameter/${CommonStackName}/SessionTableName"
                 - !Sub "arn:aws:ssm:${AWS::Region}:${AWS::AccountId}:parameter/${CommonStackName}/PersonIdentityTableName"
                 - !Sub "arn:aws:ssm:${AWS::Region}:${AWS::AccountId}:parameter/${CommonStackName}/SessionTtl"
@@ -549,9 +535,7 @@ Resources:
         - DynamoDBReadPolicy:
             TableName: !Sub "{{resolve:ssm:/${CommonStackName}/PersonIdentityTableName}}"
         - DynamoDBReadPolicy:
-            TableName: !Sub
-              - "{{resolve:ssm:/${PREFIX}/DocumentCheckResultTableName}}"
-              - PREFIX: !If [ UseParameterPrefix, !Ref ParameterPrefix , !Ref AWS::StackName ]
+            TableName: !Ref DocumentCheckResultTable
         - SSMParameterReadPolicy:
             ParameterName: !Sub "${AWS::StackName}/clients/*"
         - SQSSendMessagePolicy:
@@ -575,20 +559,10 @@ Resources:
                 - ssm:GetParameter
               Resource:
                 - !Sub "arn:aws:ssm:${AWS::Region}:${AWS::AccountId}:parameter/release-flags/vc-expiry-removed"
-
-                - !Sub
-                  - "arn:aws:ssm:${AWS::Region}:${AWS::AccountId}:parameter/${PREFIX}/DocumentCheckResultTableName"
-                  - PREFIX: !If [UseParameterPrefix, !Ref ParameterPrefix , !Ref AWS::StackName]
-
-                - !Sub
-                  - "arn:aws:ssm:${AWS::Region}:${AWS::AccountId}:parameter/${PREFIX}/JwtTtlUnit"
-                  - PREFIX: !If [UseParameterPrefix, !Ref ParameterPrefix , !Ref AWS::StackName]
-
-                # Used by common lib methods specific to these parameters - cannot be prefixed without changing cri-lib
+                - !Sub "arn:aws:ssm:${AWS::Region}:${AWS::AccountId}:parameter/${AWS::StackName}/DocumentCheckResultTableName"
+                - !Sub "arn:aws:ssm:${AWS::Region}:${AWS::AccountId}:parameter/${AWS::StackName}/JwtTtlUnit"
                 - !Sub "arn:aws:ssm:${AWS::Region}:${AWS::AccountId}:parameter/${AWS::StackName}/MaxJwtTtl"
                 - !Sub "arn:aws:ssm:${AWS::Region}:${AWS::AccountId}:parameter/${AWS::StackName}/verifiableCredentialKmsSigningKeyId"
-
-
                 - !Sub "arn:aws:ssm:${AWS::Region}:${AWS::AccountId}:parameter/${CommonStackName}/SessionTableName"
                 - !Sub "arn:aws:ssm:${AWS::Region}:${AWS::AccountId}:parameter/${CommonStackName}/PersonIdentityTableName"
                 - !Sub "arn:aws:ssm:${AWS::Region}:${AWS::AccountId}:parameter/${CommonStackName}/verifiable-credential/issuer"
@@ -655,6 +629,7 @@ Resources:
 
   PublicUKPassportAPIUsagePlan:
     Type: AWS::ApiGateway::UsagePlan
+    Condition: IsDeployedFromPipeline
     DependsOn:
       - PublicUKPassportAPIStage
     Properties:
@@ -670,6 +645,7 @@ Resources:
 
   PrivateUKPassportAPIUsagePlan:
     Type: AWS::ApiGateway::UsagePlan
+    Condition: IsDeployedFromPipeline
     DependsOn:
       - PrivateUKPassportAPIStage
     Properties:
@@ -684,7 +660,7 @@ Resources:
         RateLimit: 50 # allowed requests per second
 
   LinkUsagePlanApiKey1:
-    #Condition: IsDeployedFromPipeline
+    Condition: IsDeployedFromPipeline
     Type: AWS::ApiGateway::UsagePlanKey
     Properties:
       KeyId: !ImportValue core-infrastructure-ApiKey1
@@ -692,7 +668,7 @@ Resources:
       UsagePlanId: !Ref PublicUKPassportAPIUsagePlan
 
   LinkUsagePlanApiKey2:
-    #Condition: IsDeployedFromPipeline
+    Condition: IsDeployedFromPipeline
     Type: AWS::ApiGateway::UsagePlanKey
     Properties:
       KeyId: !ImportValue core-infrastructure-ApiKey2
@@ -1014,5 +990,6 @@ Outputs:
       Name: !Sub ${AWS::StackName}-PrivateUKPassportApiBaseUrl
 
   IpvCoreBackApiKeyId:
+    Condition: IsDeployedFromPipeline
     Description: The key id of the api key used by IPV Core to access passport back external api gateway
     Value: !Ref LinkUsagePlanApiKey1

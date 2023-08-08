@@ -117,7 +117,7 @@ public class DcsThirdPartyAPIService implements ThirdPartyAPIService {
                             response, API_RESULT_SOURCE.getName());
 
             if (Boolean.parseBoolean(
-                    passportConfigurationService.getParameterValue(LOG_DCS_RESPONSE))) {
+                    passportConfigurationService.getStackParameterValue(LOG_DCS_RESPONSE))) {
                 LOGGER.info("DCS response {}", httpReply.responseBody);
             }
         } catch (IOException e) {

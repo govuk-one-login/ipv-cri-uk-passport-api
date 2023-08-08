@@ -144,7 +144,8 @@ public class CheckPassportHandler
             // Attempt Start
             final int MAX_ATTEMPTS =
                     Integer.parseInt(
-                            passportConfigurationService.getParameterValue(MAXIMUM_ATTEMPT_COUNT));
+                            passportConfigurationService.getStackParameterValue(
+                                    MAXIMUM_ATTEMPT_COUNT));
 
             sessionItem.setAttemptCount(sessionItem.getAttemptCount() + 1);
             LOGGER.info("Attempt Number {}", sessionItem.getAttemptCount());
@@ -175,7 +176,8 @@ public class CheckPassportHandler
             // ignored)
             boolean dvaDigitalEnabled =
                     Boolean.parseBoolean(
-                            passportConfigurationService.getParameterValue(DVA_DIGITAL_ENABLED));
+                            passportConfigurationService.getStackParameterValue(
+                                    DVA_DIGITAL_ENABLED));
             boolean newThirdpartyAPI =
                     "dvad".equals(requestHeaders.get(HEADER_DOCUMENT_CHECKING_ROUTE));
 

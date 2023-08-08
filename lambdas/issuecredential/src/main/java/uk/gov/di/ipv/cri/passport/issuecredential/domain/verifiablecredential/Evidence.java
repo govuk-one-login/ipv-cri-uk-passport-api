@@ -1,6 +1,5 @@
 package uk.gov.di.ipv.cri.passport.issuecredential.domain.verifiablecredential;
 
-import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import uk.gov.di.ipv.cri.common.library.annotations.ExcludeFromGeneratedCoverageReport;
 import uk.gov.di.ipv.cri.passport.issuecredential.domain.checkdetails.Check;
@@ -17,10 +16,8 @@ public class Evidence {
     private int validityScore;
     private List<String> ci;
 
-    @JsonIgnore // @JsonProperty("checkDetails")
     private List<Check> checkDetails;
 
-    @JsonIgnore // @JsonProperty("failedCheckDetails")
     private List<Check> failedCheckDetails;
 
     public Evidence() {}
@@ -74,6 +71,10 @@ public class Evidence {
 
     public void setCheckDetails(List<Check> checkDetails) {
         this.checkDetails = checkDetails;
+    }
+
+    public List<Check> getCheckDetails() {
+        return checkDetails;
     }
 
     public List<Check> getFailedCheckDetails() {

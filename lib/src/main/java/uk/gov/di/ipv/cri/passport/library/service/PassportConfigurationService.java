@@ -10,8 +10,9 @@ import java.util.Optional;
 
 public final class PassportConfigurationService extends ConfigurationService {
     private static final String PARAMETER_NAME_FORMAT = "/%s/%s";
-    private final String parameterPrefix;
     private final SSMProvider ssmProvider;
+    private final String parameterPrefix; // Parameters that can hava prefix override
+    private final String stackParameterPrefix; // Parameters that must always be from the stack
 
     // Note - Do not add to this class
     // TODO Delete this class once withDecryption
@@ -23,12 +24,15 @@ public final class PassportConfigurationService extends ConfigurationService {
                 ParamManager.getSsmProvider(clientFactoryService.getSsmClient())
                         .defaultMaxAge(getCacheTTLInMinutes(), ChronoUnit.MINUTES),
                 Optional.ofNullable(System.getenv("PARAMETER_PREFIX"))
-                        .orElse(System.getenv("AWS_STACK_NAME")));
+                        .orElse(System.getenv("AWS_STACK_NAME")),
+                System.getenv("AWS_STACK_NAME"));
     }
 
-    public PassportConfigurationService(SSMProvider ssmProvider, String parameterPrefix) {
+    public PassportConfigurationService(
+            SSMProvider ssmProvider, String parameterPrefix, String stackParameterPrefix) {
         this.ssmProvider = ssmProvider;
         this.parameterPrefix = parameterPrefix;
+        this.stackParameterPrefix = stackParameterPrefix;
     }
 
     // Todo move to CRI-Lib
@@ -48,9 +52,27 @@ public final class PassportConfigurationService extends ConfigurationService {
 
     // Borrowed From CRI-LIB to allow parameterPrefix override
     // Todo delete when PARAMETER_PREFIX is added to ConfigurationService constructor
+
+    /**
+     * Retrieves a parameter value that may have an override prefix
+     *
+     * @param parameterName
+     * @return value in the parameter
+     */
     @Override
     public String getParameterValue(String parameterName) {
         return ssmProvider.get(
                 String.format(PARAMETER_NAME_FORMAT, parameterPrefix, parameterName));
+    }
+
+    /**
+     * Retrieves a parameter value that must always be from the stack - no prefix override
+     *
+     * @param parameterName
+     * @return value in the parameter
+     */
+    public String getStackParameterValue(String parameterName) {
+        return ssmProvider.get(
+                String.format(PARAMETER_NAME_FORMAT, stackParameterPrefix, parameterName));
     }
 }

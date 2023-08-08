@@ -30,16 +30,18 @@ class PassportConfigurationServiceTest {
     @Mock SSMProvider mockSSMProvider;
 
     private final String AWS_STACK_NAME = "passport-api-dev";
+    private final String PARAMETER_PREFIX = AWS_STACK_NAME;
 
     private PassportConfigurationService passportConfigurationService;
 
     @BeforeEach
     void setUp() {
         environmentVariables.set("AWS_REGION", "eu-west-2");
+        environmentVariables.set("PARAMETER_PREFIX", PARAMETER_PREFIX);
         environmentVariables.set("AWS_STACK_NAME", AWS_STACK_NAME);
 
         passportConfigurationService =
-                new PassportConfigurationService(mockSSMProvider, AWS_STACK_NAME);
+                new PassportConfigurationService(mockSSMProvider, PARAMETER_PREFIX, AWS_STACK_NAME);
     }
 
     @Test

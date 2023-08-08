@@ -109,7 +109,7 @@ public class ServiceFactory {
         if (documentCheckResultStore == null) {
             final String tableName =
                     getPassportConfigurationService()
-                            .getParameterValue(DOCUMENT_CHECK_RESULT_TABLE_NAME);
+                            .getStackParameterValue(DOCUMENT_CHECK_RESULT_TABLE_NAME);
 
             documentCheckResultStore =
                     new DataStore<>(
