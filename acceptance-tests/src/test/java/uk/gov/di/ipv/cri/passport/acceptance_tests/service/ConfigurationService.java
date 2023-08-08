@@ -58,10 +58,6 @@ public class ConfigurationService {
         return coreStubPassword;
     }
 
-    public String getOrchestratorStubUrl() {
-        return orchestratorStubUrl;
-    }
-
     public String getPublicApiGatewayKey() {
         return publicApiGatewayKey;
     }
@@ -79,6 +75,14 @@ public class ConfigurationService {
             } else {
                 return "https://" + coreStubUrl;
             }
+        }
+    }
+
+    public String getOrchestratorStubUrl() {
+        if (usingLocalStub) {
+            return "http://" + this.orchestratorStubUrl;
+        } else {
+            return "https://" + this.orchestratorStubUrl;
         }
     }
 

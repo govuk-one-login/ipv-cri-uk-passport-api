@@ -69,7 +69,9 @@ dependencies {
 			"org.mockito:mockito-junit-jupiter:${dependencyVersions.mockito_version}",
 			"org.mockito:mockito-inline:${dependencyVersions.mockito_version}",
 			"org.hamcrest:hamcrest:${dependencyVersions.hamcrest_version}",
-			"com.google.code.gson:gson:${dependencyVersions.gson_version}"
+			"com.google.code.gson:gson:${dependencyVersions.gson_version}",
+			"org.json:json:20230618"
+
 
 	implementation "io.cucumber:cucumber-java:${dependencyVersions.cucumber_version}",
 			"org.seleniumhq.selenium:selenium-java:${dependencyVersions.selenium_version}",
