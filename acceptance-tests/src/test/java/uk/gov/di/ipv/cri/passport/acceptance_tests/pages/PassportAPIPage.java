@@ -7,6 +7,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.nimbusds.jwt.SignedJWT;
 import org.apache.commons.lang3.StringUtils;
+import org.junit.Assert;
 import uk.gov.di.ipv.cri.passport.acceptance_tests.model.AuthorisationResponse;
 import uk.gov.di.ipv.cri.passport.acceptance_tests.model.CheckPassportSuccessResponse;
 import uk.gov.di.ipv.cri.passport.acceptance_tests.service.ConfigurationService;
@@ -23,8 +24,7 @@ import java.util.Base64;
 import java.util.Map;
 import java.util.logging.Logger;
 
-import static org.junit.jupiter.api.Assertions.assertTrue;
-import static org.junit.jupiter.api.Assertions.fail;
+import static org.junit.jupiter.api.Assertions.*;
 
 public class PassportAPIPage extends PassportPageObject {
 
@@ -163,7 +163,7 @@ public class PassportAPIPage extends PassportPageObject {
                                                 + coreStubUrl
                                                 + "/callback&state="
                                                 + STATE
-                                                + "&scope=openid&response_type=code&client_id=ipv-core-stub"))
+                                                + "&scope=openid&response_type=code&client_id=ipv-core-stub-aws-prod"))
                         .setHeader("Accept", "application/json")
                         .setHeader("Content-Type", "application/json")
                         .setHeader("session-id", SESSION_ID)
@@ -224,6 +224,18 @@ public class PassportAPIPage extends PassportPageObject {
             passportCriVc = postRequestToPassportVCEndpoint();
         }
         scoreIs(validityScore, strengthScore, passportCriVc);
+    }
+
+    public void ciInPassportCriVc(String ci)
+            throws URISyntaxException, IOException, InterruptedException, ParseException {
+        String passportVc = postRequestToPassportVCEndpoint();
+        JsonNode jsonNode = objectMapper.readTree((passportVc));
+        JsonNode evidenceArray = jsonNode.get("vc").get("evidence");
+        JsonNode ciInEvidenceArray = evidenceArray.get(0);
+        LOGGER.info("ciInEvidenceArray = " + ciInEvidenceArray);
+        JsonNode ciNode = ciInEvidenceArray.get("ci").get(0);
+        String actualCI = ciNode.asText();
+        Assert.assertEquals(ci, actualCI);
     }
 
     private String getClaimsForUser(String baseUrl, String criId, int userDataRowNumber)
