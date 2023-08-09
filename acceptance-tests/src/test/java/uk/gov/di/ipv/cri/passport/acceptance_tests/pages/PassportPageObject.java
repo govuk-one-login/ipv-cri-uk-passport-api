@@ -409,6 +409,21 @@ public class PassportPageObject extends UniversalSteps {
         assertEquals(StrengthScore, strengthScore);
     }
 
+    public void assertCheckDetailsWithinVc(String checkDetailsType, String passportCriVc)
+            throws IOException {
+
+        JsonNode vcNode = getJsonNode(passportCriVc, "vc");
+        List<JsonNode> evidence = getListOfNodes(vcNode, "evidence");
+
+        String checkDetails = null;
+        if (checkDetailsType.equals("success")) {
+            checkDetails = evidence.get(0).get("checkDetails").toString();
+        } else {
+            checkDetails = evidence.get(0).get("failedCheckDetails").toString();
+        }
+        assertEquals("[{\"checkMethod\":\"data\"}]", checkDetails);
+    }
+
     public void userNotFoundInThirdPartyErrorIsDisplayed() {
         Assert.assertTrue(userNotFoundInThirdPartyBanner.isDisplayed());
         LOGGER.info(userNotFoundInThirdPartyBanner.getText());

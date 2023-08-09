@@ -226,6 +226,15 @@ public class PassportAPIPage extends PassportPageObject {
         scoreIs(validityScore, strengthScore, passportCriVc);
     }
 
+    public void assertCheckDetails(String checkDetailsType)
+            throws URISyntaxException, IOException, InterruptedException, ParseException {
+        String passportCriVc = VC;
+        if (null == VC) {
+            passportCriVc = postRequestToPassportVCEndpoint();
+        }
+        assertCheckDetailsWithinVc(checkDetailsType, passportCriVc);
+    }
+
     public void ciInPassportCriVc(String ci)
             throws URISyntaxException, IOException, InterruptedException, ParseException {
         String passportVc = postRequestToPassportVCEndpoint();

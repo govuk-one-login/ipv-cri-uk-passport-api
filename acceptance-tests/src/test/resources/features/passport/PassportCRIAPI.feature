@@ -11,10 +11,11 @@ Feature: Passport CRI API
     And Passport user sends a POST request to Access Token endpoint passport-v1-cri-dev
     Then User requests Passport CRI VC
     And Passport VC should contain validityScore 2 and strengthScore 4
+    And Passport VC should contain <checkDetails> checkDetails
     Examples:
-      |PassportJsonPayload                   |
-      |PassportValidKennethJsonPayload       |
-      |PassportAlbertArkilDCSOnlyJsonPayload |
+      |PassportJsonPayload                   | checkDetails |
+      |PassportValidKennethJsonPayload       | success      |
+      |PassportAlbertArkilDCSOnlyJsonPayload | success       |
 
   @passportCRI_API @pre-merge @dev
   Scenario: Passport Retry Journey Happy Path
@@ -28,6 +29,8 @@ Feature: Passport CRI API
     And Passport user sends a POST request to Access Token endpoint passport-v1-cri-dev
     Then User requests Passport CRI VC
     And Passport VC should contain validityScore 2 and strengthScore 4
+    And Passport VC should contain success checkDetails
+
 
   @passportCRI_API @pre-merge @dev
   Scenario: Passport user fails first attempt but VC is still created
@@ -40,6 +43,7 @@ Feature: Passport CRI API
     And Passport user sends a POST request to Access Token endpoint passport-v1-cri-dev
     Then User requests Passport CRI VC
     And Passport VC should contain ci D02, validityScore 0 and strengthScore 4
+    And Passport VC should contain failed checkDetails
 
   @passportCRI_API @pre-merge @dev
   Scenario Outline: Create call to auth token from Passport CRI when document checking route is not provided or is invalid
@@ -51,6 +55,7 @@ Feature: Passport CRI API
     And Passport user sends a POST request to Access Token endpoint passport-v1-cri-dev
     Then User requests Passport CRI VC
     And Passport VC should contain validityScore 2 and strengthScore 4
+    And Passport VC should contain success checkDetails
     Examples:
       |PassportJsonPayload                   |     Invalid         |
       |PassportAlbertArkilDCSOnlyJsonPayload |       ABCD          |
@@ -66,6 +71,7 @@ Feature: Passport CRI API
     And Passport user sends a POST request to Access Token endpoint passport-v1-cri-dev
     Then User requests Passport CRI VC
     And Passport VC should contain validityScore 2 and strengthScore 4
+    And Passport VC should contain success checkDetails
 
   @hmpoDVAD @passportCRI_API @pre-merge @dev
   Scenario Outline: Create call to auth token from Passport CRI with dvad as document checking route and when passport is cancelled or lost
@@ -77,6 +83,7 @@ Feature: Passport CRI API
     And Passport user sends a POST request to Access Token endpoint passport-v1-cri-dev
     Then User requests Passport CRI VC
     And Passport VC should contain ci <CI>, validityScore 2 and strengthScore 4
+    And Passport VC should contain success checkDetails
     Examples:
       |PassportJsonPayload              | CI |
       # CI1 Stub Test User for when passport is cancelled but not stolen

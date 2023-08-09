@@ -75,4 +75,10 @@ public class PassportAPIStepDefs extends PassportAPIPage {
         ciInPassportCriVc(ci);
         validityScoreAndStrengthScoreInVC(validityScore, strengthScore);
     }
+
+    @And("Passport VC should contain (.*) checkDetails$")
+    public void passport_vc_should_contain_check_details(String checkDetailsType)
+            throws IOException, InterruptedException, ParseException, URISyntaxException {
+        assertCheckDetails(checkDetailsType);
+    }
 }
