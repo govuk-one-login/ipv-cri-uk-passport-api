@@ -163,7 +163,7 @@ public class PassportAPIPage extends PassportPageObject {
                                                 + coreStubUrl
                                                 + "/callback&state="
                                                 + STATE
-                                                + "&scope=openid&response_type=code&client_id=ipv-core-stub"))
+                                                + "&scope=openid&response_type=code&client_id=ipv-core-stub-aws-prod"))
                         .setHeader("Accept", "application/json")
                         .setHeader("Content-Type", "application/json")
                         .setHeader("session-id", SESSION_ID)
