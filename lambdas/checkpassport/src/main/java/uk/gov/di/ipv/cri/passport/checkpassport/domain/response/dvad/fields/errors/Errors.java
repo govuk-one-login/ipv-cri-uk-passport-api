@@ -28,7 +28,7 @@ public class Errors {
     public Errors(
             @JsonProperty(value = "message", required = true) String message,
             @JsonProperty(value = "locations", required = true) List<Locations> locations,
-            @JsonProperty(value = "path", required = true) List<String> path,
+            @JsonProperty(value = "path", required = false) List<String> path,
             @JsonProperty(value = "extensions", required = true) Extensions extensions) {
         this.message = message;
         this.locations = locations;
