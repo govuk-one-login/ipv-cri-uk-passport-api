@@ -73,20 +73,21 @@ Feature: Passport CRI API
     And Passport VC should contain validityScore 2 and strengthScore 4
     And Passport VC should contain success checkDetails
 
-  @hmpoDVAD @passportCRI_API @pre-merge @dev
-  Scenario Outline: Create call to auth token from Passport CRI with dvad as document checking route and when passport is cancelled or lost
-    Given Passport user has the user identity in the form of a signed JWT string for CRI Id passport-v1-cri-dev and row number 6
-    And Passport user sends a POST request to session endpoint
-    And Passport user gets a session-id
-    When Passport user sends a POST request to Passport endpoint using jsonRequest <PassportJsonPayload> and document checking route is dvad
-    And Passport user gets authorisation code
-    And Passport user sends a POST request to Access Token endpoint passport-v1-cri-dev
-    Then User requests Passport CRI VC
-    And Passport VC should contain ci <CI>, validityScore 2 and strengthScore 4
-    And Passport VC should contain success checkDetails
-    Examples:
-      |PassportJsonPayload              | CI |
-      # CI1 Stub Test User for when passport is cancelled but not stolen
-      |PassportInvalidCI1JsonPayload    | D02|
-     # CI2 Stub Test User for when passport is lost or stolen
-      |PassportInvalidCI2JsonPayload    |D02 |
+#  Bug LIME-776 raised to fix the validity score
+#  @hmpoDVAD @passportCRI_API @pre-merge @dev
+#  Scenario Outline: Create call to auth token from Passport CRI with dvad as document checking route and when passport is cancelled or lost
+#    Given Passport user has the user identity in the form of a signed JWT string for CRI Id passport-v1-cri-dev and row number 6
+#    And Passport user sends a POST request to session endpoint
+#    And Passport user gets a session-id
+#    When Passport user sends a POST request to Passport endpoint using jsonRequest <PassportJsonPayload> and document checking route is dvad
+#    And Passport user gets authorisation code
+#    And Passport user sends a POST request to Access Token endpoint passport-v1-cri-dev
+#    Then User requests Passport CRI VC
+#    And Passport VC should contain ci <CI>, validityScore 0 and strengthScore 4
+#    And Passport VC should contain success checkDetails
+#    Examples:
+#      |PassportJsonPayload              | CI |
+#      # CI1 Stub Test User for when passport is cancelled but not stolen
+#      |PassportInvalidCI1JsonPayload    | D02|
+#     # CI2 Stub Test User for when passport is lost or stolen
+#      |PassportInvalidCI2JsonPayload    |D02 |

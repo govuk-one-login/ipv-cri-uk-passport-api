@@ -63,16 +63,6 @@ Feature: Passport Language Test
     And The test is complete and I close the driver
 
   @Language-regression
-   Scenario: Passport details Name field error message in Welsh(fail)
-     When I enter the invalid last name and first name
-     When User clicks on continue
-     Then the validation text reads Mae problem
-     And I see the Lastname error in the error summary as Rhowch eich cyfenw fel mae’n ymddangos ar eich pasbort
-     And I see the firstname error summary as Rhowch eich enw cyntaf fel mae’n ymddangos ar eich pasbort
-     And I see the middlenames error summary as Rhowch eich enw cyntaf a chanol fel maent yn ymddangos ar eich pasbort
-     And The test is complete and I close the driver
-
-  @Language-regression
   Scenario Outline: Passport details IncorrectDateOfBirth error message in Welsh
     When User clicks on continue
     Then the validation text reads Mae problem
@@ -87,7 +77,6 @@ Feature: Passport Language Test
     Examples:
       |PassportSubject |
       |DateOfBirthInFuture |
-
 
   @Language-regression
   Scenario: Passport Valid until date field error message in Welsh
@@ -194,7 +183,7 @@ Feature: Passport Language Test
     Then the validation text reads Mae problem
     And I see the Lastname error in the error summary as Rhowch eich cyfenw fel mae’n ymddangos ar eich pasbort
     And I see the firstname error summary as Rhowch eich enw cyntaf fel mae’n ymddangos ar eich pasbort
-    And I see the middlenames error summary as Rhowch eich enw cyntaf a chanol fel maent yn ymddangos ar eich pasbort
+    And I see the middlenames error summary as Rhowch eich enwau canol fel maent yn ymddangos ar eich pasbort
     And The test is complete and I close the driver
 
   @Language-regression
