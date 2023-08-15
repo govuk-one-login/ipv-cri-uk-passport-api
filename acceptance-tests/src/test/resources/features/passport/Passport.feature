@@ -1,9 +1,13 @@
+@hmpoDVAD
 Feature: Passport Test
 
   Background:
     Given I navigate to the IPV Core Stub
     And I click the passport CRI for the testEnvironment
     And I search for passport user number 5 in the Experian table
+    Then I check the page title is Enter your details exactly as they appear on your UK passport – Prove your identity – GOV.UK
+    And I assert the url path contains details
+    And I set the document checking route
 
   @Passport_test @build @staging @integration @smoke
   Scenario Outline: Passport details page happy path
