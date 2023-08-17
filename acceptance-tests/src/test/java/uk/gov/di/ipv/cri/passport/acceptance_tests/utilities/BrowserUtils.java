@@ -430,8 +430,23 @@ public class BrowserUtils {
     }
 
     public static void setFeatureSet(final String featureSet) {
+        LOGGER.info("Setting feature set : {}", featureSet);
+
         String currentURL = Driver.get().getCurrentUrl();
-        String newURL = currentURL + "?featureSet=" + featureSet;
+
+        String featureKeyValuePair = "featureSet=" + featureSet;
+        int li = currentURL.lastIndexOf('?');
+        String newURL;
+
+        if (li == -1) {
+            // First parameter
+            newURL = currentURL + "?" + featureKeyValuePair;
+        } else {
+            // Additional parameter
+            newURL = currentURL + "&" + featureKeyValuePair;
+        }
+
+        LOGGER.debug("newURL with feature set : {}", newURL);
         Driver.get().get(newURL);
     }
 
@@ -448,7 +463,7 @@ public class BrowserUtils {
         try {
             httpResponse = sendHttpRequest(request);
             int statusCode = httpResponse.statusCode();
-            assertEquals(statusCode, 200);
+            assertEquals(200, statusCode);
         } catch (IOException | InterruptedException e) {
             fail("Failed to get 200 back on request to url");
         }

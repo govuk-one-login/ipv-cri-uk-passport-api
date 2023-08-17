@@ -22,7 +22,10 @@ public class UniversalStepDefs extends UniversalSteps {
 
     @And("^I set the document checking route$")
     public void setDocumentCheckingRoute() {
-        if (getProperty("cucumber.tags").equals("@hmpoDVAD")) {
+
+        boolean hmpoFeatureSet = "@hmpoDVAD".equals(getProperty("cucumber.tags"));
+
+        if (hmpoFeatureSet) {
             setFeatureSet("hmpoDVAD");
         }
     }

@@ -157,7 +157,7 @@ public class TestDataCreator {
         kennethIncorrectNoPassportNumber = new PassportSubject(kennethHappyPath);
         kennethIncorrectNoPassportNumber.setPassportNumber("");
 
-        passportTestUsers.put("PassportSubjectHappyBilly", kennethHappyPath);
+        passportTestUsers.put("PassportSubjectHappyKenneth", kennethHappyPath);
         passportTestUsers.put("PassportSubjectUnhappySelina", selinaUnhappyPath);
         passportTestUsers.put("NoLastName", kennethIncorrectNoSecondName);
         passportTestUsers.put("NoFirstName", kennethIncorrectNoFirstName);
