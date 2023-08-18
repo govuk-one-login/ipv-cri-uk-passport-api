@@ -187,26 +187,31 @@ public class DvadThirdPartyAPIService implements ThirdPartyAPIService {
         String messageSegment = String.format("message %s, ", error.getMessage());
 
         List<String> path = error.getPath();
-        String pathSegment = path == null || path.isEmpty() ? "" : String.format("path %s,", path);
+        String pathSegment =
+                (path == null || path.isEmpty()) ? "" : String.format("path %s, ", path);
 
         List<Locations> locations = error.getLocations();
+        // Replace used here to remove the space after the comma in locations - ", " to ","
+        // so ", " delimiter be used for validating errorLine segment handling
         String locationsSegment =
-                locations == null || locations.isEmpty()
+                (locations == null || locations.isEmpty())
                         ? ""
-                        : String.format("locations %s, ", locations);
+                        : String.format("locations %s, ", locations.toString().replace(" ", ""));
 
         Extensions extensions = error.getExtensions();
 
         String errorCode = extensions.getErrorCode();
         String errorCodeSegment =
-                errorCode == null ? "" : String.format("errorCode %s, ", errorCode);
+                (errorCode == null || errorCode.isEmpty())
+                        ? ""
+                        : String.format("errorCode %s, ", errorCode);
 
-        // Classification displayed last as its value may single string or a complex object (as a
-        // string)
-        String classification = extensions.getClassification().toString();
+        // Classification displayed last as its value may single string
+        // or a complex object (as a string)
+        String classification = extensions.getClassification();
         String classificationSegment = String.format("classification %s", classification);
 
-        // Spaces added in segments to avoid adding space when segment not present
+        // ", " delimiter added in segments to avoid adding when segment not present
         return String.format(
                 "Error : %s%s%s%s%s",
                 messageSegment,
