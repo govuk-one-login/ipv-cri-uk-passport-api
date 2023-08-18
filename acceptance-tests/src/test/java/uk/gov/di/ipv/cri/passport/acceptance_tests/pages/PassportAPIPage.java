@@ -7,6 +7,8 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.nimbusds.jwt.SignedJWT;
 import org.apache.commons.lang3.StringUtils;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 import org.junit.Assert;
 import uk.gov.di.ipv.cri.passport.acceptance_tests.model.AuthorisationResponse;
 import uk.gov.di.ipv.cri.passport.acceptance_tests.model.CheckPassportSuccessResponse;
@@ -22,7 +24,6 @@ import java.net.http.HttpResponse;
 import java.text.ParseException;
 import java.util.Base64;
 import java.util.Map;
-import java.util.logging.Logger;
 
 import static org.junit.jupiter.api.Assertions.*;
 
@@ -39,7 +40,7 @@ public class PassportAPIPage extends PassportPageObject {
 
     private final ConfigurationService configurationService =
             new ConfigurationService(System.getenv("ENVIRONMENT"));
-    private static final Logger LOGGER = Logger.getLogger(PassportAPIPage.class.getName());
+    private static final Logger LOGGER = LogManager.getLogger();
 
     public String getAuthorisationJwtFromStub(String criId, int userDataRowNumber)
             throws URISyntaxException, IOException, InterruptedException {
@@ -153,6 +154,10 @@ public class PassportAPIPage extends PassportPageObject {
     public void getAuthorisationCode() throws IOException, InterruptedException {
         String privateApiGatewayUrl = configurationService.getPrivateAPIEndpoint();
         String coreStubUrl = configurationService.getCoreStubUrl(false);
+        String coreStubClientId = "ipv-core-stub";
+        if (!configurationService.isUsingLocalStub()) {
+            coreStubClientId += "-aws-prod";
+        }
 
         HttpRequest request =
                 HttpRequest.newBuilder()
@@ -163,7 +168,8 @@ public class PassportAPIPage extends PassportPageObject {
                                                 + coreStubUrl
                                                 + "/callback&state="
                                                 + STATE
-                                                + "&scope=openid&response_type=code&client_id=ipv-core-stub-aws-prod"))
+                                                + "&scope=openid&response_type=code&client_id="
+                                                + coreStubClientId))
                         .setHeader("Accept", "application/json")
                         .setHeader("Content-Type", "application/json")
                         .setHeader("session-id", SESSION_ID)

@@ -20,7 +20,7 @@ Feature: Passport Test
     And The test is complete and I close the driver
     Examples:
       |PassportSubject             |
-      |PassportSubjectHappyBilly   |
+      |PassportSubjectHappyKenneth |
 
   @Passport_test @build @staging @integration @smoke
   Scenario: Beta Banner Reject Analytics
@@ -123,7 +123,7 @@ Feature: Passport Test
     And The test is complete and I close the driver
     Examples:
       |PassportSubject |
-      |PassportSubjectHappyBilly |
+      |PassportSubjectHappyKenneth |
 
   @Passport_test @build @staging @integration @smoke
   Scenario Outline: Passport User failed second attempt

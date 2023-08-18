@@ -6,8 +6,11 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.ObjectReader;
 import org.apache.commons.lang3.StringUtils;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 import org.junit.Assert;
 import org.openqa.selenium.By;
+import org.openqa.selenium.WebDriver;
 import org.openqa.selenium.WebElement;
 import org.openqa.selenium.support.FindBy;
 import org.openqa.selenium.support.PageFactory;
@@ -18,11 +21,11 @@ import uk.gov.di.ipv.cri.passport.acceptance_tests.utilities.TestDataCreator;
 import uk.gov.di.ipv.cri.passport.acceptance_tests.utilities.TestInput;
 
 import java.io.IOException;
+import java.time.Duration;
 import java.time.LocalDateTime;
 import java.time.ZoneOffset;
 import java.util.Arrays;
 import java.util.List;
-import java.util.logging.Logger;
 import java.util.stream.Collectors;
 
 import static org.junit.Assert.assertNull;
@@ -35,7 +38,7 @@ import static uk.gov.di.ipv.cri.passport.acceptance_tests.utilities.BrowserUtils
 public class PassportPageObject extends UniversalSteps {
 
     private final ConfigurationService configurationService;
-    private static final Logger LOGGER = Logger.getLogger(PassportPageObject.class.getName());
+    private static final Logger LOGGER = LogManager.getLogger();
 
     // Should be separate stub page
 
@@ -254,11 +257,10 @@ public class PassportPageObject extends UniversalSteps {
     }
 
     // Should be in stub page
-
     public void navigateToIPVCoreStub() {
         String coreStubUrl = configurationService.getCoreStubUrl(true);
         Driver.get().get(coreStubUrl);
-        waitForTextToAppear(IPV_CORE_STUB);
+        assertPageTitle(IPV_CORE_STUB, true);
     }
 
     public void navigateToPassportCRIOnTestEnv() {
@@ -355,7 +357,7 @@ public class PassportPageObject extends UniversalSteps {
     }
 
     public void assertUserRoutedToIpvCore() {
-        assertPageTitle("IPV Core Stub - GOV.UK");
+        assertPageTitle("IPV Core Stub - GOV.UK", false);
     }
 
     public void assertUserRoutedToIpvCoreErrorPage() {
@@ -618,11 +620,16 @@ public class PassportPageObject extends UniversalSteps {
         }
     }
 
-    public void assertPageTitle(String expTitle) {
-        String actualTitle = Driver.get().getTitle();
+    public void assertPageTitle(String expTitle, boolean fuzzy) {
+        WebDriver driver = Driver.get();
+        driver.manage().timeouts().implicitlyWait(Duration.ofSeconds(2));
 
-        LOGGER.info("Page title: " + actualTitle);
-        Assert.assertEquals(expTitle, actualTitle);
+        String title = driver.getTitle();
+
+        boolean match = fuzzy ? title.contains(expTitle) : title.equals(expTitle);
+
+        LOGGER.info("Page title: " + title);
+        Assert.assertTrue(match);
     }
 
     public void assertPageHeading(String expectedText) {

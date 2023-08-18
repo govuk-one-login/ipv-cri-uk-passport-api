@@ -166,7 +166,7 @@ Feature: Passport Language Test
     And The test is complete and I close the driver
     Examples:
       |PassportSubject             |
-      |PassportSubjectHappyBilly   |
+      |PassportSubjectHappyKenneth |
 
   @Language-regression
   Scenario: passport number field error message in Welsh
