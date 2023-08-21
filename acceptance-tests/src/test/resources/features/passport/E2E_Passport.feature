@@ -24,8 +24,8 @@ Feature: E2E
     And User should see message as Page Header not returned as expected and title should contain the text user information
     And The test is complete and I close the driver
     Examples:
-      | PassportSubject           | userName                   |
-      | PassportSubjectHappyBilly |   KennethDecerqueira       |
+      | PassportSubject             | userName                   |
+      | PassportSubjectHappyKenneth |   KennethDecerqueira       |
 
   @E2E
   Scenario Outline: address cri back button recovery page staging  - <userName>
@@ -50,8 +50,8 @@ Feature: E2E
     And User should see message as Page Header not returned as expected and title should contain the text user information
     And The test is complete and I close the driver
     Examples:
-      | PassportSubject           | userName                   |
-      | PassportSubjectHappyBilly |   KennethDecerqueira       |
+      | PassportSubject             | userName                   |
+      | PassportSubjectHappyKenneth |   KennethDecerqueira       |
 
   @E2E
   Scenario Outline: fraud cri back button recovery page staging  - <userName>
@@ -77,8 +77,8 @@ Feature: E2E
     And User should see message as Page Header not returned as expected and title should contain the text user information
     And The test is complete and I close the driver
     Examples:
-      | PassportSubject           | userName                   |
-      | PassportSubjectHappyBilly |   KennethDecerqueira       |
+      | PassportSubject             | userName                   |
+      | PassportSubjectHappyKenneth |   KennethDecerqueira       |
 
   @E2E
   Scenario Outline: Passport cri back button recovery page through hyperlink staging - <userName>
@@ -106,5 +106,5 @@ Feature: E2E
     And User should see message as Page Header not returned as expected and title should contain the text user information
     And The test is complete and I close the driver
     Examples:
-      | PassportSubject           | userName                   |
-      | PassportSubjectHappyBilly |   KennethDecerqueira       |
+      | PassportSubject             | userName                   |
+      | PassportSubjectHappyKenneth |   KennethDecerqueira       |

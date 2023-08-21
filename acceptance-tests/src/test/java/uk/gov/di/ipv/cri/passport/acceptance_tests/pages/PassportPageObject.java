@@ -168,12 +168,12 @@ public class PassportPageObject extends UniversalSteps {
 
     @FindBy(
             xpath =
-                    "//*[@class='govuk-error-summary error-summary']//*[@class='govuk-error-summary__body']//*[@class='govuk-list govuk-error-summary__list']//*[contains(@href,'-day')]")
+                    "//*[@class='govuk-error-summary error-summary']//*[@class='govuk-error-summary__body']//*[@class='govuk-list govuk-error-summary__list']//*[contains(@href,'dateOfBirth-day')]")
     public WebElement InvalidDOBErrorInSummary;
 
     @FindBy(
             xpath =
-                    "//*[@class='govuk-error-summary error-summary']//*[@class='govuk-error-summary__body']//*[@class='govuk-list govuk-error-summary__list']//*[contains(@href,'passportNumber')]")
+                    "//*[@class='govuk-error-summary error-summary']//*[@class='govuk-error-summary__body']//*[@class='govuk-list govuk-error-summary__list']//*[contains(@href,'#passportNumber')]")
     public WebElement InvalidPassportErrorInSummary;
 
     @FindBy(
