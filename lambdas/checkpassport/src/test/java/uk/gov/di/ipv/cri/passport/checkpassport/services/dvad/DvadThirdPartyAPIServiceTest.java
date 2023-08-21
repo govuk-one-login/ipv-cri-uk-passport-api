@@ -32,17 +32,22 @@ import uk.gov.di.ipv.cri.passport.library.error.ErrorResponse;
 import uk.gov.di.ipv.cri.passport.library.exceptions.OAuthErrorResponseException;
 import uk.gov.di.ipv.cri.passport.library.service.PassportConfigurationService;
 
+import java.lang.reflect.Method;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
+import java.util.concurrent.atomic.AtomicReference;
 
+import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.inOrder;
+import static org.mockito.Mockito.spy;
 import static org.mockito.Mockito.verifyNoMoreInteractions;
 import static org.mockito.Mockito.when;
 import static uk.gov.di.ipv.cri.passport.library.config.ParameterStoreParameters.HMPO_API_HEADER_API_KEY;
@@ -225,8 +230,8 @@ class DvadThirdPartyAPIServiceTest {
         if (errors) {
             List<Errors> errorsList =
                     List.of(
-                            GraphQLAPIErrorDataGenerator.createAPIError("PassportNumber"),
-                            GraphQLAPIErrorDataGenerator.createAPIError("IssueDate"));
+                            GraphQLAPIErrorDataGenerator.createAPIValidationError("PassportNumber"),
+                            GraphQLAPIErrorDataGenerator.createAPIValidationError("IssueDate"));
 
             testGraphQLAPIResponseObject = GraphQLAPIResponse.builder().errors(errorsList).build();
         } else {
@@ -420,6 +425,125 @@ class DvadThirdPartyAPIServiceTest {
 
         assertEquals(expectedReturnedException.getStatusCode(), thrownException.getStatusCode());
         assertEquals(expectedReturnedException.getErrorReason(), thrownException.getErrorReason());
+    }
+
+    // Test checks the error line is output correctly from several possible error formats
+    // Line format is expect to be "Error : %s%s%s%s%s" where some strings may be empty.
+    @ParameterizedTest
+    @CsvSource({
+        "ClassificationIsString",
+        "ClassificationIsObject",
+        "MinimalTestCaseError",
+        "NullTestCaseError",
+        "EmptyTestCaseError"
+    })
+    void shouldGetErrorLineWhenClassificationIsStringOrObject(String scenario)
+            throws NoSuchMethodException {
+
+        Errors errors = GraphQLAPIErrorDataGenerator.createAPIErrorScenario(scenario);
+
+        DvadThirdPartyAPIService spyDvadThirdPartyAPIService;
+
+        // "GetErrorLine" is a private helper method
+        // The following uses reflection to unlock the method and confirm its behaviour
+        DvadThirdPartyAPIService spyTarget =
+                new DvadThirdPartyAPIService(
+                        mockDvadAPIEndpointFactory,
+                        mockPassportConfigurationService,
+                        mockEventProbe,
+                        mockCloseableHttpClient,
+                        realObjectMapper);
+
+        spyDvadThirdPartyAPIService = spy(spyTarget);
+
+        Method privateGetErrorLine =
+                DvadThirdPartyAPIService.class.getDeclaredMethod("getErrorLine", Errors.class);
+        privateGetErrorLine.setAccessible(true);
+
+        // Call the private method and capture result
+        AtomicReference<String> arErrorLine = new AtomicReference<>();
+        assertDoesNotThrow(
+                () ->
+                        arErrorLine.set(
+                                (String)
+                                        privateGetErrorLine.invoke(
+                                                spyDvadThirdPartyAPIService, errors)));
+
+        String errorLine = arErrorLine.get();
+        assertNotNull(errorLine);
+
+        // Error : Message
+        String[] errorLineParts = errorLine.split(":", 2);
+        assertNotNull(errorLineParts);
+        assertEquals(2, errorLineParts.length);
+
+        // Line Prefix
+        assertEquals("Error", errorLineParts[0].strip());
+
+        // Get the messageParts
+        String[] messageParts = errorLineParts[1].stripLeading().split(", ");
+        Map<String, String> messagePartMap = new HashMap<>();
+        for (String messagePart : messageParts) {
+            String[] messagePartsPart = messagePart.split(" ", 2);
+            messagePartMap.put(messagePartsPart[0], messagePartsPart[1]);
+        }
+
+        // For anyone extending or updating this
+        System.out.println("messagePartMap");
+        System.out.println(messagePartMap.toString());
+
+        // Check the messageParts contents for each scenario
+        switch (scenario) {
+            case "ClassificationIsString":
+                assertClassificationIsStringMessageParts(messagePartMap);
+                break;
+            case "ClassificationIsObject":
+                assertClassificationIsObjectMessagePart(messagePartMap);
+                break;
+            case "MinimalTestCaseError":
+            case "NullTestCaseError":
+            case "EmptyTestCaseError":
+                // Only difference is data null/empty/present
+                // tested cases added to confirm no crash
+                assertMinimalTestErrorMessageParts(messagePartMap);
+                break;
+        }
+    }
+
+    private void assertClassificationIsStringMessageParts(Map<String, String> messagePartMap) {
+        assertEquals(3, messagePartMap.size());
+        assertTrue(messagePartMap.containsKey("message"));
+        assertNotNull(messagePartMap.get("message"));
+
+        assertTrue(messagePartMap.containsKey("errorCode"));
+        assertNotNull(messagePartMap.get("errorCode"));
+
+        assertTrue(messagePartMap.containsKey("classification"));
+        assertNotNull(messagePartMap.get("classification"));
+    }
+
+    private void assertClassificationIsObjectMessagePart(Map<String, String> messagePartMap) {
+        assertEquals(4, messagePartMap.size());
+        assertTrue(messagePartMap.containsKey("message"));
+        assertNotNull(messagePartMap.get("message"));
+
+        assertTrue(messagePartMap.containsKey("path"));
+        assertNotNull(messagePartMap.get("path"));
+
+        assertTrue(messagePartMap.containsKey("locations"));
+        assertNotNull(messagePartMap.get("locations"));
+
+        assertTrue(messagePartMap.containsKey("classification"));
+        assertNotNull(messagePartMap.get("classification"));
+    }
+
+    private void assertMinimalTestErrorMessageParts(Map<String, String> messagePartMap) {
+        assertEquals(2, messagePartMap.size());
+        assertTrue(messagePartMap.containsKey("message"));
+        assertNotNull(messagePartMap.get("message"));
+
+        assertTrue(messagePartMap.containsKey("classification"));
+        assertNotNull(messagePartMap.get("classification"));
     }
 
     private void mockDvadAPIHeaderValues() {

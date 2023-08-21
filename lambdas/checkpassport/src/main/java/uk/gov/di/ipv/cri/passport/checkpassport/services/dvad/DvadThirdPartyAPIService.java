@@ -9,8 +9,9 @@ import software.amazon.awssdk.http.HttpStatusCode;
 import uk.gov.di.ipv.cri.common.library.util.EventProbe;
 import uk.gov.di.ipv.cri.passport.checkpassport.domain.response.dvad.AccessTokenResponse;
 import uk.gov.di.ipv.cri.passport.checkpassport.domain.response.dvad.GraphQLAPIResponse;
-import uk.gov.di.ipv.cri.passport.checkpassport.domain.response.dvad.fields.errors.Classification;
 import uk.gov.di.ipv.cri.passport.checkpassport.domain.response.dvad.fields.errors.Errors;
+import uk.gov.di.ipv.cri.passport.checkpassport.domain.response.dvad.fields.errors.Extensions;
+import uk.gov.di.ipv.cri.passport.checkpassport.domain.response.dvad.fields.errors.Locations;
 import uk.gov.di.ipv.cri.passport.checkpassport.domain.result.ThirdPartyAPIResult;
 import uk.gov.di.ipv.cri.passport.checkpassport.domain.result.dvad.endpoints.GraphQLServiceResult;
 import uk.gov.di.ipv.cri.passport.checkpassport.domain.result.fields.APIResultSource;
@@ -163,20 +164,7 @@ public class DvadThirdPartyAPIService implements ThirdPartyAPIService {
             List<String> errorMessage = new ArrayList<>();
 
             for (Errors error : errors) {
-
-                Classification classification = error.getExtensions().getClassification();
-
-                String errorLine =
-                        String.format(
-                                "Error : message %s, %s, path %s, type %s, validatedPath %s, constraint %s",
-                                error.getMessage(),
-                                error.getLocations(),
-                                error.getPath(),
-                                classification.getType(),
-                                classification.getValidatedPath(),
-                                classification.getConstraint());
-
-                errorMessage.add(errorLine);
+                errorMessage.add(getErrorLine(error));
             }
 
             String combinedErrors = String.join(", ", errorMessage.toString());
@@ -190,6 +178,47 @@ public class DvadThirdPartyAPIService implements ThirdPartyAPIService {
                     HttpStatusCode.INTERNAL_SERVER_ERROR,
                     ErrorResponse.GRAPHQL_ENDPOINT_RETURNED_AN_ERROR_RESPONSE);
         }
+    }
+
+    private String getErrorLine(Errors error) {
+
+        // There are multiple Error response formats with optional fields and overloaded types
+
+        String messageSegment = String.format("message %s, ", error.getMessage());
+
+        List<String> path = error.getPath();
+        String pathSegment =
+                (path == null || path.isEmpty()) ? "" : String.format("path %s, ", path);
+
+        List<Locations> locations = error.getLocations();
+        // Replace used here to remove the space after the comma in locations - ", " to ","
+        // so ", " delimiter be used for validating errorLine segment handling
+        String locationsSegment =
+                (locations == null || locations.isEmpty())
+                        ? ""
+                        : String.format("locations %s, ", locations.toString().replace(" ", ""));
+
+        Extensions extensions = error.getExtensions();
+
+        String errorCode = extensions.getErrorCode();
+        String errorCodeSegment =
+                (errorCode == null || errorCode.isEmpty())
+                        ? ""
+                        : String.format("errorCode %s, ", errorCode);
+
+        // Classification displayed last as its value may single string
+        // or a complex object (as a string)
+        String classification = extensions.getClassification();
+        String classificationSegment = String.format("classification %s", classification);
+
+        // ", " delimiter added in segments to avoid adding when segment not present
+        return String.format(
+                "Error : %s%s%s%s%s",
+                messageSegment,
+                pathSegment,
+                locationsSegment,
+                errorCodeSegment,
+                classificationSegment);
     }
 
     private GraphQLAPIResponseValidationResult validateAPISuccessResponse(

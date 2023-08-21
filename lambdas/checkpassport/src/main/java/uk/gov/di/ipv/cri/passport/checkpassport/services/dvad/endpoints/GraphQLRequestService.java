@@ -173,7 +173,7 @@ public class GraphQLRequestService {
                         ErrorResponse.FAILED_TO_MAP_GRAPHQL_ENDPOINT_RESPONSE_BODY);
             }
         } else {
-            // GraphQL endpoint responded but with an expected status code
+            // GraphQL endpoint responded but with an unexpected status code
             LOGGER.error(
                     "GraphQL response status code {} content - {}",
                     httpReply.statusCode,
