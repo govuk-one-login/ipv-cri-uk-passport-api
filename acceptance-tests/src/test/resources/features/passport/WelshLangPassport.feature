@@ -68,12 +68,15 @@ Feature: Passport Language Test
   Scenario Outline: Passport details IncorrectDateOfBirth error message in Welsh
     When User clicks on continue
     Then the validation text reads Mae problem
+    And I see check date of birth sentence as Rhowch eich dyddiad geni fel mae’n ymddangos ar eich pasbort
+    And I see enter the date as it appears above the field as Gwall:Rhowch eich dyddiad geni fel mae’n ymddangos ar eich pasbort
     Then I clear the data and re enter the date of birth
     And  User clicks on continue
-    And I see check date of birth sentence as Rhowch y dyddiad dod i ben fel mae’n ymddangos ar eich pasbort
+    And I can see the valid to date error in the error summary as Rhowch y dyddiad dod i ben fel mae’n ymddangos ar eich pasbort
     When User Re-enters data as a <PassportSubject>
     And  User clicks on continue
     Then I see check date of birth sentence as Rhaid i’ch dyddiad geni fod yn y gorffennol
+    And I see enter the date as it appears above the field as Gwall:Rhaid i’ch dyddiad geni fod yn y gorffennol
     And The test is complete and I close the driver
 
     Examples:
@@ -186,16 +189,6 @@ Feature: Passport Language Test
     And I see the Lastname error in the error summary as Rhowch eich cyfenw fel mae’n ymddangos ar eich pasbort
     And I see the firstname error summary as Rhowch eich enw cyntaf fel mae’n ymddangos ar eich pasbort
     And I see the middlenames error summary as Rhowch eich enwau canol fel maent yn ymddangos ar eich pasbort
-    And The test is complete and I close the driver
-
-  @Language-regression
-  Scenario: Passport details IncorrectDateOfBirth error message in Welsh
-    When User clicks on continue
-    Then the validation text reads Mae problem
-    And I see enter the date as it appears above the field as Gwall:Rhowch eich dyddiad geni fel mae’n ymddangos ar eich pasbort
-    And I clear the data and re enter the date of birth
-    And  User clicks on continue
-    Then I see check date of birth sentence as Rhowch y dyddiad dod i ben fel mae’n ymddangos ar eich pasbort
     And The test is complete and I close the driver
 
   @Language-regression
