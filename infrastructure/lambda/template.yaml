@@ -64,8 +64,9 @@ Conditions:
     - !Ref DeploymentType
     - "pipeline"
 # Don't send logs in dev to avoid overwhelming the destination with debug
-  LogSendingEnabled:
-    !Not [!Equals [!Ref Environment, "dev"]]
+  LogSendingEnabled: !And
+    - !Not [!Equals [!Ref Environment, "dev"]]
+    - !Condition IsDeployedFromPipeline
   IsProdEnvironment: !Equals
     - !Ref Environment
     - production
@@ -288,9 +289,7 @@ Resources:
 
   PublicUKPassportAPILogGroupSubscriptionFilter:
     Type: AWS::Logs::SubscriptionFilter
-    Condition: !And
-      - IsDeployedFromPipeline
-      - LogSendingEnabled
+    Condition: LogSendingEnabled
     Properties:
       DestinationArn: "arn:aws:logs:eu-west-2:885513274347:destination:csls_cw_logs_destination_prodpython"
       FilterPattern: ""
@@ -371,9 +370,7 @@ Resources:
 
   PrivateUKPassportAPILogGroupSubscriptionFilter:
     Type: AWS::Logs::SubscriptionFilter
-    Condition: !And
-      - IsDeployedFromPipeline
-      - LogSendingEnabled
+    Condition: LogSendingEnabled
     Properties:
       DestinationArn: "arn:aws:logs:eu-west-2:885513274347:destination:csls_cw_logs_destination_prodpython"
       FilterPattern: ""
@@ -491,9 +488,7 @@ Resources:
 
   CheckPassportFunctionLogGroupSubscriptionFilterCsls:
     Type: AWS::Logs::SubscriptionFilter
-    Condition: !And
-      - IsDeployedFromPipeline
-      - LogSendingEnabled
+    Condition: LogSendingEnabled
     Properties:
       DestinationArn: "arn:aws:logs:eu-west-2:885513274347:destination:csls_cw_logs_destination_prodpython"
       FilterPattern: ""
@@ -578,9 +573,7 @@ Resources:
 
   IssueCredentialFunctionLogGroupSubscriptionFilterCsls:
     Type: AWS::Logs::SubscriptionFilter
-    Condition: !And
-      - IsDeployedFromPipeline
-      - LogSendingEnabled
+    Condition: LogSendingEnabled
     Properties:
       DestinationArn: "arn:aws:logs:eu-west-2:885513274347:destination:csls_cw_logs_destination_prodpython"
       FilterPattern: ""
