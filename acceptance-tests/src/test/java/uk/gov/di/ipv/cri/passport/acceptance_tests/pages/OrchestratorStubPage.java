@@ -163,7 +163,9 @@ public class OrchestratorStubPage extends UniversalSteps {
         IConfirmMyDetailsAreCorrect.click();
     }
 
-    public void assertCurrentPageIsFraudCheckPage() { assertPageTitle(CHECKING_YOUR_DETAILS, false); }
+    public void assertCurrentPageIsFraudCheckPage() {
+        assertPageTitle(CHECKING_YOUR_DETAILS, false);
+    }
 
     public void clickContinue() {
         continueButton.isEnabled();
