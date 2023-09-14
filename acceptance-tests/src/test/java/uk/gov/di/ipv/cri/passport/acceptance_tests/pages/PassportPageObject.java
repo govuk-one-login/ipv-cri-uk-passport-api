@@ -611,25 +611,13 @@ public class PassportPageObject extends UniversalSteps {
     }
 
     public void validateErrorPageHeading() {
-        String expectedHeading = "Sorry, there is a problem";
+        String expectedHeading = "Sorry, we cannot prove your identity";
         String actualHeading = pageHeader.getText();
         if (expectedHeading.equals(actualHeading)) {
             LOGGER.info("Pass : Sorry, there is a problem page is displayed");
         } else {
             fail("Fail: Error page not displayed");
         }
-    }
-
-    public void assertPageTitle(String expTitle, boolean fuzzy) {
-        WebDriver driver = Driver.get();
-        driver.manage().timeouts().implicitlyWait(Duration.ofSeconds(2));
-
-        String title = driver.getTitle();
-
-        boolean match = fuzzy ? title.contains(expTitle) : title.equals(expTitle);
-
-        LOGGER.info("Page title: " + title);
-        Assert.assertTrue(match);
     }
 
     public void assertPageHeading(String expectedText) {
