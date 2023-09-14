@@ -120,7 +120,7 @@ Feature: E2E
     And the user chooses their address 8 HADLEY ROAD, BATH, BA2 5AA from dropdown and click `Choose address`
     And the user enters the date 2014 they moved into their current address
     And the user clicks `I confirm my details are correct`
-    And I confirm the current page is the fraud check page
+    Then I check the page title is We need to check your details – Prove your identity – GOV.UK
     When I check Continue button is enabled and click on the Continue button
     And the user clicks `Answer security questions`
     And kenneth answers the first question correctly

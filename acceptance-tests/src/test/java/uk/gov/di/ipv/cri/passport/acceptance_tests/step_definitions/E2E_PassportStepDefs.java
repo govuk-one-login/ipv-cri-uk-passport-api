@@ -58,11 +58,6 @@ public class E2E_PassportStepDefs {
         orchestratorStubPage.confirmClick();
     }
 
-    @And("^I confirm the current page is the fraud check page")
-    public void confirmCurrentPageIsFraudCheckPage() {
-        orchestratorStubPage.assertCurrentPageIsFraudCheckPage();
-    }
-
     @When("^I check Continue button is enabled and click on the Continue button$")
     public void clickOnContinueButton() {
         orchestratorStubPage.clickContinue();
