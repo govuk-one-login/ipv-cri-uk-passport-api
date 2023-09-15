@@ -394,8 +394,7 @@ Feature: Passport Test
     And The test is complete and I close the driver
     Examples:
       | PassportSubject             | months | daysToSubtract |
-      | PassportSubjectHappyKenneth | 18     | 1 |
-      | PassportSubjectHappyKenneth | 18     | 2 |
+      | PassportSubjectHappyKenneth | 18     | 0 |
 
   @Passport_test @build @staging @integration @smoke
   Scenario Outline: Passport expiry date invalid
@@ -408,4 +407,5 @@ Feature: Passport Test
 
     Examples:
       | PassportSubject             | months | daysToSubtract |
-      | PassportSubjectHappyKenneth | 19     | 1 |
+      | PassportSubjectHappyKenneth | 18     | 1 |
+      | PassportSubjectHappyKenneth | 18     | 2 |
