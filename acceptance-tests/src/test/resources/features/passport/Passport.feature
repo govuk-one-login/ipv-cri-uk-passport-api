@@ -381,3 +381,30 @@ Feature: Passport Test
     Examples:
       |PassportSubject           |
       | IncorrectPassportNumber     |
+
+  @Passport_test @build @staging @integration @smoke
+  Scenario Outline: Passport expiry date valid
+    Given User enters data as a <PassportSubject>
+    Then User enters expiry date as current date minus 18 months
+    When User clicks on continue
+    Then I navigate to the passport verifiable issuer to check for a Valid response
+    And JSON payload should contain validity score 2 and strength score 4
+    And JSON response should contain documentNumber 321654987 same as given passport
+    And exp should be absent in the JSON payload
+    And The test is complete and I close the driver
+    Examples:
+      | PassportSubject             |
+      | PassportSubjectHappyKenneth |
+
+  @Passport_test @build @staging @integration @smoke
+  Scenario Outline: Passport expiry date invalid
+    Given User enters data as a <PassportSubject>
+    Then User enters expiry date as current date minus 19 months
+    When User clicks on continue
+    Then I can see the valid to date error in the error summary as Your passport must not have expired more than 18 months ago
+    And I can see the Valid to date field error as Error:Your passport must not have expired more than 18 months ago
+    And The test is complete and I close the driver
+
+    Examples:
+      | PassportSubject             |
+      | PassportSubjectHappyKenneth |

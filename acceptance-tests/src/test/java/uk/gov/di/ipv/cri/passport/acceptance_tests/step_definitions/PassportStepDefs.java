@@ -415,4 +415,9 @@ public class PassportStepDefs extends PassportPageObject {
     public void ExpiryNotPresentInJsonResponse(String exp) throws JsonProcessingException {
         expiryAbsentFromVC(exp);
     }
+
+    @Then("User enters expiry date as current date minus (.*) months$")
+    public void expiryDateAsCurrentMinusMonths(int monthsToSubtract) {
+        userReEntersExpiryDateAsCurrentDateMinusMonths(monthsToSubtract);
+    }
 }
