@@ -108,3 +108,54 @@ Feature: E2E
     Examples:
       | PassportSubject             | userName                   |
       | PassportSubjectHappyKenneth |   KennethDecerqueira       |
+
+  @passportProveYourIdentity
+  Scenario Outline: Prove Your Identity Full Journey Route (STUB) happy Path
+    Given I am on Orchestrator Stub
+    And I click on Full journey route and Continue
+    And clicks continue on the signed into your GOV.UK One Login page
+    When User enters data as a <PassportSubject>
+    And User clicks on continue
+    And I enter BA2 5AA in the Postcode field and find address
+    And the user chooses their address 8 HADLEY ROAD, BATH, BA2 5AA from dropdown and click `Choose address`
+    And the user enters the date 2014 they moved into their current address
+    And the user clicks `I confirm my details are correct`
+    Then I check the page title is We need to check your details – Prove your identity – GOV.UK
+    When I check Continue button is enabled and click on the Continue button
+    And the user clicks `Answer security questions`
+    And kenneth answers the first question correctly
+    And kenneth answers the second question correctly
+    And kenneth answers the third question correctly
+    And the user clicks `I confirm my details are correct`
+    Then verify the users address credentials. current address 8 HADLEY ROAD, BATH, BA2 5AA
+    And verify the users fraud credentials
+    And The test is complete and I close the driver
+      Examples:
+        | PassportSubject           |
+        | PassportSubjectHappyKenneth |
+
+  @passportProveYourIdentityFullJourney
+  Scenario: Prove Your Identity Full Journey Route (STUB) un happy Path
+    Given I am on Orchestrator Stub
+    And I click on Full journey route and Continue
+    And clicks continue on the signed into your GOV.UK One Login page
+    When User enters invalid passport details
+    And User clicks on continue
+    Then Proper error message for Could not find your details is displayed
+
+  @passportProveYourIdentityFullJourney
+  Scenario Outline: Prove Your Identity Full Journey Route (STUB) Passport User failed second attempt
+    Given I am on Orchestrator Stub
+    And I click on Full journey route and Continue
+    And clicks continue on the signed into your GOV.UK One Login page
+    When User enters invalid passport details
+    And User clicks on continue
+    Then Proper error message for Could not find your details is displayed
+    When User Re-enters data as a <PassportSubject>
+    And User clicks on continue
+    Then I check the page title is Sorry, we cannot prove your identity – GOV.UK
+    And I can see the heading Sorry, we cannot prove your identity, there is a error
+    And The test is complete and I close the driver
+    Examples:
+      |PassportSubject |
+      |IncorrectPassportNumber |

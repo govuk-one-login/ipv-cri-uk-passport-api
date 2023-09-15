@@ -41,4 +41,47 @@ public class E2E_PassportStepDefs {
             String expectedText) {
         orchestratorStubPage.validateUserInformationTitle(expectedText);
     }
+
+    @When("the user chooses their address (.*) from dropdown and click `Choose address`$")
+    public void the_user_chooses_their_address_from_dropdown_and_click_Choose_address(
+            String address) {
+        orchestratorStubPage.selectAddressFromDropdown(address);
+    }
+
+    @When("the user enters the date (.*) they moved into their current address$")
+    public void the_user_enters_the_date_they_moved_into_their_current_address(String expiryDate) {
+        orchestratorStubPage.enterAddressExpiry(expiryDate);
+    }
+
+    @When("the user clicks `I confirm my details are correct`")
+    public void the_user_clicks_I_confirm_my_details_are_correct() {
+        orchestratorStubPage.confirmClick();
+    }
+
+    @When("^I check Continue button is enabled and click on the Continue button$")
+    public void clickOnContinueButton() {
+        orchestratorStubPage.clickContinue();
+    }
+
+    @When("the user clicks `Answer security questions`")
+    public void the_user_clicks_Answe_security_questions() {
+        orchestratorStubPage.confirmClick();
+    }
+
+    @When("kenneth answers the (.*) question correctly$")
+    public void the_user_answers_the_first_question_correctly(String questionNumber)
+            throws Exception {
+        orchestratorStubPage.answerKBVQuestion();
+    }
+
+    @Then("verify the users address credentials. current address (.*)$")
+    public void credentials_are_verified_against_input_address(String currentAddress)
+            throws Exception {
+        orchestratorStubPage.validateAddressVc(currentAddress);
+    }
+
+    @Then("verify the users fraud credentials")
+    public void credentials_are_verified_against_input_fraud() throws Exception {
+        orchestratorStubPage.validateFraudVc();
+    }
 }

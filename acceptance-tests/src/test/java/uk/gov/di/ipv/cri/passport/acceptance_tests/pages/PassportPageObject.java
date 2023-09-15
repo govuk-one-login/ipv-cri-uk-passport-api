@@ -10,7 +10,6 @@ import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.junit.Assert;
 import org.openqa.selenium.By;
-import org.openqa.selenium.WebDriver;
 import org.openqa.selenium.WebElement;
 import org.openqa.selenium.support.FindBy;
 import org.openqa.selenium.support.PageFactory;
@@ -21,7 +20,6 @@ import uk.gov.di.ipv.cri.passport.acceptance_tests.utilities.TestDataCreator;
 import uk.gov.di.ipv.cri.passport.acceptance_tests.utilities.TestInput;
 
 import java.io.IOException;
-import java.time.Duration;
 import java.time.LocalDateTime;
 import java.time.ZoneOffset;
 import java.util.Arrays;
@@ -611,25 +609,13 @@ public class PassportPageObject extends UniversalSteps {
     }
 
     public void validateErrorPageHeading() {
-        String expectedHeading = "Sorry, there is a problem";
+        String expectedHeading = "Sorry, we cannot prove your identity";
         String actualHeading = pageHeader.getText();
         if (expectedHeading.equals(actualHeading)) {
             LOGGER.info("Pass : Sorry, there is a problem page is displayed");
         } else {
             fail("Fail: Error page not displayed");
         }
-    }
-
-    public void assertPageTitle(String expTitle, boolean fuzzy) {
-        WebDriver driver = Driver.get();
-        driver.manage().timeouts().implicitlyWait(Duration.ofSeconds(2));
-
-        String title = driver.getTitle();
-
-        boolean match = fuzzy ? title.contains(expTitle) : title.equals(expTitle);
-
-        LOGGER.info("Page title: " + title);
-        Assert.assertTrue(match);
     }
 
     public void assertPageHeading(String expectedText) {

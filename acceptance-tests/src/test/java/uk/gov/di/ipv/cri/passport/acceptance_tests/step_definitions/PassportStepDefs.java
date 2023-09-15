@@ -74,7 +74,7 @@ public class PassportStepDefs extends PassportPageObject {
         navigateToPassportCRI();
     }
 
-    @Then("^I can see the heading  Sorry, there is a error$")
+    @Then("^I can see the heading Sorry, we cannot prove your identity, there is a error$")
     public void i_can_see_the_heading_page() {
         validateErrorPageHeading();
     }
