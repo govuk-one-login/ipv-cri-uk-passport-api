@@ -106,8 +106,8 @@ public class PassportStepDefs extends PassportPageObject {
 
     @Then("^I see the Reject Analytics sentence (.*)$")
     public void
-            iSeeTheSenetenceYouVeRejectedAdditionalCookiesYouCanChangeYourCookieSettingsAtAnyTime(
-                    String rejectAnalysisSentence) {
+    iSeeTheSenetenceYouVeRejectedAdditionalCookiesYouCanChangeYourCookieSettingsAtAnyTime(
+            String rejectAnalysisSentence) {
         rejectCookieSentence(rejectAnalysisSentence);
     }
 
@@ -384,7 +384,7 @@ public class PassportStepDefs extends PassportPageObject {
 
     @Then("I should be on `Enter your details exactly as they appear on your UK passport` page")
     public void
-            i_should_be_on_enter_your_details_exactly_as_they_appear_on_your_uk_passport_page() {
+    i_should_be_on_enter_your_details_exactly_as_they_appear_on_your_uk_passport_page() {
         Assert.assertTrue(passportNumber.isDisplayed());
     }
 
@@ -415,4 +415,10 @@ public class PassportStepDefs extends PassportPageObject {
     public void ExpiryNotPresentInJsonResponse(String exp) throws JsonProcessingException {
         expiryAbsentFromVC(exp);
     }
+
+    @Then("User enters expiry date as current date minus (.*) months$")
+    public void expiryDateAsCurrentMinusMonths(int monthsToSubtract) {
+        userReEntersExpiryDateAsCurrentDateMinusMonths(monthsToSubtract);
+    }
+
 }

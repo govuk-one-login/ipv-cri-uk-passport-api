@@ -5,6 +5,7 @@ import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.ObjectReader;
+import net.bytebuddy.asm.Advice;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -20,6 +21,7 @@ import uk.gov.di.ipv.cri.passport.acceptance_tests.utilities.TestDataCreator;
 import uk.gov.di.ipv.cri.passport.acceptance_tests.utilities.TestInput;
 
 import java.io.IOException;
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.ZoneOffset;
 import java.util.Arrays;
@@ -164,34 +166,22 @@ public class PassportPageObject extends UniversalSteps {
 
     // Error summary items
 
-    @FindBy(
-            xpath =
-                    "//*[@class='govuk-error-summary error-summary']//*[@class='govuk-error-summary__body']//*[@class='govuk-list govuk-error-summary__list']//*[contains(@href,'dateOfBirth-day')]")
+    @FindBy(xpath = "//*[@class='govuk-error-summary error-summary']//*[@class='govuk-error-summary__body']//*[@class='govuk-list govuk-error-summary__list']//*[contains(@href,'dateOfBirth-day')]")
     public WebElement InvalidDOBErrorInSummary;
 
-    @FindBy(
-            xpath =
-                    "//*[@class='govuk-error-summary error-summary']//*[@class='govuk-error-summary__body']//*[@class='govuk-list govuk-error-summary__list']//*[contains(@href,'#passportNumber')]")
+    @FindBy(xpath = "//*[@class='govuk-error-summary error-summary']//*[@class='govuk-error-summary__body']//*[@class='govuk-list govuk-error-summary__list']//*[contains(@href,'#passportNumber')]")
     public WebElement InvalidPassportErrorInSummary;
 
-    @FindBy(
-            xpath =
-                    "//*[@class='govuk-error-summary error-summary']//*[@class='govuk-error-summary__body']//*[@class='govuk-list govuk-error-summary__list']//*[contains(@href,'#surname')]")
+    @FindBy(xpath = "//*[@class='govuk-error-summary error-summary']//*[@class='govuk-error-summary__body']//*[@class='govuk-list govuk-error-summary__list']//*[contains(@href,'#surname')]")
     public WebElement InvalidLastNameErrorInSummary;
 
-    @FindBy(
-            xpath =
-                    "//*[@class='govuk-error-summary error-summary']//*[@class='govuk-error-summary__body']//*[@class='govuk-list govuk-error-summary__list']//*[contains(@href,'#firstName')]")
+    @FindBy(xpath = "//*[@class='govuk-error-summary error-summary']//*[@class='govuk-error-summary__body']//*[@class='govuk-list govuk-error-summary__list']//*[contains(@href,'#firstName')]")
     public WebElement InvalidFirstNameErrorInSummary;
 
-    @FindBy(
-            xpath =
-                    "//*[@class='govuk-error-summary error-summary']//*[@class='govuk-error-summary__body']//*[@class='govuk-list govuk-error-summary__list']//*[contains(@href,'#middleNames')]")
+    @FindBy(xpath = "//*[@class='govuk-error-summary error-summary']//*[@class='govuk-error-summary__body']//*[@class='govuk-list govuk-error-summary__list']//*[contains(@href,'#middleNames')]")
     public WebElement InvalidMiddleNamesErrorInSummary;
 
-    @FindBy(
-            xpath =
-                    "//*[@class='govuk-error-summary error-summary']//*[@class='govuk-error-summary__body']//*[@class='govuk-list govuk-error-summary__list']//*[contains(@href,'#expiryDate-day')]")
+    @FindBy(xpath = "//*[@class='govuk-error-summary error-summary']//*[@class='govuk-error-summary__body']//*[@class='govuk-list govuk-error-summary__list']//*[contains(@href,'#expiryDate-day')]")
     public WebElement InvalidValidToDateErrorInSummary;
 
     // -------------------------
@@ -799,4 +789,28 @@ public class PassportPageObject extends UniversalSteps {
 
         return testDate.isBefore(nbfMax) && testDate.isAfter(nbfMin);
     }
+
+    public static LocalDate subtractMonthsFromCurrentDate(int monthsToSubtract) {
+        LocalDate currentDate = LocalDate.now();
+        return currentDate.minusMonths(monthsToSubtract);
+
+    }
+
+    public void userReEntersExpiryDateAsCurrentDateMinusMonths(int monthsToSubtract) {
+
+        LocalDate result = subtractMonthsFromCurrentDate(monthsToSubtract);
+
+        String dayMinusEighteen = String.valueOf(result.getDayOfMonth());
+        String monthMinusEighteen = String.valueOf(result.getMonthValue());
+        String yearMinusEighteen = String.valueOf(result.getYear());
+
+        validToDay.clear();
+        validToMonth.clear();
+        validToYear.clear();
+
+        validToDay.sendKeys(dayMinusEighteen);
+        validToMonth.sendKeys(monthMinusEighteen);
+        validToYear.sendKeys(yearMinusEighteen);
+    }
+
 }
