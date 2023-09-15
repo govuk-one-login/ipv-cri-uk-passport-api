@@ -806,11 +806,11 @@ public class PassportPageObject extends UniversalSteps {
         return currentDate.minusMonths(monthsToSubtract);
     }
 
-    public void userReEntersExpiryDateAsCurrentDateMinusMonths(int monthsToSubtract) {
+    public void userReEntersExpiryDateAsCurrentDateMinusMonths(int monthsToSubtract, int daysToSubtract) {
 
         LocalDate result = subtractMonthsFromCurrentDate(monthsToSubtract);
 
-        String dayMinusEighteen = String.valueOf(result.getDayOfMonth());
+        String dayMinusEighteen = String.valueOf((result.getDayOfMonth())+daysToSubtract);
         String monthMinusEighteen = String.valueOf(result.getMonthValue());
         String yearMinusEighteen = String.valueOf(result.getYear());
 
