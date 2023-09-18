@@ -806,7 +806,7 @@ public class PassportPageObject extends UniversalSteps {
         return currentDate.minusMonths(monthsToSubtract);
     }
 
-    public void userReEntersPassportExpiryDateMinusMonthsAndDays(
+    public void userReEntersExpiryDateAsCurrentDateMinus(
             int monthsToSubtract, int daysToSubtract) {
 
         LocalDate result = subtractMonthsFromCurrentDate(monthsToSubtract);
