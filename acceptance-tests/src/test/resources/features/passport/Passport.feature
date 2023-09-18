@@ -385,7 +385,7 @@ Feature: Passport Test
   @Passport_test @build @staging @integration @smoke
   Scenario Outline: Passport expiry date valid
     Given User enters data as a <PassportSubject>
-    Then User enters expiry date as current date minus <months> minus <daysToSubtract>
+    Then User enters expiry date as current date minus <months> months and minus <daysToSubtract> days
     When User clicks on continue
     Then I navigate to the passport verifiable issuer to check for a Valid response
     And JSON payload should contain validity score 2 and strength score 4
@@ -399,7 +399,7 @@ Feature: Passport Test
   @Passport_test @build @staging @integration @smoke
   Scenario Outline: Passport expiry date invalid
     Given User enters data as a <PassportSubject>
-    Then User enters expiry date as current date minus <months> minus <daysToSubtract>
+    Then User enters expiry date as current date minus <months> months and minus <daysToSubtract> days
     When User clicks on continue
     Then I can see the valid to date error in the error summary as Your passport must not have expired more than 18 months ago
     And I can see the Valid to date field error as Error:Your passport must not have expired more than 18 months ago
@@ -408,4 +408,4 @@ Feature: Passport Test
     Examples:
       | PassportSubject             | months | daysToSubtract |
       | PassportSubjectHappyKenneth | 18     | 1 |
-      | PassportSubjectHappyKenneth | 18     | 2 |
+      | PassportSubjectHappyKenneth | 18     | 6 |

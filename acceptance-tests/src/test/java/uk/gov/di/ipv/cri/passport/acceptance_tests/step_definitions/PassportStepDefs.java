@@ -416,8 +416,8 @@ public class PassportStepDefs extends PassportPageObject {
         expiryAbsentFromVC(exp);
     }
 
-    @Then("User enters expiry date as current date minus (.*) minus (.*)$")
+    @Then("User enters expiry date as current date minus (.*) months and minus (.*) days")
     public void expiryDateAsCurrentMinusMonths(int monthsToSubtract, int daysToSubtract) {
-        userReEntersExpiryDateAsCurrentDateMinusMonths(monthsToSubtract, daysToSubtract);
+        userReEntersPassportExpiryDateMinusMonthsAndDays(monthsToSubtract, daysToSubtract);
     }
 }
