@@ -20,6 +20,7 @@ import uk.gov.di.ipv.cri.passport.acceptance_tests.utilities.TestDataCreator;
 import uk.gov.di.ipv.cri.passport.acceptance_tests.utilities.TestInput;
 
 import java.io.IOException;
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.ZoneOffset;
 import java.util.Arrays;
@@ -798,5 +799,27 @@ public class PassportPageObject extends UniversalSteps {
         LOGGER.info("nbf " + testDate);
 
         return testDate.isBefore(nbfMax) && testDate.isAfter(nbfMin);
+    }
+
+    private LocalDate subtractMonthsFromCurrentDate(int monthsToSubtract) {
+        LocalDate currentDate = LocalDate.now();
+        return currentDate.minusMonths(monthsToSubtract);
+    }
+
+    public void userReEntersExpiryDateAsCurrentDateMinus(int monthsToSubtract, int daysToSubtract) {
+
+        LocalDate result = subtractMonthsFromCurrentDate(monthsToSubtract);
+
+        String dayMinusEighteen = String.valueOf((result.getDayOfMonth()) - daysToSubtract);
+        String monthMinusEighteen = String.valueOf(result.getMonthValue());
+        String yearMinusEighteen = String.valueOf(result.getYear());
+
+        validToDay.clear();
+        validToMonth.clear();
+        validToYear.clear();
+
+        validToDay.sendKeys(dayMinusEighteen);
+        validToMonth.sendKeys(monthMinusEighteen);
+        validToYear.sendKeys(yearMinusEighteen);
     }
 }
