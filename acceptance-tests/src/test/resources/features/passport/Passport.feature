@@ -408,4 +408,4 @@ Feature: Passport Test
     Examples:
       | PassportSubject             | months | daysToSubtract |
       | PassportSubjectHappyKenneth | 18     | 1 |
-      | PassportSubjectHappyKenneth | 18     | 6 |
+      | PassportSubjectHappyKenneth | 18     | 2 |

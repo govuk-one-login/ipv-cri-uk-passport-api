@@ -801,7 +801,7 @@ public class PassportPageObject extends UniversalSteps {
         return testDate.isBefore(nbfMax) && testDate.isAfter(nbfMin);
     }
 
-    public static LocalDate subtractMonthsFromCurrentDate(int monthsToSubtract) {
+    private LocalDate subtractMonthsFromCurrentDate(int monthsToSubtract) {
         LocalDate currentDate = LocalDate.now();
         return currentDate.minusMonths(monthsToSubtract);
     }
