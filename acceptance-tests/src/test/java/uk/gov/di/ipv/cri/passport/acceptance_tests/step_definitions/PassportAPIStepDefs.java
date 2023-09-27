@@ -35,8 +35,16 @@ public class PassportAPIStepDefs extends PassportAPIPage {
             "Passport user sends a POST request to Passport endpoint using jsonRequest (.*) and document checking route is (.*)$")
     public void passport_user_sends_a_post_request_to_passport_end_point(
             String passportJsonRequestBody, String documentCheckingRoute)
-            throws IOException, InterruptedException {
+            throws IOException, InterruptedException, NoSuchFieldException, IllegalAccessException {
         postRequestToPassportEndpoint(passportJsonRequestBody, documentCheckingRoute);
+    }
+
+    @When(
+            "Passport user sends a editable POST request to Passport endpoint using jsonRequest (.*) with edited fields (.*) and document checking route is (.*)$")
+    public void passport_user_sends_a_post_request_to_passport_end_point(
+            String passportJsonRequestBody, String jsonEdits, String documentCheckingRoute)
+            throws IOException, InterruptedException, NoSuchFieldException, IllegalAccessException {
+        postRequestToPassportEndpoint(passportJsonRequestBody, jsonEdits, documentCheckingRoute);
     }
 
     @And("Passport check response should contain Retry value as (.*)$")
@@ -80,5 +88,11 @@ public class PassportAPIStepDefs extends PassportAPIPage {
     public void passport_vc_should_contain_check_details(String checkDetailsType)
             throws IOException, InterruptedException, ParseException, URISyntaxException {
         assertCheckDetails(checkDetailsType);
+    }
+
+    @And("Check response contains unexpected server error exception")
+    public void passport_check_fails_and_returns_unexpected_exception()
+            throws IOException, InterruptedException, ParseException, URISyntaxException {
+        checkPassportResponseContainsException();
     }
 }
