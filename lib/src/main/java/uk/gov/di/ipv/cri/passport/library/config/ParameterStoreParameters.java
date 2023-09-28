@@ -12,6 +12,9 @@ public class ParameterStoreParameters {
 
     public static final String MAXIMUM_ATTEMPT_COUNT = "MaximumAttemptCount"; // Max Form Attempts
 
+    public static final String DEV_ENVIRONMENT_ONLY_ENHANCED_DEBUG =
+            "devEnvironmentOnlyEnhancedDebug";
+
     public static final String IS_DCS_PERFORMANCE_STUB =
             "isDCSPerformanceStub"; // Always false unless using stubs
     public static final String IS_DVAD_PERFORMANCE_STUB =

@@ -187,6 +187,16 @@ Mappings:
       integration: MONTHS
       production: MONTHS
 
+  # devEnvironmentOnlyEnhancedDebug changes CRI behaviour
+  # Do not enable outside of Dev
+  devEnvironmentOnlyEnhancedDebugMapping:
+    Environment:
+      dev: "false"
+      build: "false"
+      staging: "false"
+      integration: "false"
+      production: "false"
+
 Resources:
 
 ####################################################################
@@ -438,6 +448,7 @@ Resources:
               Resource:
                 - !Sub "arn:aws:ssm:${AWS::Region}:${AWS::AccountId}:parameter/${AWS::StackName}/DocumentCheckResultTableName"
                 - !Sub "arn:aws:ssm:${AWS::Region}:${AWS::AccountId}:parameter/${AWS::StackName}/MaximumAttemptCount"
+                - !Sub "arn:aws:ssm:${AWS::Region}:${AWS::AccountId}:parameter/${AWS::StackName}/devEnvironmentOnlyEnhancedDebug"
                 - !Sub "arn:aws:ssm:${AWS::Region}:${AWS::AccountId}:parameter/${AWS::StackName}/DvaDigitalEnabled"
                 - !Sub "arn:aws:ssm:${AWS::Region}:${AWS::AccountId}:parameter/${AWS::StackName}/logDcsResponse"
                 - !Sub
@@ -753,6 +764,14 @@ Resources:
       Type: String
       Value: "false"
       Description: Feature toggle to allow logging of DCS responses
+
+  devEnvironmentOnlyEnhancedDebugParameter:
+    Type: AWS::SSM::Parameter
+    Properties:
+      Name: !Sub "/${AWS::StackName}/devEnvironmentOnlyEnhancedDebug"
+      Type: String
+      Value: !FindInMap [ devEnvironmentOnlyEnhancedDebugMapping, Environment, !Ref Environment ]
+      Description: Enable enhanced debug - this is achieved via modifying CRI oauth behaviour to include debug messages
 
   LoggingKmsKey:
     Type: AWS::KMS::Key
