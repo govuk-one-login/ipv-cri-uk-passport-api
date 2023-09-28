@@ -73,14 +73,7 @@ import static uk.gov.di.ipv.cri.passport.library.config.ParameterStoreParameters
 import static uk.gov.di.ipv.cri.passport.library.config.ParameterStoreParameters.IS_DVAD_PERFORMANCE_STUB;
 import static uk.gov.di.ipv.cri.passport.library.config.ParameterStoreParameters.MAXIMUM_ATTEMPT_COUNT;
 import static uk.gov.di.ipv.cri.passport.library.domain.CheckType.DOCUMENT_DATA_VERIFICATION;
-import static uk.gov.di.ipv.cri.passport.library.metrics.Definitions.FORM_DATA_PARSE_FAIL;
-import static uk.gov.di.ipv.cri.passport.library.metrics.Definitions.FORM_DATA_PARSE_PASS;
-import static uk.gov.di.ipv.cri.passport.library.metrics.Definitions.LAMBDA_CHECK_PASSPORT_ATTEMPT_STATUS_RETRY;
-import static uk.gov.di.ipv.cri.passport.library.metrics.Definitions.LAMBDA_CHECK_PASSPORT_ATTEMPT_STATUS_UNVERIFIED;
-import static uk.gov.di.ipv.cri.passport.library.metrics.Definitions.LAMBDA_CHECK_PASSPORT_ATTEMPT_STATUS_VERIFIED_PREFIX;
-import static uk.gov.di.ipv.cri.passport.library.metrics.Definitions.LAMBDA_CHECK_PASSPORT_COMPLETED_ERROR;
-import static uk.gov.di.ipv.cri.passport.library.metrics.Definitions.LAMBDA_CHECK_PASSPORT_COMPLETED_OK;
-import static uk.gov.di.ipv.cri.passport.library.metrics.Definitions.LAMBDA_CHECK_PASSPORT_USER_REDIRECTED_ATTEMPTS_OVER_MAX;
+import static uk.gov.di.ipv.cri.passport.library.metrics.Definitions.*;
 
 @ExtendWith(MockitoExtension.class)
 @ExtendWith(SystemStubsExtension.class)
@@ -689,9 +682,11 @@ class CheckPassportHandlerTest {
 
         InOrder inOrder = inOrder(mockEventProbe);
         inOrder.verify(mockEventProbe).counterMetric(FORM_DATA_PARSE_PASS);
+        inOrder.verify(mockEventProbe).counterMetric(PASSPORT_FALL_BACK_EXECUTING);
         inOrder.verify(mockEventProbe)
                 .counterMetric(LAMBDA_CHECK_PASSPORT_ATTEMPT_STATUS_VERIFIED_PREFIX + 1);
         inOrder.verify(mockEventProbe).counterMetric(LAMBDA_CHECK_PASSPORT_COMPLETED_OK);
+
         verifyNoMoreInteractions(mockEventProbe);
 
         DocumentCheckResultItem documentCheckResultItem =
@@ -783,9 +778,12 @@ class CheckPassportHandlerTest {
 
         InOrder inOrder = inOrder(mockEventProbe);
         inOrder.verify(mockEventProbe).counterMetric(FORM_DATA_PARSE_PASS);
+        inOrder.verify(mockEventProbe).counterMetric(PASSPORT_FALL_BACK_EXECUTING);
+        inOrder.verify(mockEventProbe).counterMetric(PASSPORT_VERIFICATION_FALLBACK_DEVIATION);
         inOrder.verify(mockEventProbe)
                 .counterMetric(LAMBDA_CHECK_PASSPORT_ATTEMPT_STATUS_VERIFIED_PREFIX + 1);
         inOrder.verify(mockEventProbe).counterMetric(LAMBDA_CHECK_PASSPORT_COMPLETED_OK);
+
         verifyNoMoreInteractions(mockEventProbe);
 
         DocumentCheckResultItem documentCheckResultItem =
@@ -868,7 +866,9 @@ class CheckPassportHandlerTest {
 
         InOrder inOrder = inOrder(mockEventProbe);
         inOrder.verify(mockEventProbe).counterMetric(FORM_DATA_PARSE_PASS);
+        inOrder.verify(mockEventProbe).counterMetric(PASSPORT_FALL_BACK_EXECUTING);
         inOrder.verify(mockEventProbe).counterMetric(LAMBDA_CHECK_PASSPORT_COMPLETED_ERROR);
+
         verifyNoMoreInteractions(mockEventProbe);
 
         verify(mockDocumentDataVerificationService)
