@@ -45,6 +45,7 @@ import java.util.Map;
 
 import static uk.gov.di.ipv.cri.common.library.error.ErrorResponse.SESSION_EXPIRED;
 import static uk.gov.di.ipv.cri.common.library.error.ErrorResponse.SESSION_NOT_FOUND;
+import static uk.gov.di.ipv.cri.passport.library.config.ParameterStoreParameters.DEV_ENVIRONMENT_ONLY_ENHANCED_DEBUG;
 import static uk.gov.di.ipv.cri.passport.library.config.ParameterStoreParameters.DOCUMENT_CHECK_RESULT_TTL_PARAMETER;
 import static uk.gov.di.ipv.cri.passport.library.config.ParameterStoreParameters.DVA_DIGITAL_ENABLED;
 import static uk.gov.di.ipv.cri.passport.library.config.ParameterStoreParameters.MAXIMUM_ATTEMPT_COUNT;
@@ -236,11 +237,13 @@ public class CheckPassportHandler
         } catch (OAuthErrorResponseException e) {
             eventProbe.counterMetric(LAMBDA_CHECK_PASSPORT_COMPLETED_ERROR);
 
-            // Debug only as Oauth errors appear in the redirect url
+            // Debug in DEV only as Oauth errors appear in the redirect url
             // This will output the specific error message
             // Note Unit tests expect server error (correctly)
-            // and will fail if logging is at debug level (during tests)
-            if (LOGGER.isDebugEnabled()) {
+            // and will fail if this is set (during unit tests)
+            if (Boolean.parseBoolean(
+                    passportConfigurationService.getStackParameterValue(
+                            DEV_ENVIRONMENT_ONLY_ENHANCED_DEBUG))) {
                 String customOAuth2ErrorDescription = e.getErrorReason();
                 return ApiGatewayResponseGenerator.proxyJsonResponse(
                         e.getStatusCode(), // Status Code determined by throw location
@@ -262,9 +265,7 @@ public class CheckPassportHandler
                     context.getFunctionName(),
                     e.getClass());
 
-            if (LOGGER.isDebugEnabled()) {
-                e.printStackTrace();
-            }
+            LOGGER.debug(e.getMessage(), e);
 
             eventProbe.counterMetric(LAMBDA_CHECK_PASSPORT_COMPLETED_ERROR);
 

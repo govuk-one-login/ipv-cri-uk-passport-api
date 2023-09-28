@@ -251,9 +251,7 @@ public class IssueCredentialHandler
                     context.getFunctionName(),
                     e.getClass());
 
-            if (LOGGER.isDebugEnabled()) {
-                e.printStackTrace();
-            }
+            LOGGER.debug(e.getMessage(), e);
 
             eventProbe.counterMetric(LAMBDA_ISSUE_CREDENTIAL_COMPLETED_ERROR);
 
