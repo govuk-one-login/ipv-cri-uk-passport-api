@@ -338,7 +338,9 @@ public class CheckPassportHandler
             DocumentDataVerificationResult documentDataVerificationResult,
             final int MAX_ATTEMPTS) {
 
-        if (documentDataVerificationResult.isVerified()) {
+        if (documentDataVerificationResult.isVerified()
+                && (documentDataVerificationResult.getContraIndicators() == null
+                        || documentDataVerificationResult.getContraIndicators().isEmpty())) {
             LOGGER.info("Document verified");
             eventProbe.counterMetric(
                     LAMBDA_CHECK_PASSPORT_ATTEMPT_STATUS_VERIFIED_PREFIX

@@ -102,11 +102,11 @@ public class DocumentDataVerificationService {
 
             APIResultSource apiResultSource = thirdPartyAPIResult.getApiResultSource();
 
-            int documentStrengthScore = MAX_PASSPORT_GPG45_STRENGTH_VALUE;
-            int documentValidityScore = calculateValidity(thirdPartyAPIResult);
-
             LOGGER.info("Mapping contra-indicators from Third party response");
             List<String> cis = calculateContraIndicators(thirdPartyAPIResult);
+
+            int documentStrengthScore = MAX_PASSPORT_GPG45_STRENGTH_VALUE;
+            int documentValidityScore = calculateValidity(thirdPartyAPIResult, cis);
 
             LOGGER.info(
                     "Generating Document Data Verification Result from {} ThirdPartyAPIResult",
@@ -124,12 +124,9 @@ public class DocumentDataVerificationService {
             documentDataVerificationResult.setTransactionId(thirdPartyAPIResult.getTransactionId());
             documentDataVerificationResult.setVerified(thirdPartyAPIResult.isValid());
 
-            // These are captured but ignored during
-            // evidence creation until requested
-            // to be enabled
             List<String> checksSucceeded = new ArrayList<>();
             List<String> checksFailed = new ArrayList<>();
-            if (documentDataVerificationResult.isVerified()) {
+            if (documentDataVerificationResult.isVerified() && cis.isEmpty()) {
                 checksSucceeded.add(DOCUMENT_DATA_VERIFICATION.toString());
             } else {
                 checksFailed.add(DOCUMENT_DATA_VERIFICATION.toString());
@@ -172,10 +169,10 @@ public class DocumentDataVerificationService {
         }
     }
 
-    private int calculateValidity(ThirdPartyAPIResult thirdPartyAPIResult) {
-        return thirdPartyAPIResult.isValid()
-                ? MAX_PASSPORT_GPG45_VALIDITY_VALUE
-                : MIN_PASSPORT_GPG45_VALUE;
+    private int calculateValidity(ThirdPartyAPIResult thirdPartyAPIResult, List<String> cis) {
+        return (!thirdPartyAPIResult.isValid() || !cis.isEmpty())
+                ? MIN_PASSPORT_GPG45_VALUE
+                : MAX_PASSPORT_GPG45_VALIDITY_VALUE;
     }
 
     private List<String> calculateContraIndicators(ThirdPartyAPIResult thirdPartyAPIResult) {

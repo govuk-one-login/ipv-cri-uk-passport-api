@@ -73,9 +73,15 @@ class DocumentDataVerificationServiceTest {
 
     @ParameterizedTest
     @CsvSource({
-        "true", "false",
+        "true, false, 0", // Happy path - when we verify a document and no flags present, with
+        // expected no of CIs
+        "false, false, 1", // When a document is not verified with no flags, with expected no of CIs
+        "false, true, 2", // When document is not verified but a flag is present, with expected no
+        // of CIs
+        "true, true, 1", // verified document but a flag, with expected number of CIs
     })
-    void verifyIdentityShouldReturnResultWhenValidInputProvided(boolean documentVerified)
+    void verifyIdentityShouldReturnResultWhenValidInputProvided(
+            boolean documentVerified, boolean flagsPresent, int expectedNumberOfCIs)
             throws OAuthErrorResponseException, SqsException {
         SessionItem sessionItem = new SessionItem();
         sessionItem.setSessionId(UUID.randomUUID());
@@ -88,7 +94,7 @@ class DocumentDataVerificationServiceTest {
         thirdPartyAPIResult.setFlags(Map.of("TestFlag", "true"));
 
         // Simulate mapping the TestFlag flag to a CI
-        if (!documentVerified) {
+        if (flagsPresent) {
             when(mockContraIndicatorMapper.mapFlagsToCIs(anyMap())).thenReturn(List.of("CI1"));
         }
 
@@ -121,12 +127,13 @@ class DocumentDataVerificationServiceTest {
 
         assertNotNull(documentDataVerificationResult);
         assertEquals(documentVerified, documentDataVerificationResult.isVerified());
-        assertEquals(documentVerified ? 2 : 0, documentDataVerificationResult.getValidityScore());
         assertEquals(
-                documentVerified ? 0 : 2,
-                documentDataVerificationResult.getContraIndicators().size());
+                !documentVerified || flagsPresent ? 0 : 2,
+                documentDataVerificationResult.getValidityScore());
+        assertEquals(
+                expectedNumberOfCIs, documentDataVerificationResult.getContraIndicators().size());
         assertEquals(4, documentDataVerificationResult.getStrengthScore());
-        if (!documentVerified) {
+        if (!documentVerified || expectedNumberOfCIs > 0) {
             assertEquals(
                     DOCUMENT_DATA_VERIFICATION.toString(),
                     documentDataVerificationResult.getChecksFailed().get(0));
