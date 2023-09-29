@@ -805,7 +805,7 @@ Resources:
 # Alerts                                                           #
 #                                                                  #
 ####################################################################
-# TODO Re-enable after unique alarm topic url is added for passport-api
+
   PassportLambdaErrors:
     Type: AWS::CloudWatch::Alarm
     Properties:
@@ -920,7 +920,126 @@ Resources:
 # Alarm setup                                                      #
 #                                                                  #
 ####################################################################
-# TODO unique pagerduty url needed for passport-api
+
+  ## Common API Alarms
+
+  CommonAPISessionLambdaConcurrencyThresholdReached:
+    Type: AWS::CloudWatch::Alarm
+    Properties:
+      AlarmDescription: !Sub Passport ${Environment} - Common API Session Lambda concurrency threshold reached
+      ActionsEnabled: true
+      AlarmActions:
+        - !Ref AlarmTopicPassport
+      OKActions:
+        - !Ref AlarmTopicPassport
+      InsufficientDataActions: []
+      MetricName: ConcurrentExecutions
+      Namespace: AWS/Lambda
+      Statistic: Average
+      Dimensions:
+        - Name: FunctionName
+          Value: !Sub "${CommonStackName}-SessionFunction"
+      Period: 60
+      EvaluationPeriods: 15
+      DatapointsToAlarm: 12
+      Threshold: 3
+      ComparisonOperator: GreaterThanOrEqualToThreshold
+      TreatMissingData: notBreaching
+
+  CommonAPIAuthorizationLambdaConcurrencyThresholdReached:
+    Type: AWS::CloudWatch::Alarm
+    Properties:
+      AlarmDescription: !Sub Passport ${Environment} - Common API Authorization Lambda concurrency threshold reached
+      ActionsEnabled: true
+      AlarmActions:
+        - !Ref AlarmTopicPassport
+      OKActions:
+        - !Ref AlarmTopicPassport
+      InsufficientDataActions: []
+      MetricName: ConcurrentExecutions
+      Namespace: AWS/Lambda
+      Statistic: Average
+      Dimensions:
+        - Name: FunctionName
+          Value: !Sub "${CommonStackName}-AuthorizationFunction"
+      Period: 60
+      EvaluationPeriods: 15
+      DatapointsToAlarm: 12
+      Threshold: 3
+      ComparisonOperator: GreaterThanOrEqualToThreshold
+      TreatMissingData: notBreaching
+
+  CommonAPIAccessTokenLambdaConcurrencyThresholdReached:
+    Type: AWS::CloudWatch::Alarm
+    Properties:
+      AlarmDescription: !Sub Passport ${Environment} - Common API AccessToken Lambda concurrency threshold reached
+      ActionsEnabled: true
+      AlarmActions:
+        - !Ref AlarmTopicPassport
+      OKActions:
+        - !Ref AlarmTopicPassport
+      InsufficientDataActions: []
+      MetricName: ConcurrentExecutions
+      Namespace: AWS/Lambda
+      Statistic: Average
+      Dimensions:
+        - Name: FunctionName
+          Value: !Sub "${CommonStackName}-AccessTokenFunction"
+      Period: 60
+      EvaluationPeriods: 15
+      DatapointsToAlarm: 12
+      Threshold: 3
+      ComparisonOperator: GreaterThanOrEqualToThreshold
+      TreatMissingData: notBreaching
+
+  ## Passport Alarms
+
+  PassportCheckPassportLambdaConcurrencyThresholdReached:
+    Type: AWS::CloudWatch::Alarm
+    Properties:
+      AlarmDescription: !Sub Passport ${Environment} - CheckPassportFunction Lambda concurrency threshold reached
+      ActionsEnabled: true
+      AlarmActions:
+        - !Ref AlarmTopicPassport
+      OKActions:
+        - !Ref AlarmTopicPassport
+      InsufficientDataActions: []
+      MetricName: ConcurrentExecutions
+      Namespace: AWS/Lambda
+      Statistic: Average
+      Dimensions:
+        - Name: FunctionName
+          Value: !Ref CheckPassportFunction
+      Period: 60
+      EvaluationPeriods: 15
+      DatapointsToAlarm: 12
+      Threshold: 3
+      ComparisonOperator: GreaterThanOrEqualToThreshold
+      TreatMissingData: notBreaching
+
+  PassportIssueCredentialLambdaConcurrencyThresholdReached:
+    Type: AWS::CloudWatch::Alarm
+    Properties:
+      AlarmDescription: !Sub Passport ${Environment} - IssueCredential Lambda concurrency threshold reached
+      ActionsEnabled: true
+      AlarmActions:
+        - !Ref AlarmTopicPassport
+      OKActions:
+        - !Ref AlarmTopicPassport
+      InsufficientDataActions: []
+      MetricName: ConcurrentExecutions
+      Namespace: AWS/Lambda
+      Statistic: Average
+      Dimensions:
+        - Name: FunctionName
+          Value: !Ref IssueCredentialFunction
+      Period: 60
+      EvaluationPeriods: 15
+      DatapointsToAlarm: 12
+      Threshold: 3
+      ComparisonOperator: GreaterThanOrEqualToThreshold
+      TreatMissingData: notBreaching
+
   AlarmTopicPassport:
     Type: AWS::SNS::Topic
     # checkov:skip=CKV_AWS_26: We will update this once basic alerting is available
