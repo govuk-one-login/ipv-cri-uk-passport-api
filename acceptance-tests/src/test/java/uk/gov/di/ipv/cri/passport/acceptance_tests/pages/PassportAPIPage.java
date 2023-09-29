@@ -5,6 +5,7 @@ import com.fasterxml.jackson.databind.JsonMappingException;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ObjectNode;
+import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import com.nimbusds.jwt.SignedJWT;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.logging.log4j.LogManager;
@@ -12,10 +13,12 @@ import org.apache.logging.log4j.Logger;
 import org.junit.Assert;
 import uk.gov.di.ipv.cri.passport.acceptance_tests.model.AuthorisationResponse;
 import uk.gov.di.ipv.cri.passport.acceptance_tests.model.CheckPassportSuccessResponse;
+import uk.gov.di.ipv.cri.passport.acceptance_tests.model.PassportFormData;
 import uk.gov.di.ipv.cri.passport.acceptance_tests.service.ConfigurationService;
 
 import java.io.File;
 import java.io.IOException;
+import java.lang.reflect.Field;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.net.http.HttpClient;
@@ -23,6 +26,7 @@ import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
 import java.text.ParseException;
 import java.util.Base64;
+import java.util.HashMap;
 import java.util.Map;
 
 import static org.junit.jupiter.api.Assertions.*;
@@ -36,7 +40,8 @@ public class PassportAPIPage extends PassportPageObject {
     private static String ACCESS_TOKEN;
     private static String VC;
     private static String RETRY;
-    private final ObjectMapper objectMapper = new ObjectMapper();
+    private final ObjectMapper objectMapper =
+            new ObjectMapper().registerModule(new JavaTimeModule());
 
     private final ConfigurationService configurationService =
             new ConfigurationService(System.getenv("ENVIRONMENT"));
@@ -105,13 +110,27 @@ public class PassportAPIPage extends PassportPageObject {
     }
 
     public void postRequestToPassportEndpoint(
-            String passportJsonRequestBody, String documentCheckingRoute)
-            throws IOException, InterruptedException {
+            String passportJsonRequestBody, String jsonEditsString, String documentCheckingRoute)
+            throws IOException, InterruptedException, NoSuchFieldException, IllegalAccessException {
+        Map<String, String> jsonEdits = new HashMap<>();
+        if (!StringUtils.isEmpty(jsonEditsString)) {
+            jsonEdits = objectMapper.readValue(jsonEditsString, Map.class);
+        }
+
         String privateApiGatewayUrl = configurationService.getPrivateAPIEndpoint();
-        JsonNode passportJson =
-                objectMapper.readTree(
-                        new File("src/test/resources/Data/" + passportJsonRequestBody + ".json"));
-        String passportInputJsonString = passportJson.toString();
+        PassportFormData passportJson =
+                objectMapper.readValue(
+                        new File("src/test/resources/Data/" + passportJsonRequestBody + ".json"),
+                        PassportFormData.class);
+
+        for (Map.Entry<String, String> entry : jsonEdits.entrySet()) {
+            Field field = passportJson.getClass().getDeclaredField(entry.getKey());
+            field.setAccessible(true);
+
+            field.set(passportJson, entry.getValue());
+        }
+        String passportInputJsonString = objectMapper.writeValueAsString(passportJson);
+
         HttpRequest.Builder builder = HttpRequest.newBuilder();
         builder.uri(URI.create(privateApiGatewayUrl + "/check-passport"))
                 .setHeader("Accept", "application/json")
@@ -143,6 +162,12 @@ public class PassportAPIPage extends PassportPageObject {
             RETRY = passportCheckResponse;
             LOGGER.info("RETRY = " + RETRY);
         }
+    }
+
+    public void postRequestToPassportEndpoint(
+            String passportJsonRequestBody, String documentCheckingRoute)
+            throws IOException, InterruptedException, NoSuchFieldException, IllegalAccessException {
+        postRequestToPassportEndpoint(passportJsonRequestBody, "", documentCheckingRoute);
     }
 
     public void retryValueInPassportCheckResponse(Boolean retry) {
@@ -179,8 +204,10 @@ public class PassportAPIPage extends PassportPageObject {
         LOGGER.info("authCallResponse = " + authCallResponse);
         AuthorisationResponse deserialisedResponse =
                 objectMapper.readValue(authCallResponse, AuthorisationResponse.class);
-        AUTHCODE = deserialisedResponse.getAuthorizationCode().getValue();
-        LOGGER.info("authorizationCode = " + AUTHCODE);
+        if (null != deserialisedResponse.getAuthorizationCode()) {
+            AUTHCODE = deserialisedResponse.getAuthorizationCode().getValue();
+            LOGGER.info("authorizationCode = " + AUTHCODE);
+        }
     }
 
     public void postRequestToAccessTokenEndpoint(String criId)
@@ -224,7 +251,7 @@ public class PassportAPIPage extends PassportPageObject {
     }
 
     public void validityScoreAndStrengthScoreInVC(String validityScore, String strengthScore)
-            throws URISyntaxException, IOException, InterruptedException, ParseException {
+            throws IOException, InterruptedException, ParseException {
         String passportCriVc = VC;
         if (null == VC) {
             passportCriVc = postRequestToPassportVCEndpoint();
@@ -242,7 +269,7 @@ public class PassportAPIPage extends PassportPageObject {
     }
 
     public void ciInPassportCriVc(String ci)
-            throws URISyntaxException, IOException, InterruptedException, ParseException {
+            throws IOException, InterruptedException, ParseException {
         String passportVc = postRequestToPassportVCEndpoint();
         JsonNode jsonNode = objectMapper.readTree((passportVc));
         JsonNode evidenceArray = jsonNode.get("vc").get("evidence");
@@ -251,6 +278,11 @@ public class PassportAPIPage extends PassportPageObject {
         JsonNode ciNode = ciInEvidenceArray.get("ci").get(0);
         String actualCI = ciNode.asText();
         Assert.assertEquals(ci, actualCI);
+    }
+
+    public void checkPassportResponseContainsException() {
+        RETRY.equals(
+                "{\"oauth_error\":{\"error_description\":\"Unexpected server error\",\"error\":\"server_error\"}}");
     }
 
     private String getClaimsForUser(String baseUrl, String criId, int userDataRowNumber)

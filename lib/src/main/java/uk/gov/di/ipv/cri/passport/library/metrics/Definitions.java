@@ -44,6 +44,11 @@ public class Definitions {
 
     public static final String PASSPORT_CI_PREFIX = "passport_ci_";
 
+    public static final String PASSPORT_FALL_BACK_EXECUTING = "passport_fallback_executing";
+
+    public static final String PASSPORT_VERIFICATION_FALLBACK_DEVIATION =
+            "passport_verification_fallback_deviation";
+
     // ThirdPartyAPIService metrics in Passport are recorded per API (DCS/DVAD)
     // For DVAD they are also recorded Per API Endpoint individually
     // See ThirdPartyAPIEndpointMetric

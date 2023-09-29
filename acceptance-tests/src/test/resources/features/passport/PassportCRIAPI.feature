@@ -91,3 +91,44 @@ Feature: Passport CRI API
 #      |PassportInvalidCI1JsonPayload    | D02|
 #     # CI2 Stub Test User for when passport is lost or stolen
 #      |PassportInvalidCI2JsonPayload    |D02 |
+
+  @passportCRI_API @pre-merge @dev @hmpoDVAD
+  Scenario Outline: Test passport API falls back to DCS when an exception occurs in the request and if exception occurs again it is thrown correctly
+    Given Passport user has the user identity in the form of a signed JWT string for CRI Id passport-v1-cri-dev and row number 6
+    And Passport user sends a POST request to session endpoint
+    And Passport user gets a session-id
+    When Passport user sends a editable POST request to Passport endpoint using jsonRequest <PassportJsonPayload> with edited fields <jsonEdits> and document checking route is dvad
+    Then Check response contains unexpected server error exception
+    Examples:
+      |PassportJsonPayload                   | jsonEdits |
+      |PassportValidKennethJsonPayload       | {"forenames": [] }  |
+
+  @passportCRI_API @pre-merge @dev @hmpoDVAD
+  Scenario Outline: Test passport API falls back to DCS when user is marked as unverified during the DVAD fallback window and the DCS request succeeds
+    Given Passport user has the user identity in the form of a signed JWT string for CRI Id passport-v1-cri-dev and row number 6
+    And Passport user sends a POST request to session endpoint
+    And Passport user gets a session-id
+    When Passport user sends a POST request to Passport endpoint using jsonRequest <PassportJsonPayload> and document checking route is dvad
+    And Passport user gets authorisation code
+    And Passport user sends a POST request to Access Token endpoint passport-v1-cri-dev
+    Then User requests Passport CRI VC
+    And Passport VC should contain validityScore 2 and strengthScore 4
+    And Passport VC should contain <checkDetails> checkDetails
+    Examples:
+      |PassportJsonPayload                         | checkDetails |
+      |PassportAlbertArkilDCSOnlyJsonPayload       | success      |
+
+  @passportCRI_API @pre-merge @dev @hmpoDVAD
+  Scenario Outline: Test passport API falls back to DCS when the request throws an exception during the DVAD fallback window and the DCS request succeeds
+    Given Passport user has the user identity in the form of a signed JWT string for CRI Id passport-v1-cri-dev and row number 6
+    And Passport user sends a POST request to session endpoint
+    And Passport user gets a session-id
+    When Passport user sends a POST request to Passport endpoint using jsonRequest <PassportJsonPayload> and document checking route is dvad
+    And Passport user gets authorisation code
+    And Passport user sends a POST request to Access Token endpoint passport-v1-cri-dev
+    Then User requests Passport CRI VC
+    And Passport VC should contain validityScore 2 and strengthScore 4
+    And Passport VC should contain <checkDetails> checkDetails
+    Examples:
+      |PassportJsonPayload                             | checkDetails |
+      |PassportAlexandraElegbaDCSOnlyJsonPayload       | success      |

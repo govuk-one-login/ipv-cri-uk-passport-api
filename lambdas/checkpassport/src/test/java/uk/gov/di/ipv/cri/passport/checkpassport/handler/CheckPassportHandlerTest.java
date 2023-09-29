@@ -9,6 +9,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import com.nimbusds.oauth2.sdk.OAuth2Error;
 import org.apache.http.impl.client.CloseableHttpClient;
+import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -18,6 +19,8 @@ import org.mockito.InOrder;
 import org.mockito.Mock;
 import org.mockito.Mockito;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.mockito.junit.jupiter.MockitoSettings;
+import org.mockito.quality.Strictness;
 import software.amazon.awssdk.http.HttpStatusCode;
 import uk.gov.di.ipv.cri.common.library.exception.SessionExpiredException;
 import uk.gov.di.ipv.cri.common.library.exception.SessionNotFoundException;
@@ -61,6 +64,7 @@ import static org.mockito.Mockito.verifyNoMoreInteractions;
 import static org.mockito.Mockito.when;
 import static uk.gov.di.ipv.cri.common.library.error.ErrorResponse.SESSION_EXPIRED;
 import static uk.gov.di.ipv.cri.common.library.error.ErrorResponse.SESSION_NOT_FOUND;
+import static uk.gov.di.ipv.cri.passport.checkpassport.handler.CheckPassportHandler.HEADER_DOCUMENT_CHECKING_ROUTE;
 import static uk.gov.di.ipv.cri.passport.checkpassport.handler.CheckPassportHandler.RESULT;
 import static uk.gov.di.ipv.cri.passport.checkpassport.handler.CheckPassportHandler.RESULT_RETRY;
 import static uk.gov.di.ipv.cri.passport.library.config.ParameterStoreParameters.DOCUMENT_CHECK_RESULT_TTL_PARAMETER;
@@ -69,31 +73,26 @@ import static uk.gov.di.ipv.cri.passport.library.config.ParameterStoreParameters
 import static uk.gov.di.ipv.cri.passport.library.config.ParameterStoreParameters.IS_DVAD_PERFORMANCE_STUB;
 import static uk.gov.di.ipv.cri.passport.library.config.ParameterStoreParameters.MAXIMUM_ATTEMPT_COUNT;
 import static uk.gov.di.ipv.cri.passport.library.domain.CheckType.DOCUMENT_DATA_VERIFICATION;
-import static uk.gov.di.ipv.cri.passport.library.metrics.Definitions.FORM_DATA_PARSE_FAIL;
-import static uk.gov.di.ipv.cri.passport.library.metrics.Definitions.FORM_DATA_PARSE_PASS;
-import static uk.gov.di.ipv.cri.passport.library.metrics.Definitions.LAMBDA_CHECK_PASSPORT_ATTEMPT_STATUS_RETRY;
-import static uk.gov.di.ipv.cri.passport.library.metrics.Definitions.LAMBDA_CHECK_PASSPORT_ATTEMPT_STATUS_UNVERIFIED;
-import static uk.gov.di.ipv.cri.passport.library.metrics.Definitions.LAMBDA_CHECK_PASSPORT_ATTEMPT_STATUS_VERIFIED_PREFIX;
-import static uk.gov.di.ipv.cri.passport.library.metrics.Definitions.LAMBDA_CHECK_PASSPORT_COMPLETED_ERROR;
-import static uk.gov.di.ipv.cri.passport.library.metrics.Definitions.LAMBDA_CHECK_PASSPORT_COMPLETED_OK;
-import static uk.gov.di.ipv.cri.passport.library.metrics.Definitions.LAMBDA_CHECK_PASSPORT_USER_REDIRECTED_ATTEMPTS_OVER_MAX;
+import static uk.gov.di.ipv.cri.passport.library.metrics.Definitions.*;
 
 @ExtendWith(MockitoExtension.class)
 @ExtendWith(SystemStubsExtension.class)
+@MockitoSettings(strictness = Strictness.WARN)
 class CheckPassportHandlerTest {
+
+    private final ObjectMapper realObjectMapper =
+            new ObjectMapper().registerModule(new JavaTimeModule());
     @SystemStub private EnvironmentVariables environmentVariables = new EnvironmentVariables();
 
     @Mock private Context mockLambdaContext;
 
     // Returned via the ServiceFactory
-    private final ObjectMapper realObjectMapper =
-            new ObjectMapper().registerModule(new JavaTimeModule());
-    @Mock private static EventProbe mockEventProbe;
-    @Mock private static ClientFactoryService mockClientFactoryService;
-    @Mock private static PassportConfigurationService mockPassportConfigurationService;
-    @Mock private static SessionService mockSessionService;
-    @Mock private static PersonIdentityService mockPersonIdentityService;
-    @Mock private static DataStore<DocumentCheckResultItem> mockDocumentCheckResultStore;
+    @Mock private EventProbe mockEventProbe;
+    @Mock private ClientFactoryService mockClientFactoryService;
+    @Mock private PassportConfigurationService mockPassportConfigurationService;
+    @Mock private SessionService mockSessionService;
+    @Mock private PersonIdentityService mockPersonIdentityService;
+    @Mock private DataStore<DocumentCheckResultItem> mockDocumentCheckResultStore;
 
     // Created in check passport
     @Mock private ServiceFactory mockServiceFactory;
@@ -119,6 +118,11 @@ class CheckPassportHandlerTest {
 
         this.checkPassportHandler =
                 new CheckPassportHandler(mockServiceFactory, mockDocumentDataVerificationService);
+    }
+
+    @AfterEach
+    public void tearDown() {
+        verifyNoMoreInteractions(mockDocumentDataVerificationService);
     }
 
     @Test
@@ -179,6 +183,12 @@ class CheckPassportHandlerTest {
                 .counterMetric(LAMBDA_CHECK_PASSPORT_ATTEMPT_STATUS_VERIFIED_PREFIX + 1);
         inOrder.verify(mockEventProbe).counterMetric(LAMBDA_CHECK_PASSPORT_COMPLETED_OK);
         verifyNoMoreInteractions(mockEventProbe);
+        verify(mockDocumentDataVerificationService)
+                .verifyData(
+                        any(DcsThirdPartyAPIService.class),
+                        eq(passportFormData),
+                        any(SessionItem.class),
+                        eq(requestHeaders));
 
         DocumentCheckResultItem documentCheckResultItem =
                 mapDocumentDataVerificationResultToDocumentCheckResultItem(
@@ -290,11 +300,24 @@ class CheckPassportHandlerTest {
                     mapDocumentDataVerificationResultToDocumentCheckResultItem(
                             sessionItem, testDocumentDataVerificationResult, passportFormData);
             verify(mockDocumentCheckResultStore).create(documentCheckResultItem);
+            verify(mockDocumentDataVerificationService)
+                    .verifyData(
+                            any(DcsThirdPartyAPIService.class),
+                            eq(passportFormData),
+                            any(SessionItem.class),
+                            eq(requestHeaders));
+
         } else if (sessionItem.getAttemptCount() < MAX_ATTEMPTS && !documentVerified) {
             // Any attempt below max attempts where the document is NOT verified
             inOrder.verify(mockEventProbe).counterMetric(FORM_DATA_PARSE_PASS);
             inOrder.verify(mockEventProbe)
                     .counterMetric(LAMBDA_CHECK_PASSPORT_ATTEMPT_STATUS_RETRY);
+            verify(mockDocumentDataVerificationService)
+                    .verifyData(
+                            any(DcsThirdPartyAPIService.class),
+                            eq(passportFormData),
+                            any(SessionItem.class),
+                            eq(requestHeaders));
 
             assertEquals(RESULT_RETRY, responseTreeRootNode.get(RESULT).textValue());
         } else if (sessionItem.getAttemptCount() == MAX_ATTEMPTS && !documentVerified) {
@@ -311,6 +334,13 @@ class CheckPassportHandlerTest {
                     mapDocumentDataVerificationResultToDocumentCheckResultItem(
                             sessionItem, testDocumentDataVerificationResult, passportFormData);
             verify(mockDocumentCheckResultStore).create(documentCheckResultItem);
+            verify(mockDocumentDataVerificationService)
+                    .verifyData(
+                            any(DcsThirdPartyAPIService.class),
+                            eq(passportFormData),
+                            any(SessionItem.class),
+                            eq(requestHeaders));
+
         } else {
             // A form is submitted but max attempts is already reached.
             // No form parsing, no attempt - user redirected
@@ -498,7 +528,7 @@ class CheckPassportHandlerTest {
         when(mockSessionService.validateSessionId(SESSION_ID)).thenReturn(sessionItem);
 
         when(mockDocumentDataVerificationService.verifyData(
-                        eq(mockThirdPartyAPIService),
+                        any(ThirdPartyAPIService.class),
                         any(PassportFormData.class),
                         eq(sessionItem),
                         eq(requestHeaders)))
@@ -512,13 +542,19 @@ class CheckPassportHandlerTest {
         APIGatewayProxyResponseEvent responseEvent =
                 checkPassportHandler.handleRequest(mockRequestEvent, mockLambdaContext);
 
+        verify(mockDocumentDataVerificationService)
+                .verifyData(
+                        any(DcsThirdPartyAPIService.class),
+                        eq(passportFormData),
+                        any(SessionItem.class),
+                        eq(requestHeaders));
+
         JsonNode responseTreeRootNode = realObjectMapper.readTree(responseEvent.getBody());
         JsonNode oauthErrorNode = responseTreeRootNode.get("oauth_error");
 
         CommonExpressOAuthError expectedObject =
                 new CommonExpressOAuthError(
                         OAuth2Error.SERVER_ERROR, OAuth2Error.SERVER_ERROR.getDescription());
-        System.out.println(responseTreeRootNode);
 
         assertNotNull(responseEvent);
         assertNotNull(responseTreeRootNode);
@@ -584,6 +620,272 @@ class CheckPassportHandlerTest {
         } else {
             assertEquals(thirdPartyAPIService.getClass(), DcsThirdPartyAPIService.class);
         }
+    }
+
+    @Test
+    void handleResponseShouldReturnOkResponseWhenDVAFailsAndWeHaveFallenBackToDCS()
+            throws JsonProcessingException, OAuthErrorResponseException {
+        final String SESSION_ID = UUID.randomUUID().toString();
+        final String STATE = UUID.randomUUID().toString();
+        final String REDIRECT_URI = "https://example.com";
+        final int ATTEMPT_NO = 0; // No previous attempt
+
+        PassportFormData passportFormData = PassportFormTestDataGenerator.generate();
+        String testRequestBody = realObjectMapper.writeValueAsString(passportFormData);
+
+        DocumentDataVerificationResult testDocumentDataVerificationResult =
+                DocumentDataVerificationServiceResultDataGenerator.generate(passportFormData);
+        testDocumentDataVerificationResult.setChecksSucceeded(
+                List.of(DOCUMENT_DATA_VERIFICATION.toString()));
+
+        APIGatewayProxyRequestEvent mockRequestEvent =
+                Mockito.mock(APIGatewayProxyRequestEvent.class);
+
+        when(mockRequestEvent.getBody()).thenReturn(testRequestBody);
+        Map<String, String> requestHeaders =
+                Map.of("session_id", SESSION_ID, HEADER_DOCUMENT_CHECKING_ROUTE, "dvad");
+        when(mockRequestEvent.getHeaders()).thenReturn(requestHeaders);
+
+        final var sessionItem = new SessionItem();
+        sessionItem.setSessionId(UUID.fromString(SESSION_ID));
+        sessionItem.setState(STATE);
+        sessionItem.setRedirectUri(URI.create(REDIRECT_URI));
+        sessionItem.setAttemptCount(ATTEMPT_NO);
+        when(mockSessionService.validateSessionId(SESSION_ID)).thenReturn(sessionItem);
+
+        when(mockDocumentDataVerificationService.verifyData(
+                        any(ThirdPartyAPIService.class),
+                        any(PassportFormData.class),
+                        eq(sessionItem),
+                        eq(requestHeaders)))
+                .thenThrow(new RuntimeException("DVAD is broke"))
+                .thenReturn(testDocumentDataVerificationResult);
+
+        when(mockPassportConfigurationService.getStackParameterValue(MAXIMUM_ATTEMPT_COUNT))
+                .thenReturn("2");
+
+        when(mockPassportConfigurationService.getStackParameterValue(DVA_DIGITAL_ENABLED))
+                .thenReturn("true");
+
+        when(mockPassportConfigurationService.getCommonParameterValue(
+                        DOCUMENT_CHECK_RESULT_TTL_PARAMETER))
+                .thenReturn("7200");
+
+        when(mockLambdaContext.getFunctionName()).thenReturn("functionName");
+        when(mockLambdaContext.getFunctionVersion()).thenReturn("1.0");
+
+        this.checkPassportHandler =
+                new CheckPassportHandler(mockServiceFactory, mockDocumentDataVerificationService);
+
+        APIGatewayProxyResponseEvent responseEvent =
+                checkPassportHandler.handleRequest(mockRequestEvent, mockLambdaContext);
+
+        InOrder inOrder = inOrder(mockEventProbe);
+        inOrder.verify(mockEventProbe).counterMetric(FORM_DATA_PARSE_PASS);
+        inOrder.verify(mockEventProbe).counterMetric(PASSPORT_FALL_BACK_EXECUTING);
+        inOrder.verify(mockEventProbe)
+                .counterMetric(LAMBDA_CHECK_PASSPORT_ATTEMPT_STATUS_VERIFIED_PREFIX + 1);
+        inOrder.verify(mockEventProbe).counterMetric(LAMBDA_CHECK_PASSPORT_COMPLETED_OK);
+
+        verifyNoMoreInteractions(mockEventProbe);
+
+        DocumentCheckResultItem documentCheckResultItem =
+                mapDocumentDataVerificationResultToDocumentCheckResultItem(
+                        sessionItem, testDocumentDataVerificationResult, passportFormData);
+        verify(mockDocumentCheckResultStore).create(documentCheckResultItem);
+        verify(mockDocumentDataVerificationService)
+                .verifyData(
+                        any(DvadThirdPartyAPIService.class),
+                        eq(passportFormData),
+                        any(SessionItem.class),
+                        eq(requestHeaders));
+        verify(mockDocumentDataVerificationService)
+                .verifyData(
+                        any(DcsThirdPartyAPIService.class),
+                        eq(passportFormData),
+                        any(SessionItem.class),
+                        eq(requestHeaders));
+        JsonNode responseTreeRootNode = realObjectMapper.readTree(responseEvent.getBody());
+
+        assertNotNull(responseEvent);
+        assertEquals(200, responseEvent.getStatusCode());
+        assertEquals(SESSION_ID, responseTreeRootNode.get("session_id").textValue());
+        assertEquals(STATE, responseTreeRootNode.get("state").textValue());
+        assertEquals(REDIRECT_URI, responseTreeRootNode.get("redirect_uri").textValue());
+    }
+
+    @Test
+    void handleResponseShouldCheckAgainstDCSWhenHMPOReturnsUnverified()
+            throws JsonProcessingException, OAuthErrorResponseException {
+        final String SESSION_ID = UUID.randomUUID().toString();
+        final String STATE = UUID.randomUUID().toString();
+        final String REDIRECT_URI = "https://example.com";
+        final int ATTEMPT_NO = 0; // No previous attempt
+
+        PassportFormData passportFormData = PassportFormTestDataGenerator.generate();
+        String testRequestBody = realObjectMapper.writeValueAsString(passportFormData);
+
+        DocumentDataVerificationResult testDocumentDataVerificationResultVerified =
+                DocumentDataVerificationServiceResultDataGenerator.generate(passportFormData);
+        testDocumentDataVerificationResultVerified.setChecksSucceeded(
+                List.of(DOCUMENT_DATA_VERIFICATION.toString()));
+
+        DocumentDataVerificationResult testDocumentDataVerificationResultUnverified =
+                DocumentDataVerificationServiceResultDataGenerator.generate(passportFormData);
+        testDocumentDataVerificationResultUnverified.setVerified(false);
+
+        APIGatewayProxyRequestEvent mockRequestEvent =
+                Mockito.mock(APIGatewayProxyRequestEvent.class);
+
+        when(mockRequestEvent.getBody()).thenReturn(testRequestBody);
+        Map<String, String> requestHeaders =
+                Map.of("session_id", SESSION_ID, HEADER_DOCUMENT_CHECKING_ROUTE, "dvad");
+        when(mockRequestEvent.getHeaders()).thenReturn(requestHeaders);
+
+        final var sessionItem = new SessionItem();
+        sessionItem.setSessionId(UUID.fromString(SESSION_ID));
+        sessionItem.setState(STATE);
+        sessionItem.setRedirectUri(URI.create(REDIRECT_URI));
+        sessionItem.setAttemptCount(ATTEMPT_NO);
+        when(mockSessionService.validateSessionId(SESSION_ID)).thenReturn(sessionItem);
+
+        when(mockDocumentDataVerificationService.verifyData(
+                        any(ThirdPartyAPIService.class),
+                        any(PassportFormData.class),
+                        eq(sessionItem),
+                        eq(requestHeaders)))
+                .thenReturn(testDocumentDataVerificationResultUnverified)
+                .thenReturn(testDocumentDataVerificationResultVerified);
+
+        when(mockPassportConfigurationService.getStackParameterValue(MAXIMUM_ATTEMPT_COUNT))
+                .thenReturn("2");
+
+        when(mockPassportConfigurationService.getStackParameterValue(DVA_DIGITAL_ENABLED))
+                .thenReturn("true");
+
+        when(mockPassportConfigurationService.getCommonParameterValue(
+                        DOCUMENT_CHECK_RESULT_TTL_PARAMETER))
+                .thenReturn("7200");
+
+        when(mockLambdaContext.getFunctionName()).thenReturn("functionName");
+        when(mockLambdaContext.getFunctionVersion()).thenReturn("1.0");
+
+        this.checkPassportHandler =
+                new CheckPassportHandler(mockServiceFactory, mockDocumentDataVerificationService);
+
+        APIGatewayProxyResponseEvent responseEvent =
+                checkPassportHandler.handleRequest(mockRequestEvent, mockLambdaContext);
+
+        InOrder inOrder = inOrder(mockEventProbe);
+        inOrder.verify(mockEventProbe).counterMetric(FORM_DATA_PARSE_PASS);
+        inOrder.verify(mockEventProbe).counterMetric(PASSPORT_FALL_BACK_EXECUTING);
+        inOrder.verify(mockEventProbe).counterMetric(PASSPORT_VERIFICATION_FALLBACK_DEVIATION);
+        inOrder.verify(mockEventProbe)
+                .counterMetric(LAMBDA_CHECK_PASSPORT_ATTEMPT_STATUS_VERIFIED_PREFIX + 1);
+        inOrder.verify(mockEventProbe).counterMetric(LAMBDA_CHECK_PASSPORT_COMPLETED_OK);
+
+        verifyNoMoreInteractions(mockEventProbe);
+
+        DocumentCheckResultItem documentCheckResultItem =
+                mapDocumentDataVerificationResultToDocumentCheckResultItem(
+                        sessionItem, testDocumentDataVerificationResultVerified, passportFormData);
+        verify(mockDocumentCheckResultStore).create(documentCheckResultItem);
+        verify(mockDocumentDataVerificationService)
+                .verifyData(
+                        any(DvadThirdPartyAPIService.class),
+                        eq(passportFormData),
+                        any(SessionItem.class),
+                        eq(requestHeaders));
+        verify(mockDocumentDataVerificationService)
+                .verifyData(
+                        any(DcsThirdPartyAPIService.class),
+                        eq(passportFormData),
+                        any(SessionItem.class),
+                        eq(requestHeaders));
+        JsonNode responseTreeRootNode = realObjectMapper.readTree(responseEvent.getBody());
+
+        assertNotNull(responseEvent);
+        assertEquals(200, responseEvent.getStatusCode());
+        assertEquals(SESSION_ID, responseTreeRootNode.get("session_id").textValue());
+        assertEquals(STATE, responseTreeRootNode.get("state").textValue());
+        assertEquals(REDIRECT_URI, responseTreeRootNode.get("redirect_uri").textValue());
+    }
+
+    @Test
+    void handleResponseShouldReturnExceptionIfBothHMPOandDCSFail()
+            throws JsonProcessingException, OAuthErrorResponseException {
+        final String SESSION_ID = UUID.randomUUID().toString();
+        final String STATE = UUID.randomUUID().toString();
+        final String REDIRECT_URI = "https://example.com";
+        final int ATTEMPT_NO = 0; // No previous attempt
+
+        PassportFormData passportFormData = PassportFormTestDataGenerator.generate();
+        String testRequestBody = realObjectMapper.writeValueAsString(passportFormData);
+
+        DocumentDataVerificationResult testDocumentDataVerificationResult =
+                DocumentDataVerificationServiceResultDataGenerator.generate(passportFormData);
+        testDocumentDataVerificationResult.setChecksSucceeded(
+                List.of(DOCUMENT_DATA_VERIFICATION.toString()));
+
+        APIGatewayProxyRequestEvent mockRequestEvent =
+                Mockito.mock(APIGatewayProxyRequestEvent.class);
+
+        when(mockRequestEvent.getBody()).thenReturn(testRequestBody);
+        Map<String, String> requestHeaders =
+                Map.of("session_id", SESSION_ID, HEADER_DOCUMENT_CHECKING_ROUTE, "dvad");
+        when(mockRequestEvent.getHeaders()).thenReturn(requestHeaders);
+
+        final var sessionItem = new SessionItem();
+        sessionItem.setSessionId(UUID.fromString(SESSION_ID));
+        sessionItem.setState(STATE);
+        sessionItem.setRedirectUri(URI.create(REDIRECT_URI));
+        sessionItem.setAttemptCount(ATTEMPT_NO);
+        when(mockSessionService.validateSessionId(SESSION_ID)).thenReturn(sessionItem);
+
+        when(mockDocumentDataVerificationService.verifyData(
+                        any(ThirdPartyAPIService.class),
+                        any(PassportFormData.class),
+                        eq(sessionItem),
+                        eq(requestHeaders)))
+                .thenThrow(new RuntimeException("DVAD is broke"));
+
+        when(mockPassportConfigurationService.getStackParameterValue(MAXIMUM_ATTEMPT_COUNT))
+                .thenReturn("2");
+
+        when(mockPassportConfigurationService.getStackParameterValue(DVA_DIGITAL_ENABLED))
+                .thenReturn("true");
+
+        when(mockLambdaContext.getFunctionName()).thenReturn("functionName");
+        when(mockLambdaContext.getFunctionVersion()).thenReturn("1.0");
+
+        this.checkPassportHandler =
+                new CheckPassportHandler(mockServiceFactory, mockDocumentDataVerificationService);
+
+        APIGatewayProxyResponseEvent responseEvent =
+                checkPassportHandler.handleRequest(mockRequestEvent, mockLambdaContext);
+
+        InOrder inOrder = inOrder(mockEventProbe);
+        inOrder.verify(mockEventProbe).counterMetric(FORM_DATA_PARSE_PASS);
+        inOrder.verify(mockEventProbe).counterMetric(PASSPORT_FALL_BACK_EXECUTING);
+        inOrder.verify(mockEventProbe).counterMetric(LAMBDA_CHECK_PASSPORT_COMPLETED_ERROR);
+
+        verifyNoMoreInteractions(mockEventProbe);
+
+        verify(mockDocumentDataVerificationService)
+                .verifyData(
+                        any(DvadThirdPartyAPIService.class),
+                        eq(passportFormData),
+                        any(SessionItem.class),
+                        eq(requestHeaders));
+        verify(mockDocumentDataVerificationService)
+                .verifyData(
+                        any(DcsThirdPartyAPIService.class),
+                        eq(passportFormData),
+                        any(SessionItem.class),
+                        eq(requestHeaders));
+
+        assertNotNull(responseEvent);
+        assertEquals(500, responseEvent.getStatusCode());
     }
 
     private void mockServiceFactoryBehaviour() {

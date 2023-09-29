@@ -1,20 +1,15 @@
-package uk.gov.di.ipv.cri.passport.library.domain;
+package uk.gov.di.ipv.cri.passport.acceptance_tests.model;
 
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonFormat;
 import com.fasterxml.jackson.annotation.JsonProperty;
-import software.amazon.awssdk.enhanced.dynamodb.mapper.annotations.DynamoDbBean;
-import uk.gov.di.ipv.cri.common.library.annotations.ExcludeFromGeneratedCoverageReport;
 
 import java.text.SimpleDateFormat;
 import java.time.LocalDate;
 import java.util.Date;
 import java.util.List;
-import java.util.Objects;
 import java.util.UUID;
 
-@DynamoDbBean
-@ExcludeFromGeneratedCoverageReport
 public class PassportFormData {
     private static final String DATE_FORMAT = "yyyy-MM-dd";
     private static final String TIMESTAMP_DATE_FORMAT = "yyyy-MM-dd'T'HH:mm:ss.SSSZ";
@@ -117,34 +112,6 @@ public class PassportFormData {
 
     public void setExpiryDate(LocalDate expiryDate) {
         this.expiryDate = expiryDate;
-    }
-
-    @Override
-    public boolean equals(Object o) {
-        if (this == o) return true;
-        if (o == null || getClass() != o.getClass()) return false;
-        PassportFormData that = (PassportFormData) o;
-        return Objects.equals(correlationId, that.correlationId)
-                && Objects.equals(requestId, that.requestId)
-                && Objects.equals(timestamp, that.timestamp)
-                && Objects.equals(passportNumber, that.passportNumber)
-                && Objects.equals(surname, that.surname)
-                && Objects.equals(forenames, that.forenames)
-                && Objects.equals(dateOfBirth, that.dateOfBirth)
-                && Objects.equals(expiryDate, that.expiryDate);
-    }
-
-    @Override
-    public int hashCode() {
-        return Objects.hash(
-                correlationId,
-                requestId,
-                timestamp,
-                passportNumber,
-                surname,
-                forenames,
-                dateOfBirth,
-                expiryDate);
     }
 
     @Override

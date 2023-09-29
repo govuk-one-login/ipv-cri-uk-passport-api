@@ -29,6 +29,7 @@ import uk.gov.di.ipv.cri.passport.checkpassport.services.DocumentDataVerificatio
 import uk.gov.di.ipv.cri.passport.checkpassport.services.FormDataValidator;
 import uk.gov.di.ipv.cri.passport.checkpassport.services.ThirdPartyAPIService;
 import uk.gov.di.ipv.cri.passport.checkpassport.services.ThirdPartyAPIServiceFactory;
+import uk.gov.di.ipv.cri.passport.checkpassport.services.dcs.DcsThirdPartyAPIService;
 import uk.gov.di.ipv.cri.passport.library.domain.PassportFormData;
 import uk.gov.di.ipv.cri.passport.library.error.CommonExpressOAuthError;
 import uk.gov.di.ipv.cri.passport.library.error.ErrorResponse;
@@ -49,14 +50,7 @@ import static uk.gov.di.ipv.cri.passport.library.config.ParameterStoreParameters
 import static uk.gov.di.ipv.cri.passport.library.config.ParameterStoreParameters.DOCUMENT_CHECK_RESULT_TTL_PARAMETER;
 import static uk.gov.di.ipv.cri.passport.library.config.ParameterStoreParameters.DVA_DIGITAL_ENABLED;
 import static uk.gov.di.ipv.cri.passport.library.config.ParameterStoreParameters.MAXIMUM_ATTEMPT_COUNT;
-import static uk.gov.di.ipv.cri.passport.library.metrics.Definitions.FORM_DATA_PARSE_FAIL;
-import static uk.gov.di.ipv.cri.passport.library.metrics.Definitions.FORM_DATA_PARSE_PASS;
-import static uk.gov.di.ipv.cri.passport.library.metrics.Definitions.LAMBDA_CHECK_PASSPORT_ATTEMPT_STATUS_RETRY;
-import static uk.gov.di.ipv.cri.passport.library.metrics.Definitions.LAMBDA_CHECK_PASSPORT_ATTEMPT_STATUS_UNVERIFIED;
-import static uk.gov.di.ipv.cri.passport.library.metrics.Definitions.LAMBDA_CHECK_PASSPORT_ATTEMPT_STATUS_VERIFIED_PREFIX;
-import static uk.gov.di.ipv.cri.passport.library.metrics.Definitions.LAMBDA_CHECK_PASSPORT_COMPLETED_ERROR;
-import static uk.gov.di.ipv.cri.passport.library.metrics.Definitions.LAMBDA_CHECK_PASSPORT_COMPLETED_OK;
-import static uk.gov.di.ipv.cri.passport.library.metrics.Definitions.LAMBDA_CHECK_PASSPORT_USER_REDIRECTED_ATTEMPTS_OVER_MAX;
+import static uk.gov.di.ipv.cri.passport.library.metrics.Definitions.*;
 
 public class CheckPassportHandler
         implements RequestHandler<APIGatewayProxyRequestEvent, APIGatewayProxyResponseEvent> {
@@ -185,9 +179,42 @@ public class CheckPassportHandler
             ThirdPartyAPIService thirdPartyAPIService =
                     selectThirdPartyAPIService(dvaDigitalEnabled, newThirdpartyAPI);
 
-            DocumentDataVerificationResult documentDataVerificationResult =
-                    documentDataVerificationService.verifyData(
-                            thirdPartyAPIService, passportFormData, sessionItem, requestHeaders);
+            LOGGER.info("Thirdparty API service is {}", thirdPartyAPIService.getServiceName());
+
+            // Fallback functionality
+            DocumentDataVerificationResult documentDataVerificationResult = null;
+            boolean thirdPartyIsDcs =
+                    thirdPartyAPIService
+                            .getServiceName()
+                            .equals(DcsThirdPartyAPIService.class.getSimpleName());
+
+            try {
+                documentDataVerificationResult =
+                        documentDataVerificationService.verifyData(
+                                thirdPartyAPIService,
+                                passportFormData,
+                                sessionItem,
+                                requestHeaders);
+                if (!thirdPartyIsDcs) {
+                    LOGGER.info("Checking if verification fallback is required");
+                    documentDataVerificationResult =
+                            executeFallbackIfDocumentFailedToVerify(
+                                    documentDataVerificationResult,
+                                    requestHeaders,
+                                    sessionItem,
+                                    passportFormData);
+                }
+            } catch (Exception e) {
+                LOGGER.info("Exception checking if fallback is required");
+                if (!thirdPartyIsDcs) {
+                    LOGGER.info(
+                            "Exception has occurred during fallback window. Executing request with DVAD");
+                    documentDataVerificationResult =
+                            executeFallbackRequest(requestHeaders, sessionItem, passportFormData);
+                } else {
+                    throw e;
+                }
+            }
 
             saveAttempt(sessionItem, passportFormData, documentDataVerificationResult);
 
@@ -273,6 +300,37 @@ public class CheckPassportHandler
                     HttpStatusCode.INTERNAL_SERVER_ERROR,
                     new CommonExpressOAuthError(OAuth2Error.SERVER_ERROR));
         }
+    }
+
+    private DocumentDataVerificationResult executeFallbackRequest(
+            Map<String, String> requestHeaders,
+            SessionItem sessionItem,
+            PassportFormData passportFormData)
+            throws Exception {
+        ThirdPartyAPIService fallbackThirdPartyService = selectThirdPartyAPIService(false, false);
+        eventProbe.counterMetric(PASSPORT_FALL_BACK_EXECUTING);
+        return documentDataVerificationService.verifyData(
+                fallbackThirdPartyService, passportFormData, sessionItem, requestHeaders);
+    }
+
+    private DocumentDataVerificationResult executeFallbackIfDocumentFailedToVerify(
+            DocumentDataVerificationResult documentDataVerificationResult,
+            Map<String, String> requestHeaders,
+            SessionItem sessionItem,
+            PassportFormData passportFormData)
+            throws Exception {
+        if (!documentDataVerificationResult.isVerified()) {
+            LOGGER.info(
+                    "Document has been marked unverified during fallback window. Executing request with DVAD");
+            documentDataVerificationResult =
+                    executeFallbackRequest(requestHeaders, sessionItem, passportFormData);
+            if (documentDataVerificationResult.isVerified()) {
+                eventProbe.counterMetric(PASSPORT_VERIFICATION_FALLBACK_DEVIATION);
+                LOGGER.warn(
+                        "Document has been verified using DCS that failed verification using DVAD");
+            }
+        }
+        return documentDataVerificationResult;
     }
 
     private boolean determineVerificationRetryStatus(
