@@ -142,8 +142,8 @@ Mappings:
       dev: "true"
       build: "true"
       staging: "true"
-      integration: "false"
-      production: "false"
+      integration: "true"
+      production: "true"
 
   ProvisionedConcurrency:
     Environment:

@@ -173,8 +173,8 @@ public class CheckPassportHandler
                     Boolean.parseBoolean(
                             passportConfigurationService.getStackParameterValue(
                                     DVA_DIGITAL_ENABLED));
-            boolean newThirdpartyAPI =
-                    "dvad".equals(requestHeaders.get(HEADER_DOCUMENT_CHECKING_ROUTE));
+            boolean newThirdpartyAPI = true;
+            // "dvad".equals(requestHeaders.get(HEADER_DOCUMENT_CHECKING_ROUTE));
 
             ThirdPartyAPIService thirdPartyAPIService =
                     selectThirdPartyAPIService(dvaDigitalEnabled, newThirdpartyAPI);

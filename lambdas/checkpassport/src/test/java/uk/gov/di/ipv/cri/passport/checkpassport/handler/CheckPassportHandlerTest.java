@@ -166,7 +166,7 @@ class CheckPassportHandlerTest {
                 .thenReturn("2");
 
         when(mockPassportConfigurationService.getStackParameterValue(DVA_DIGITAL_ENABLED))
-                .thenReturn("false");
+                .thenReturn("true");
 
         when(mockPassportConfigurationService.getCommonParameterValue(
                         DOCUMENT_CHECK_RESULT_TTL_PARAMETER))
@@ -185,7 +185,7 @@ class CheckPassportHandlerTest {
         verifyNoMoreInteractions(mockEventProbe);
         verify(mockDocumentDataVerificationService)
                 .verifyData(
-                        any(DcsThirdPartyAPIService.class),
+                        any(DvadThirdPartyAPIService.class),
                         eq(passportFormData),
                         any(SessionItem.class),
                         eq(requestHeaders));
@@ -256,14 +256,20 @@ class CheckPassportHandlerTest {
             // parsePassportFormRequest
             when(mockRequestEvent.getBody()).thenReturn(testRequestBody);
             when(mockDocumentDataVerificationService.verifyData(
-                            any(ThirdPartyAPIService.class),
+                            any(DvadThirdPartyAPIService.class),
                             any(PassportFormData.class),
-                            eq(sessionItem),
+                            any(SessionItem.class),
+                            eq(requestHeaders)))
+                    .thenReturn(testDocumentDataVerificationResult);
+            when(mockDocumentDataVerificationService.verifyData(
+                            any(DcsThirdPartyAPIService.class),
+                            any(PassportFormData.class),
+                            any(SessionItem.class),
                             eq(requestHeaders)))
                     .thenReturn(testDocumentDataVerificationResult);
 
             when(mockPassportConfigurationService.getStackParameterValue(DVA_DIGITAL_ENABLED))
-                    .thenReturn("false");
+                    .thenReturn("true");
 
             when(mockPassportConfigurationService.getCommonParameterValue(
                             DOCUMENT_CHECK_RESULT_TTL_PARAMETER))
@@ -302,7 +308,7 @@ class CheckPassportHandlerTest {
             verify(mockDocumentCheckResultStore).create(documentCheckResultItem);
             verify(mockDocumentDataVerificationService)
                     .verifyData(
-                            any(DcsThirdPartyAPIService.class),
+                            any(DvadThirdPartyAPIService.class),
                             eq(passportFormData),
                             any(SessionItem.class),
                             eq(requestHeaders));
@@ -310,8 +316,16 @@ class CheckPassportHandlerTest {
         } else if (sessionItem.getAttemptCount() < MAX_ATTEMPTS && !documentVerified) {
             // Any attempt below max attempts where the document is NOT verified
             inOrder.verify(mockEventProbe).counterMetric(FORM_DATA_PARSE_PASS);
+            inOrder.verify(mockEventProbe).counterMetric(PASSPORT_FALL_BACK_EXECUTING);
+
             inOrder.verify(mockEventProbe)
                     .counterMetric(LAMBDA_CHECK_PASSPORT_ATTEMPT_STATUS_RETRY);
+            verify(mockDocumentDataVerificationService)
+                    .verifyData(
+                            any(DvadThirdPartyAPIService.class),
+                            eq(passportFormData),
+                            any(SessionItem.class),
+                            eq(requestHeaders));
             verify(mockDocumentDataVerificationService)
                     .verifyData(
                             any(DcsThirdPartyAPIService.class),
@@ -323,6 +337,8 @@ class CheckPassportHandlerTest {
         } else if (sessionItem.getAttemptCount() == MAX_ATTEMPTS && !documentVerified) {
             // The last possible attempt reaches max attempts and the document is NOT verified
             inOrder.verify(mockEventProbe).counterMetric(FORM_DATA_PARSE_PASS);
+            inOrder.verify(mockEventProbe).counterMetric(PASSPORT_FALL_BACK_EXECUTING);
+
             inOrder.verify(mockEventProbe)
                     .counterMetric(LAMBDA_CHECK_PASSPORT_ATTEMPT_STATUS_UNVERIFIED);
 
@@ -334,6 +350,12 @@ class CheckPassportHandlerTest {
                     mapDocumentDataVerificationResultToDocumentCheckResultItem(
                             sessionItem, testDocumentDataVerificationResult, passportFormData);
             verify(mockDocumentCheckResultStore).create(documentCheckResultItem);
+            verify(mockDocumentDataVerificationService)
+                    .verifyData(
+                            any(DvadThirdPartyAPIService.class),
+                            eq(passportFormData),
+                            any(SessionItem.class),
+                            eq(requestHeaders));
             verify(mockDocumentDataVerificationService)
                     .verifyData(
                             any(DcsThirdPartyAPIService.class),
