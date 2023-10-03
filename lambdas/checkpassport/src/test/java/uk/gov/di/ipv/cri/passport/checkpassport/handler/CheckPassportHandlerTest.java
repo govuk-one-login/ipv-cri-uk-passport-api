@@ -50,6 +50,7 @@ import uk.org.webcompere.systemstubs.jupiter.SystemStubsExtension;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.net.URI;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
@@ -138,6 +139,7 @@ class CheckPassportHandlerTest {
 
         DocumentDataVerificationResult testDocumentDataVerificationResult =
                 DocumentDataVerificationServiceResultDataGenerator.generate(passportFormData);
+        testDocumentDataVerificationResult.setContraIndicators(new ArrayList<>());
         testDocumentDataVerificationResult.setChecksSucceeded(
                 List.of(DOCUMENT_DATA_VERIFICATION.toString()));
 
@@ -230,6 +232,7 @@ class CheckPassportHandlerTest {
         if (documentVerified) {
             testDocumentDataVerificationResult.setChecksSucceeded(
                     List.of(DOCUMENT_DATA_VERIFICATION.toString()));
+            testDocumentDataVerificationResult.setContraIndicators(new ArrayList<>());
         } else {
             testDocumentDataVerificationResult.setChecksFailed(
                     List.of(DOCUMENT_DATA_VERIFICATION.toString()));

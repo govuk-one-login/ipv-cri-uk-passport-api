@@ -205,7 +205,7 @@ public class CheckPassportHandler
                                     passportFormData);
                 }
             } catch (Exception e) {
-                LOGGER.info("Exception checking if fallback is required");
+                LOGGER.info("Exception {}, checking if fallback is required", e.getMessage());
                 if (!thirdPartyIsDcs) {
                     LOGGER.info(
                             "Exception has occurred during fallback window. Executing request with DVAD");
@@ -319,7 +319,8 @@ public class CheckPassportHandler
             SessionItem sessionItem,
             PassportFormData passportFormData)
             throws Exception {
-        if (!documentDataVerificationResult.isVerified()) {
+        if (!documentDataVerificationResult.isVerified()
+                || !documentDataVerificationResult.getContraIndicators().isEmpty()) {
             LOGGER.info(
                     "Document has been marked unverified during fallback window. Executing request with DVAD");
             documentDataVerificationResult =

@@ -155,7 +155,7 @@ Feature: Passport CRI API
     And Passport VC should contain ci <CI>, validityScore 0 and strengthScore 4
     And Passport VC should contain <checkDetails> checkDetails
     Examples:
-      |PassportJsonPayload              | CI | checkDetails |
-      |PassportInvalidCI1JsonPayload    |D02 |  failed            |
-      |PassportInvalidCI2JsonPayload    |D02 |  failed            |
-      |PassportInvalidJsonPayload       |D02 |  failed            |
+      |PassportJsonPayload              | CI  | checkDetails |
+      |PassportInvalidCI1JsonPayload    | D02 |  failed            |
+      |PassportInvalidCI2JsonPayload    | D02 |  failed            |
+      |PassportInvalidJsonPayload       | D02 |  failed            |

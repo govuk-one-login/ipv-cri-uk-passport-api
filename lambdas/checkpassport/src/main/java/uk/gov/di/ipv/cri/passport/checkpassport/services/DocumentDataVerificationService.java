@@ -25,6 +25,7 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.stream.Collectors;
 
 import static uk.gov.di.ipv.cri.passport.library.domain.CheckType.DOCUMENT_DATA_VERIFICATION;
 import static uk.gov.di.ipv.cri.passport.library.metrics.Definitions.DOCUMENT_DATA_VERIFICATION_REQUEST_FAILED;
@@ -107,6 +108,17 @@ public class DocumentDataVerificationService {
 
             int documentStrengthScore = MAX_PASSPORT_GPG45_STRENGTH_VALUE;
             int documentValidityScore = calculateValidity(thirdPartyAPIResult, cis);
+
+            if (null != thirdPartyAPIResult.getFlags()) {
+                LOGGER.info(
+                        "Passport check performed successfully. Flags {}, CIs {}",
+                        thirdPartyAPIResult.getFlags().keySet().stream()
+                                .map(key -> key + "=" + thirdPartyAPIResult.getFlags().get(key))
+                                .collect(Collectors.joining(", ", "{", "}")),
+                        String.join(",", cis));
+            } else {
+                LOGGER.info("No flags returned on request to {}", apiResultSource);
+            }
 
             LOGGER.info(
                     "Generating Document Data Verification Result from {} ThirdPartyAPIResult",
