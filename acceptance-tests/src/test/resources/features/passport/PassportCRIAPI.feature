@@ -59,7 +59,7 @@ Feature: Passport CRI API
 
 #  Bug LIME-776 raised to fix the validity score
   @hmpoDVAD @passportCRI_API @pre-merge @dev
-  Scenario Outline: Create call to auth token from Passport CRI with dvad as document checking route and when passport is cancelled or lost
+  Scenario Outline: Create call to auth token from Passport CRI with dvad as document checking route and test CI scenarios
     Given Passport user has the user identity in the form of a signed JWT string for CRI Id passport-v1-cri-dev and row number 6
     And Passport user sends a POST request to session endpoint
     And Passport user gets a session-id
@@ -71,6 +71,6 @@ Feature: Passport CRI API
     And Passport VC should contain <checkDetails> checkDetails
     Examples:
       |PassportJsonPayload              | CI  | checkDetails |
-      |PassportInvalidCI1JsonPayload    | D02 |  failed            |
-      |PassportInvalidCI2JsonPayload    | D02 |  failed            |
+      |PassportInvalidCI1JsonPayload    | D01 |  failed            |
+      |PassportInvalidCI2JsonPayload    | D01 |  failed            |
       |PassportInvalidJsonPayload       | D02 |  failed            |
