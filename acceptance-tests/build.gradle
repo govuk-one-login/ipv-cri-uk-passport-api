@@ -1,6 +1,7 @@
 plugins {
 	id 'java'
 	id "io.freefair.aspectj.post-compile-weaving" version "6.3.0"
+	id "org.owasp.dependencycheck" version "8.4.0"
 }
 
 defaultTasks 'clean', 'build'
@@ -21,10 +22,10 @@ dependencies {
 
 	var dependencyVersions = [
 		// Implementation
-		cri_common_lib_version             : "1.4.3",
-		nimbusds_oauth_version             : "10.8",
-		nimbusds_jwt_version               : "9.31",
-		aws_sdk_version                    : "2.20.18",
+		cri_common_lib_version             : "1.5.3",
+		nimbusds_oauth_version             : "11.2",
+		nimbusds_jwt_version               : "9.36",
+		aws_sdk_version                    : "2.20.162",
 		aws_lambda_core_version            : "1.2.1",
 		aws_lambda_events_version          : "3.11.3",
 		jackson_version                    : "2.14.0",
@@ -174,3 +175,4 @@ tasks.register('passportCriSmokeStaging') {
 }
 
 apply plugin: 'java'
+apply plugin: 'org.owasp.dependencycheck'
