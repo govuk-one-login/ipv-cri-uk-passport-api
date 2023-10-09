@@ -29,7 +29,6 @@ import uk.gov.di.ipv.cri.passport.checkpassport.services.DocumentDataVerificatio
 import uk.gov.di.ipv.cri.passport.checkpassport.services.FormDataValidator;
 import uk.gov.di.ipv.cri.passport.checkpassport.services.ThirdPartyAPIService;
 import uk.gov.di.ipv.cri.passport.checkpassport.services.ThirdPartyAPIServiceFactory;
-import uk.gov.di.ipv.cri.passport.checkpassport.services.dcs.DcsThirdPartyAPIService;
 import uk.gov.di.ipv.cri.passport.library.domain.PassportFormData;
 import uk.gov.di.ipv.cri.passport.library.error.CommonExpressOAuthError;
 import uk.gov.di.ipv.cri.passport.library.error.ErrorResponse;
@@ -173,48 +172,15 @@ public class CheckPassportHandler
                     Boolean.parseBoolean(
                             passportConfigurationService.getStackParameterValue(
                                     DVA_DIGITAL_ENABLED));
-            boolean newThirdpartyAPI = true;
-            // "dvad".equals(requestHeaders.get(HEADER_DOCUMENT_CHECKING_ROUTE));
 
             ThirdPartyAPIService thirdPartyAPIService =
-                    selectThirdPartyAPIService(dvaDigitalEnabled, newThirdpartyAPI);
+                    selectThirdPartyAPIService(dvaDigitalEnabled);
 
             LOGGER.info("Thirdparty API service is {}", thirdPartyAPIService.getServiceName());
 
-            // Fallback functionality
-            DocumentDataVerificationResult documentDataVerificationResult = null;
-            boolean thirdPartyIsDcs =
-                    thirdPartyAPIService
-                            .getServiceName()
-                            .equals(DcsThirdPartyAPIService.class.getSimpleName());
-
-            try {
-                documentDataVerificationResult =
-                        documentDataVerificationService.verifyData(
-                                thirdPartyAPIService,
-                                passportFormData,
-                                sessionItem,
-                                requestHeaders);
-                if (!thirdPartyIsDcs) {
-                    LOGGER.info("Checking if verification fallback is required");
-                    documentDataVerificationResult =
-                            executeFallbackIfDocumentFailedToVerify(
-                                    documentDataVerificationResult,
-                                    requestHeaders,
-                                    sessionItem,
-                                    passportFormData);
-                }
-            } catch (Exception e) {
-                LOGGER.info("Exception {}, checking if fallback is required", e.getMessage());
-                if (!thirdPartyIsDcs) {
-                    LOGGER.info(
-                            "Exception has occurred during fallback window. Executing request with DVAD");
-                    documentDataVerificationResult =
-                            executeFallbackRequest(requestHeaders, sessionItem, passportFormData);
-                } else {
-                    throw e;
-                }
-            }
+            DocumentDataVerificationResult documentDataVerificationResult =
+                    documentDataVerificationService.verifyData(
+                            thirdPartyAPIService, passportFormData, sessionItem, requestHeaders);
 
             saveAttempt(sessionItem, passportFormData, documentDataVerificationResult);
 
@@ -300,38 +266,6 @@ public class CheckPassportHandler
                     HttpStatusCode.INTERNAL_SERVER_ERROR,
                     new CommonExpressOAuthError(OAuth2Error.SERVER_ERROR));
         }
-    }
-
-    private DocumentDataVerificationResult executeFallbackRequest(
-            Map<String, String> requestHeaders,
-            SessionItem sessionItem,
-            PassportFormData passportFormData)
-            throws Exception {
-        ThirdPartyAPIService fallbackThirdPartyService = selectThirdPartyAPIService(false, false);
-        eventProbe.counterMetric(PASSPORT_FALL_BACK_EXECUTING);
-        return documentDataVerificationService.verifyData(
-                fallbackThirdPartyService, passportFormData, sessionItem, requestHeaders);
-    }
-
-    private DocumentDataVerificationResult executeFallbackIfDocumentFailedToVerify(
-            DocumentDataVerificationResult documentDataVerificationResult,
-            Map<String, String> requestHeaders,
-            SessionItem sessionItem,
-            PassportFormData passportFormData)
-            throws Exception {
-        if (!documentDataVerificationResult.isVerified()
-                || !documentDataVerificationResult.getContraIndicators().isEmpty()) {
-            LOGGER.info(
-                    "Document has been marked unverified during fallback window. Executing request with DVAD");
-            documentDataVerificationResult =
-                    executeFallbackRequest(requestHeaders, sessionItem, passportFormData);
-            if (documentDataVerificationResult.isVerified()) {
-                eventProbe.counterMetric(PASSPORT_VERIFICATION_FALLBACK_DEVIATION);
-                LOGGER.warn(
-                        "Document has been verified using DCS that failed verification using DVAD");
-            }
-        }
-        return documentDataVerificationResult;
     }
 
     private boolean determineVerificationRetryStatus(
@@ -448,10 +382,9 @@ public class CheckPassportHandler
         LOGGER.info("Authorization code saved.");
     }
 
-    private ThirdPartyAPIService selectThirdPartyAPIService(
-            boolean dvaDigitalEnabled, boolean newThirdpartyAPI) {
+    private ThirdPartyAPIService selectThirdPartyAPIService(boolean dvaDigitalEnabled) {
         // Feature flag and header required for new api
-        if (dvaDigitalEnabled && newThirdpartyAPI) {
+        if (dvaDigitalEnabled) {
             // DVAD
             return thirdPartyAPIServiceFactory.getDvadThirdPartyAPIService();
         } else {
