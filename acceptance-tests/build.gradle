@@ -1,7 +1,6 @@
 plugins {
 	id 'java'
 	id "io.freefair.aspectj.post-compile-weaving" version "6.3.0"
-	id "org.owasp.dependencycheck" version "8.4.0"
 }
 
 defaultTasks 'clean', 'build'
@@ -175,4 +174,3 @@ tasks.register('passportCriSmokeStaging') {
 }
 
 apply plugin: 'java'
-apply plugin: 'org.owasp.dependencycheck'

@@ -65,6 +65,7 @@ sonar {
 		property "sonar.host.url", "https://sonarcloud.io"
 		property "sonar.java.coveragePlugin", "jacoco"
 		property "sonar.coverage.jacoco.xmlReportPath", "${buildDir}/reports/jacoco/reports/reports.xml"
+		property "sonar.dependencyCheck.htmlReportPath", "${buildDir}/reports/dependency-check-report.html"
 	}
 }
 
@@ -96,6 +97,12 @@ spotless {
 		trimTrailingWhitespace()
 		endWithNewline()
 	}
+}
+
+dependencyCheck {
+	failBuildOnCVSS=7
+	suppressionFiles= List.of("dependencyCheckAnalyzeSuppressionFiles/Netty-CVE-2023-4586.xml")
+	autoUpdate=true
 }
 
 subprojects {
