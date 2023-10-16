@@ -59,8 +59,8 @@ ext {
 
 sonar {
 	properties {
-		property "sonar.projectKey", "alphagov_di-ipv-cri-uk-passport-api"
-		property "sonar.organization", "alphagov"
+		property "sonar.projectKey", "ipv-cri-uk-passport-api"
+		property "sonar.organization", "govuk-one-login"
 		property "sonar.host.url", "https://sonarcloud.io"
 		property "sonar.java.coveragePlugin", "jacoco"
 		property "sonar.coverage.jacoco.xmlReportPath", "${buildDir}/reports/jacoco/reports/reports.xml"
