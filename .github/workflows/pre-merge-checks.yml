@@ -109,6 +109,8 @@ jobs:
           java-version: 11
           distribution: zulu
           cache: 'gradle'
+      - name: Generate Dependency Check Analyze Report
+        run: ./gradlew dependencyCheckAnalyze
       - name: Generate Aggregate Coverage Report
         run: ./gradlew report
       - name: Run SonarCloud Analysis
