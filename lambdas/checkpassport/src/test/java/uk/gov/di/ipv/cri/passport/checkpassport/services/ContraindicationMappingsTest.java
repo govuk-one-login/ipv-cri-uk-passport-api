@@ -5,9 +5,12 @@ import org.apache.logging.log4j.Logger;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.CsvSource;
 import org.mockito.Mock;
 import org.mockito.MockedStatic;
 import org.mockito.junit.jupiter.MockitoExtension;
+import uk.gov.di.ipv.cri.passport.checkpassport.domain.result.fields.ContraIndicatorMapperResult;
 import uk.gov.di.ipv.cri.passport.library.service.PassportConfigurationService;
 import uk.gov.di.ipv.cri.passport.library.service.ServiceFactory;
 import uk.org.webcompere.systemstubs.environment.EnvironmentVariables;
@@ -19,6 +22,7 @@ import java.util.List;
 import java.util.Map;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.Mockito.mock;
@@ -38,15 +42,40 @@ class ContraindicationMappingsTest {
     // FLAG-NAME : MATCHING VALUE, FLAG-NAME : MATCHING VALUE : ASSOCIATED CI
     private static final String MULTI_MAPPING_FORMAT = "%s@%s,%s@%s:%s";
 
-    private static final String MAPPING_CI_FLAG_1 =
-            String.format(SINGLE_MAPPING_FORMAT, "FLAG1", true, "A01");
-    private static final String MAPPING_CI_FLAG_2 =
-            String.format(SINGLE_MAPPING_FORMAT, "FLAG2", false, "B02");
-    private static final String MAPPING_CI_FLAG_3 =
-            String.format(SINGLE_MAPPING_FORMAT, "FLAG3", true, "C03");
-    private static final String MAPPING_CI_FLAG_4 =
-            String.format(MULTI_MAPPING_FORMAT, "FLAG4", true, "FLAG5", false, "D04");
+    // FLAG-NAME : MATCHING VALUE > FLAG-NAME : MATCHING VALUE : ASSOCIATED CI
+    // The last flag will be the reason that is overridden
+    private static final String MULTI_MAPPING_FORMAT_CI_REASON_OVERRIDE = "%s@%s>%s@%s:%s";
+    private static final String TRIPLE_MAPPING_FORMAT_CI_REASON_OVERRIDE = "%s@%s>%s@%s>%s@%s:%s";
 
+    // flags must be camelCase
+    private static final String MAPPING_CI_FLAG_1 =
+            String.format(SINGLE_MAPPING_FORMAT, "flagOne", true, "A01");
+    private static final String MAPPING_CI_FLAG_2 =
+            String.format(SINGLE_MAPPING_FORMAT, "flagTwo", false, "B02");
+    private static final String MAPPING_CI_FLAG_3 =
+            String.format(SINGLE_MAPPING_FORMAT, "flagThree", true, "C03");
+    private static final String MAPPING_CI_FLAG_4 =
+            String.format(MULTI_MAPPING_FORMAT, "flagFour", true, "flagFive", false, "D04");
+    private static final String MAPPING_CI_FLAG_5 =
+            String.format(
+                    MULTI_MAPPING_FORMAT_CI_REASON_OVERRIDE,
+                    "flagSix",
+                    true,
+                    "flagSeven",
+                    true,
+                    "E05");
+    private static final String MAPPING_CI_FLAG_6 =
+            String.format(
+                    TRIPLE_MAPPING_FORMAT_CI_REASON_OVERRIDE,
+                    "flagEight",
+                    true,
+                    "flagNine",
+                    true,
+                    "flagTen",
+                    true,
+                    "F06");
+
+    // CI Map containing all the mappings above
     private static final String CI_MAP =
             MAPPING_CI_FLAG_1
                     + "||"
@@ -54,7 +83,11 @@ class ContraindicationMappingsTest {
                     + "||"
                     + MAPPING_CI_FLAG_3
                     + "||"
-                    + MAPPING_CI_FLAG_4;
+                    + MAPPING_CI_FLAG_4
+                    + "||"
+                    + MAPPING_CI_FLAG_5
+                    + "||"
+                    + MAPPING_CI_FLAG_6;
 
     @SystemStub private EnvironmentVariables environmentVariables = new EnvironmentVariables();
 
@@ -103,65 +136,289 @@ class ContraindicationMappingsTest {
     void shouldReturnCIForOneValidSingleMapping() {
 
         Map<String, String> testflagMap = new HashMap<>();
-        testflagMap.put("FLAG1", "true");
+        testflagMap.put("flagOne", "true");
 
-        List<String> ciCodes = contraIndicatorMapper.mapFlagsToCIs(testflagMap);
+        ContraIndicatorMapperResult mapperResult = contraIndicatorMapper.mapFlagsToCIs(testflagMap);
+
+        assertNotNull(mapperResult);
+
+        assertNotNull(mapperResult.getContraIndicators());
+        assertNotNull(mapperResult.getContraIndicatorReasons());
+        assertNotNull(mapperResult.getContraIndicatorChecks());
+        assertNotNull(mapperResult.getContraIndicatorFailedChecks());
+
+        List<String> ciCodes = mapperResult.getContraIndicators();
+        List<String> ciReason = mapperResult.getContraIndicatorReasons();
+        List<String> ciChecks = mapperResult.getContraIndicatorChecks();
+        List<String> ciFailedChecks = mapperResult.getContraIndicatorFailedChecks();
 
         assertNotNull(ciCodes);
         assertEquals(1, ciCodes.size());
         assertEquals("A01", ciCodes.get(0));
+
+        assertEquals(1, ciReason.size());
+        assertEquals("A01,One", ciReason.get(0));
+
+        // No passed checks
+        assertEquals(0, ciChecks.size());
+
+        assertEquals(1, ciFailedChecks.size());
+        assertEquals("one_check", ciFailedChecks.get(0));
     }
 
     @Test
     void shouldReturnCIForTwoValidSingleMappings() {
         Map<String, String> testflagMap = new HashMap<>();
-        testflagMap.put("FLAG1", "true");
-        testflagMap.put("FLAG2", "false");
+        testflagMap.put("flagOne", "true");
+        testflagMap.put("flagTwo", "false");
 
-        List<String> ciCodes = contraIndicatorMapper.mapFlagsToCIs(testflagMap);
+        ContraIndicatorMapperResult mapperResult = contraIndicatorMapper.mapFlagsToCIs(testflagMap);
+
+        assertNotNull(mapperResult);
+
+        assertNotNull(mapperResult.getContraIndicators());
+        assertNotNull(mapperResult.getContraIndicatorReasons());
+        assertNotNull(mapperResult.getContraIndicatorChecks());
+        assertNotNull(mapperResult.getContraIndicatorFailedChecks());
+
+        List<String> ciCodes = mapperResult.getContraIndicators();
+        List<String> ciReason = mapperResult.getContraIndicatorReasons();
+        List<String> ciChecks = mapperResult.getContraIndicatorChecks();
+        List<String> ciFailedChecks = mapperResult.getContraIndicatorFailedChecks();
 
         assertNotNull(ciCodes);
         assertEquals(2, ciCodes.size());
-
         assertTrue(ciCodes.contains("A01"));
         assertTrue(ciCodes.contains("B02"));
+
+        assertEquals(2, ciReason.size());
+
+        assertTrue(ciReason.contains("A01,One"));
+        assertTrue(ciReason.contains("B02,Two"));
+
+        // No passed checks
+        assertEquals(0, ciChecks.size());
+
+        assertEquals(2, ciFailedChecks.size());
+        assertTrue(ciFailedChecks.contains("one_check"));
+        assertTrue(ciFailedChecks.contains("two_check"));
     }
 
     @Test
-    void shouldReturnCIForFlagsInMultiMapping() {
+    void shouldReturnSingleCIForFlagsInMultiMapping() {
         Map<String, String> testflagMap = new HashMap<>();
-        testflagMap.put("FLAG4", "true");
-        testflagMap.put("FLAG5", "false");
+        testflagMap.put("flagFour", "true");
+        testflagMap.put("flagFive", "false");
 
-        List<String> ciCodes = contraIndicatorMapper.mapFlagsToCIs(testflagMap);
+        ContraIndicatorMapperResult mapperResult = contraIndicatorMapper.mapFlagsToCIs(testflagMap);
+
+        assertNotNull(mapperResult);
+
+        assertNotNull(mapperResult.getContraIndicators());
+        assertNotNull(mapperResult.getContraIndicatorReasons());
+        assertNotNull(mapperResult.getContraIndicatorChecks());
+        assertNotNull(mapperResult.getContraIndicatorFailedChecks());
+
+        List<String> ciCodes = mapperResult.getContraIndicators();
+        List<String> ciReason = mapperResult.getContraIndicatorReasons();
+        List<String> ciChecks = mapperResult.getContraIndicatorChecks();
+        List<String> ciFailedChecks = mapperResult.getContraIndicatorFailedChecks();
 
         assertNotNull(ciCodes);
         assertEquals(1, ciCodes.size());
-
         assertTrue(ciCodes.contains("D04"));
+
+        assertEquals(2, ciReason.size());
+        assertTrue(ciReason.contains("D04,Four"));
+        assertTrue(ciReason.contains("D04,Five"));
+
+        // No passed checks
+        assertEquals(0, ciChecks.size());
+
+        assertEquals(2, ciFailedChecks.size());
+        assertTrue(ciFailedChecks.contains("four_check"));
+        assertTrue(ciFailedChecks.contains("five_check"));
     }
 
     @Test
     void shouldReturnNoCIIfFlagValuesDoNotMatchMapping() {
         Map<String, String> testflagMap = new HashMap<>();
-        testflagMap.put("FLAG4", "false"); // Mapping requires true
-        testflagMap.put("FLAG5", "true"); // Mapping requires false
+        testflagMap.put("flagFour", "false"); // Mapping requires true
+        testflagMap.put("flagFive", "true"); // Mapping requires false
 
-        List<String> ciCodes = contraIndicatorMapper.mapFlagsToCIs(testflagMap);
+        ContraIndicatorMapperResult mapperResult = contraIndicatorMapper.mapFlagsToCIs(testflagMap);
+
+        assertNotNull(mapperResult);
+
+        assertNotNull(mapperResult.getContraIndicators());
+        assertNotNull(mapperResult.getContraIndicatorReasons());
+        assertNotNull(mapperResult.getContraIndicatorChecks());
+        assertNotNull(mapperResult.getContraIndicatorFailedChecks());
+
+        List<String> ciCodes = mapperResult.getContraIndicators();
+        List<String> ciReason = mapperResult.getContraIndicatorReasons();
+        List<String> ciChecks = mapperResult.getContraIndicatorChecks();
+        List<String> ciFailedChecks = mapperResult.getContraIndicatorFailedChecks();
 
         assertNotNull(ciCodes);
-
         assertEquals(0, ciCodes.size());
+
+        assertEquals(0, ciReason.size());
+
+        // Two checks passed
+        assertEquals(2, ciChecks.size());
+        assertTrue(ciChecks.contains("four_check"));
+        assertTrue(ciChecks.contains("five_check"));
+
+        // No checks failed
+        assertEquals(0, ciFailedChecks.size());
     }
 
     @Test
-    void shouldReturnNoCIIfNoFlagsProvided() {
+    void shouldReturnSingleCIAndOneSpecificReasonForFlagsInCiReasonsMultiMappingWhenBothMatch() {
         Map<String, String> testflagMap = new HashMap<>();
+        testflagMap.put("flagSix", "true");
+        testflagMap.put("flagSeven", "true");
 
-        List<String> ciCodes = contraIndicatorMapper.mapFlagsToCIs(testflagMap);
+        ContraIndicatorMapperResult mapperResult = contraIndicatorMapper.mapFlagsToCIs(testflagMap);
+
+        assertNotNull(mapperResult);
+
+        assertNotNull(mapperResult.getContraIndicators());
+        assertNotNull(mapperResult.getContraIndicatorReasons());
+        assertNotNull(mapperResult.getContraIndicatorChecks());
+        assertNotNull(mapperResult.getContraIndicatorFailedChecks());
+
+        List<String> ciCodes = mapperResult.getContraIndicators();
+        List<String> ciReason = mapperResult.getContraIndicatorReasons();
+        List<String> ciChecks = mapperResult.getContraIndicatorChecks();
+        List<String> ciFailedChecks = mapperResult.getContraIndicatorFailedChecks();
 
         assertNotNull(ciCodes);
-        assertEquals(0, ciCodes.size());
+        assertEquals(1, ciCodes.size());
+        assertTrue(ciCodes.contains("E05"));
+
+        assertEquals(1, ciReason.size());
+
+        // Seven is the general reason, Six is the specific
+        assertTrue(ciReason.contains("E05,Six"));
+        assertFalse(ciReason.contains("E05,Seven"));
+
+        // No passed checks
+        assertEquals(0, ciChecks.size());
+
+        assertEquals(2, ciFailedChecks.size());
+        assertTrue(ciFailedChecks.contains("six_check"));
+        assertTrue(ciFailedChecks.contains("seven_check"));
+    }
+
+    @ParameterizedTest
+    @CsvSource({
+        "true", // specific present
+        "false", // specific not present
+    })
+    void shouldReturnSingleCIAndOneGeneralReasonForFlagsInCiReasonsMultiMappingWhenOnlyGeneralMatch(
+            boolean specificPresent) {
+        Map<String, String> testflagMap = new HashMap<>();
+
+        if (specificPresent) {
+            testflagMap.put("flagSix", "false"); // Specific Present but value not matching
+        }
+
+        testflagMap.put("flagSeven", "true"); // General Match
+
+        ContraIndicatorMapperResult mapperResult = contraIndicatorMapper.mapFlagsToCIs(testflagMap);
+
+        assertNotNull(mapperResult);
+
+        assertNotNull(mapperResult.getContraIndicators());
+        assertNotNull(mapperResult.getContraIndicatorReasons());
+        assertNotNull(mapperResult.getContraIndicatorChecks());
+        assertNotNull(mapperResult.getContraIndicatorFailedChecks());
+
+        List<String> ciCodes = mapperResult.getContraIndicators();
+        List<String> ciReason = mapperResult.getContraIndicatorReasons();
+        List<String> ciChecks = mapperResult.getContraIndicatorChecks();
+        List<String> ciFailedChecks = mapperResult.getContraIndicatorFailedChecks();
+
+        assertNotNull(ciCodes);
+        assertEquals(1, ciCodes.size());
+        assertTrue(ciCodes.contains("E05"));
+
+        assertEquals(1, ciReason.size());
+
+        // Seven is the general reason, Six is the specific
+        assertFalse(ciReason.contains("E05,Six"));
+        assertTrue(ciReason.contains("E05,Seven"));
+
+        // Specific check has passed (when present)
+        assertEquals(specificPresent ? 1 : 0, ciChecks.size());
+        assertEquals(specificPresent, ciChecks.contains("six_check"));
+        assertFalse(ciChecks.contains("seven_check"));
+
+        assertEquals(1, ciFailedChecks.size());
+        assertFalse(ciFailedChecks.contains("six_check"));
+        assertTrue(ciFailedChecks.contains("seven_check"));
+    }
+
+    @Test
+    void shouldReturnSingleCIAndTwoSpecificReasonForFlagsInCiReasonsTripleMapping() {
+        Map<String, String> testflagMap = new HashMap<>();
+        testflagMap.put("flagEight", "true");
+        testflagMap.put("flagNine", "true");
+        testflagMap.put("flagTen", "true");
+
+        ContraIndicatorMapperResult mapperResult = contraIndicatorMapper.mapFlagsToCIs(testflagMap);
+
+        assertNotNull(mapperResult);
+
+        assertNotNull(mapperResult.getContraIndicators());
+        assertNotNull(mapperResult.getContraIndicatorReasons());
+        assertNotNull(mapperResult.getContraIndicatorChecks());
+        assertNotNull(mapperResult.getContraIndicatorFailedChecks());
+
+        List<String> ciCodes = mapperResult.getContraIndicators();
+        List<String> ciReason = mapperResult.getContraIndicatorReasons();
+        List<String> ciChecks = mapperResult.getContraIndicatorChecks();
+        List<String> ciFailedChecks = mapperResult.getContraIndicatorFailedChecks();
+
+        assertNotNull(ciCodes);
+        assertEquals(1, ciCodes.size());
+        assertTrue(ciCodes.contains("F06"));
+
+        assertEquals(2, ciReason.size());
+
+        // Ten is the general reason, Eight/Nine are the specific
+        assertTrue(ciReason.contains("F06,Eight"));
+        assertTrue(ciReason.contains("F06,Nine"));
+        assertFalse(ciReason.contains("F06,Ten"));
+
+        // No passed checks
+        assertEquals(0, ciChecks.size());
+
+        assertEquals(3, ciFailedChecks.size());
+        assertTrue(ciFailedChecks.contains("eight_check"));
+        assertTrue(ciFailedChecks.contains("nine_check"));
+        assertTrue(ciFailedChecks.contains("ten_check"));
+    }
+
+    @Test
+    void shouldReturnMapperResultWithEmptyListsIfNoFlagNoFlagsProvided() {
+        Map<String, String> testflagMap = new HashMap<>();
+
+        ContraIndicatorMapperResult mapperResult = contraIndicatorMapper.mapFlagsToCIs(testflagMap);
+
+        assertNotNull(mapperResult);
+
+        assertNotNull(mapperResult.getContraIndicators());
+        assertNotNull(mapperResult.getContraIndicatorReasons());
+        assertNotNull(mapperResult.getContraIndicatorChecks());
+        assertNotNull(mapperResult.getContraIndicatorFailedChecks());
+
+        assertEquals(0, mapperResult.getContraIndicators().size());
+        assertEquals(0, mapperResult.getContraIndicatorReasons().size());
+        assertEquals(0, mapperResult.getContraIndicatorChecks().size());
+        assertEquals(0, mapperResult.getContraIndicatorFailedChecks().size());
     }
 
     @Test
@@ -176,23 +433,34 @@ class ContraindicationMappingsTest {
             mockedLogManager.when(LogManager::getLogger).thenReturn(mockedStaticLogger);
 
             Map<String, String> testflagMap = new HashMap<>();
-            testflagMap.put("FLAG1", "false"); // Valid flag but not correct value
-            testflagMap.put("UNMAPPED_FLAG1", "false");
-            testflagMap.put("UNMAPPED_FLAG2", "true");
+            testflagMap.put("flagOne", "false"); // Valid flag but not correct value
+            testflagMap.put("unmappedFlagOne", "false");
+            testflagMap.put("unmappedFlagTwo", "true");
 
             // ContraIndicatorMapper just for this test (so log mocking is only here)
             ContraIndicatorMapper testContraIndicatorMapper =
                     new ContraIndicatorMapper(mockServiceFactory);
 
-            List<String> ciCodes = testContraIndicatorMapper.mapFlagsToCIs(testflagMap);
+            ContraIndicatorMapperResult mapperResult =
+                    testContraIndicatorMapper.mapFlagsToCIs(testflagMap);
 
             // Note mocking suppresses error log line output in test
             // also note Flags output order is reversed
             verify(mockedStaticLogger)
-                    .error("Unmapped flags encountered: {}", "UNMAPPED_FLAG2, UNMAPPED_FLAG1");
+                    .error("Unmapped flags encountered: {}", "unmappedFlagOne, unmappedFlagTwo");
 
-            assertNotNull(ciCodes);
-            assertEquals(0, ciCodes.size());
+            assertNotNull(mapperResult);
+
+            assertNotNull(mapperResult.getContraIndicators());
+            assertNotNull(mapperResult.getContraIndicatorReasons());
+            assertNotNull(mapperResult.getContraIndicatorChecks());
+            assertNotNull(mapperResult.getContraIndicatorFailedChecks());
+
+            assertEquals(0, mapperResult.getContraIndicators().size());
+            assertEquals(0, mapperResult.getContraIndicatorReasons().size());
+            // one check passed, other two unmapped
+            assertEquals(1, mapperResult.getContraIndicatorChecks().size());
+            assertEquals(0, mapperResult.getContraIndicatorFailedChecks().size());
         }
     }
 }

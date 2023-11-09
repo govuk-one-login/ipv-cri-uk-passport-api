@@ -22,6 +22,7 @@ public class DocumentCheckResultItem {
 
     private List<String> checkDetails;
     private List<String> failedCheckDetails;
+    private List<String> ciReasons;
 
     private long ttl;
 
@@ -96,6 +97,14 @@ public class DocumentCheckResultItem {
 
     public void setFailedCheckDetails(List<String> failedCheckDetails) {
         this.failedCheckDetails = failedCheckDetails;
+    }
+
+    public void setCiReasons(List<String> ciReasons) {
+        this.ciReasons = ciReasons;
+    }
+
+    public List<String> getCiReasons() {
+        return ciReasons;
     }
 
     public long getTtl() {

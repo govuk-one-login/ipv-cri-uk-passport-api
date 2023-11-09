@@ -489,8 +489,8 @@ class DvadThirdPartyAPIServiceTest {
         }
 
         // For anyone extending or updating this
-        System.out.println("messagePartMap");
-        System.out.println(messagePartMap.toString());
+        //  print out ("messagePartMap");
+        // print out (messagePartMap.toString());
 
         // Check the messageParts contents for each scenario
         switch (scenario) {
