@@ -839,123 +839,7 @@ Resources:
 #                                                                  #
 ####################################################################
 
-  PassportLambdaErrors:
-    Type: AWS::CloudWatch::Alarm
-    Properties:
-      AlarmDescription: !Sub Passport ${Environment} lambda errors
-      ActionsEnabled: true
-      AlarmActions:
-        - !Ref AlarmTopicPassport
-      OKActions:
-        - !Ref AlarmTopicPassport
-      InsufficientDataActions: []
-      MetricName: Errors
-      Namespace: AWS/Lambda
-      Statistic: Sum
-      Dimensions: []
-      Period: 300
-      DatapointsToAlarm: 3
-      EvaluationPeriods: 3
-      Threshold: 1
-      ComparisonOperator: GreaterThanThreshold
-      TreatMissingData: notBreaching
-
-  PassportAPIGW5XXErrors:
-    Type: AWS::CloudWatch::Alarm
-    Properties:
-      AlarmDescription: !Sub Passport ${Environment} API Gateway 5XX errors
-      ActionsEnabled: true
-      AlarmActions:
-        - !Ref AlarmTopicPassport
-      OKActions:
-        - !Ref AlarmTopicPassport
-      InsufficientDataActions: []
-      Dimensions: []
-      DatapointsToAlarm: 3
-      EvaluationPeriods: 3
-      Threshold: 1
-      ComparisonOperator: GreaterThanThreshold
-      TreatMissingData: notBreaching
-      Metrics:
-        - Id: e1
-          Label: Expression1
-          ReturnData: true
-          Expression: SUM(METRICS())
-        - Id: m1
-          ReturnData: false
-          MetricStat:
-            Metric:
-              Namespace: AWS/ApiGateway
-              MetricName: 5XXError
-              Dimensions:
-                - Name: ApiName
-                  Value: !Sub "${AWS::StackName}-PublicUKPassportApi"
-            Period: 300
-            Stat: Sum
-        - Id: m2
-          ReturnData: false
-          MetricStat:
-            Metric:
-              Namespace: AWS/ApiGateway
-              MetricName: 5XXError
-              Dimensions:
-                - Name: ApiName
-                  Value: !Sub "${AWS::StackName}-PrivateUKPassportApi"
-            Period: 300
-            Stat: Sum
-
-  PassportAPIGW4XXErrors:
-    Type: AWS::CloudWatch::Alarm
-    Properties:
-      AlarmDescription: !Sub Passport ${Environment} API Gateway 4XX errors
-      ActionsEnabled: true
-      AlarmActions:
-        - !Ref AlarmTopicPassport
-      OKActions:
-        - !Ref AlarmTopicPassport
-      InsufficientDataActions: []
-      Dimensions: []
-      DatapointsToAlarm: 3
-      EvaluationPeriods: 3
-      Threshold: 2
-      ComparisonOperator: GreaterThanThreshold
-      TreatMissingData: notBreaching
-      Metrics:
-        - Id: e1
-          Label: Expression1
-          ReturnData: true
-          Expression: SUM(METRICS())
-        - Id: m1
-          ReturnData: false
-          MetricStat:
-            Metric:
-              Namespace: AWS/ApiGateway
-              MetricName: 4XXError
-              Dimensions:
-                - Name: ApiName
-                  Value: !Sub "${AWS::StackName}-PublicUKPassportApi"
-            Period: 300
-            Stat: Sum
-        - Id: m2
-          ReturnData: false
-          MetricStat:
-            Metric:
-              Namespace: AWS/ApiGateway
-              MetricName: 4XXError
-              Dimensions:
-                - Name: ApiName
-                  Value: !Sub "${AWS::StackName}-PrivateUKPassportApi"
-            Period: 300
-            Stat: Sum
-
-####################################################################
-#                                                                  #
-# Alarm setup                                                      #
-#                                                                  #
-####################################################################
-
   ## Common API Alarms
-
   CommonAPISessionLambdaConcurrencyThresholdReached:
     Type: AWS::CloudWatch::Alarm
     Properties:
@@ -1025,8 +909,7 @@ Resources:
       ComparisonOperator: GreaterThanOrEqualToThreshold
       TreatMissingData: notBreaching
 
-  ## Passport Alarms
-
+  ## Passport API Alarms
   PassportCheckPassportLambdaConcurrencyThresholdReached:
     Type: AWS::CloudWatch::Alarm
     Properties:
@@ -1072,6 +955,77 @@ Resources:
       Threshold: 3
       ComparisonOperator: GreaterThanOrEqualToThreshold
       TreatMissingData: notBreaching
+
+  PassportLambdaErrors:
+    Type: AWS::CloudWatch::Alarm
+    Properties:
+      AlarmDescription: !Sub Passport ${Environment} lambda errors
+      ActionsEnabled: true
+      AlarmActions:
+        - !Ref AlarmTopicPassport
+      OKActions:
+        - !Ref AlarmTopicPassport
+      InsufficientDataActions: []
+      MetricName: Errors
+      Namespace: AWS/Lambda
+      Statistic: Sum
+      Dimensions: []
+      Period: 300
+      DatapointsToAlarm: 3
+      EvaluationPeriods: 3
+      Threshold: 1
+      ComparisonOperator: GreaterThanThreshold
+      TreatMissingData: notBreaching
+
+  PassportAPIGW5XXErrors:
+    Type: AWS::CloudWatch::Alarm
+    Properties:
+      AlarmDescription: !Sub Passport ${Environment} API Gateway 5XX errors
+      ActionsEnabled: true
+      AlarmActions:
+        - !Ref AlarmTopicPassport
+      OKActions:
+        - !Ref AlarmTopicPassport
+      InsufficientDataActions: []
+      Dimensions: []
+      DatapointsToAlarm: 3
+      EvaluationPeriods: 3
+      Threshold: 1
+      ComparisonOperator: GreaterThanThreshold
+      TreatMissingData: notBreaching
+      Metrics:
+        - Id: e1
+          Label: Expression1
+          ReturnData: true
+          Expression: SUM(METRICS())
+        - Id: m1
+          ReturnData: false
+          MetricStat:
+            Metric:
+              Namespace: AWS/ApiGateway
+              MetricName: 5XXError
+              Dimensions:
+                - Name: ApiName
+                  Value: !Sub "${AWS::StackName}-PublicUKPassportApi"
+            Period: 300
+            Stat: Sum
+        - Id: m2
+          ReturnData: false
+          MetricStat:
+            Metric:
+              Namespace: AWS/ApiGateway
+              MetricName: 5XXError
+              Dimensions:
+                - Name: ApiName
+                  Value: !Sub "${AWS::StackName}-PrivateUKPassportApi"
+            Period: 300
+            Stat: Sum
+
+####################################################################
+#                                                                  #
+# Alarm setup                                                      #
+#                                                                  #
+####################################################################
 
   AlarmTopicPassport:
     Type: AWS::SNS::Topic
