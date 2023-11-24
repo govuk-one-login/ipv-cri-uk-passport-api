@@ -668,7 +668,7 @@ class CheckPassportHandlerTest {
                 documentDataVerificationResult.getChecksSucceeded());
         documentCheckResultItem.setFailedCheckDetails(
                 documentDataVerificationResult.getChecksFailed());
-
+        documentCheckResultItem.setCiReasons(new ArrayList<>());
         return documentCheckResultItem;
     }
 }

@@ -99,16 +99,24 @@ public class Evidence {
     @Override
     public String toString() {
         return "Evidence{"
-                + "type="
+                + "type='"
                 + type
-                + ", txn="
+                + '\''
+                + ", txn='"
                 + txn
-                + ", strength="
+                + '\''
+                + ", strengthScore="
                 + strengthScore
-                + ", validity="
+                + ", validityScore="
                 + validityScore
                 + ", ci="
                 + ci
+                + ", checkDetails="
+                + checkDetails
+                + ", failedCheckDetails="
+                + failedCheckDetails
+                + ", ciReasons="
+                + ciReasons
                 + '}';
     }
 }

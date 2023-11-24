@@ -192,6 +192,7 @@ public class DocumentDataVerificationService {
 
         ContraIndicatorMapperResult contraIndicatorMapperResult;
 
+        // should we not check failed first. Why do all this if were going to clear anyway
         // Legacy API will not set any flags
         if (thirdPartyAPIResult.getFlags() != null) {
             Map<String, String> flagMap = thirdPartyAPIResult.getFlags();

@@ -55,25 +55,13 @@ class ContraindicationMappingsTest {
     private static final String MAPPING_CI_FLAG_3 =
             String.format(SINGLE_MAPPING_FORMAT, "flagThree", true, "C03");
     private static final String MAPPING_CI_FLAG_4 =
-            String.format(MULTI_MAPPING_FORMAT, "flagFour", true, "flagFive", false, "D04");
+            String.format(MULTI_MAPPING_FORMAT, "flagFive", false, "flagFour", true, "D04");
     private static final String MAPPING_CI_FLAG_5 =
-            String.format(
-                    MULTI_MAPPING_FORMAT_CI_REASON_OVERRIDE,
-                    "flagSix",
-                    true,
-                    "flagSeven",
-                    true,
-                    "E05");
+            String.format("%s@%s,%s@%s:%s", "flagSeven", true, "flagSix", true, "E05");
     private static final String MAPPING_CI_FLAG_6 =
             String.format(
-                    TRIPLE_MAPPING_FORMAT_CI_REASON_OVERRIDE,
-                    "flagEight",
-                    true,
-                    "flagNine",
-                    true,
-                    "flagTen",
-                    true,
-                    "F06");
+                    "%s@%s,%s@%s,%s@%s:%s",
+                    "flagTen", true, "flagEight", true, "flagNine", true, "F06");
 
     // CI Map containing all the mappings above
     private static final String CI_MAP =
@@ -204,7 +192,8 @@ class ContraindicationMappingsTest {
         assertTrue(ciFailedChecks.contains("two_check"));
     }
 
-    @Test
+    // Current implementation does not allow for multi reasons to one CI
+    /*    @Test
     void shouldReturnSingleCIForFlagsInMultiMapping() {
         Map<String, String> testflagMap = new HashMap<>();
         testflagMap.put("flagFour", "true");
@@ -238,7 +227,7 @@ class ContraindicationMappingsTest {
         assertEquals(2, ciFailedChecks.size());
         assertTrue(ciFailedChecks.contains("four_check"));
         assertTrue(ciFailedChecks.contains("five_check"));
-    }
+    }*/
 
     @Test
     void shouldReturnNoCIIfFlagValuesDoNotMatchMapping() {

@@ -59,13 +59,15 @@ public class ContraIndicatorMapper {
         logger.info("CI Reason Subset Mappings ({})", ciReasonSubSetMappings.size());
     }
 
+    // Should move away from > in case were ever return xml etc
+    // NOTE. For the purpose of this ticket the mapper has remained is
     /**
      * Parses a string representing the flag Mappings.
      *
      * <pre>
      * Example Mapping : CIMap=flag1@true,flag2@false:a1||flag3@40:b1||flag4@true>flag5@true:c1
      * Example Format  : flag1@true,flag2@false:a1 - flag1 triggers if true, flag2 triggers if false CI is a1
-     * Example Format  : flag3@40,flag2@false:a1   - flag3 triggers if value is 40 CI is b1
+     * Example Format  : flag3@40,flag2@false:b1   - flag3 triggers if value is 40 CI is b1
      * Example Format  : flag4@true>flag5@true:c1  - flag4 and flag5 trigger if true, if both trigger only the reason
      * for flag4 is used, as flag 5 is the general flag.
      * </pre>
@@ -74,6 +76,7 @@ public class ContraIndicatorMapper {
      *
      * @param mappingString String with the mappings in above syntax
      */
+    // JB could return accumlator and split into 2 methods
     private void parseCIMappingStringAndPopulateMappings(String mappingString) {
 
         logger.info("Parsing CI mapping string...");
@@ -84,17 +87,7 @@ public class ContraIndicatorMapper {
 
             List<String> flagCIPairs = Arrays.asList(mapping.split(FLAGS_CI_DELIMITER));
 
-            // Once set, this is used for the entire flag
-            // using multiple delimiters for a single CI not supported
-            boolean isCiReasonSubsetMapping =
-                    flagCIPairs.get(0).contains(FLAGS_WITH_CI_REASON_SUB_SET_DELIMITER);
-
-            final String ciPairDelimiter;
-            if (isCiReasonSubsetMapping) {
-                ciPairDelimiter = FLAGS_WITH_CI_REASON_SUB_SET_DELIMITER;
-            } else {
-                ciPairDelimiter = FLAGS_STANDARD_DELIMITER;
-            }
+            final String ciPairDelimiter = FLAGS_STANDARD_DELIMITER;
 
             String[] flagNameValuePairs = flagCIPairs.get(0).split(ciPairDelimiter);
             String ciCode = flagCIPairs.get(1);
@@ -116,18 +109,16 @@ public class ContraIndicatorMapper {
                 flagToContraIndicatorMappings.put(flagName, complexMapping);
             }
 
-            if (isCiReasonSubsetMapping) {
-                int ciReasonsSize = ciReasonsMappingAccumulator.size();
-                // Remove the last mapping as it is the general reason
-                ContraIndicatorComplexMapping generalMapping =
-                        ciReasonsMappingAccumulator.remove(ciReasonsSize - 1);
+            // Remove the first mapping as it is the general reason
+            // TODO not sure about this requires the mapper to be in a very specific order
+            // Is this because it contains the D01
+            ContraIndicatorComplexMapping generalMapping = ciReasonsMappingAccumulator.remove(0);
 
-                for (ContraIndicatorComplexMapping specificMapping : ciReasonsMappingAccumulator) {
-                    // Add the override for the general mapping to specific reason (mapping used as
-                    // the CI is needed later)
-                    // Can handle multiple overrides in the same mapping
-                    ciReasonSubSetMappings.put(specificMapping.getReason(), generalMapping);
-                }
+            for (ContraIndicatorComplexMapping specificMapping : ciReasonsMappingAccumulator) {
+                // Add the override for the general mapping to specific reason (mapping used as
+                // the CI is needed later)
+                // Can handle multiple overrides in the same mapping
+                ciReasonSubSetMappings.put(specificMapping.getReason(), generalMapping);
             }
         }
     }
@@ -140,24 +131,74 @@ public class ContraIndicatorMapper {
             return ContraIndicatorMapperResult.builder().build();
         }
 
-        // Flag must be present and matching the required flag value
-        List<ContraIndicatorComplexMapping> matchingCiMappings =
-                flagMap.keySet().stream()
-                        .filter(flagToContraIndicatorMappings::containsKey)
-                        .filter(flag -> ciMapFilter(flagMap, flag))
-                        .map(flagToContraIndicatorMappings::get)
+        List<ContraIndicatorComplexMapping> matchingCiMappings = new ArrayList<>();
+        List<ContraIndicatorComplexMapping> presentNotMatchingCiMappings = new ArrayList<>();
+        List<String> unmappedFlags = new ArrayList<>();
+
+        for (Map.Entry<String, String> entry : flagMap.entrySet()) {
+            if (flagToContraIndicatorMappings.containsKey(entry.getKey())) {
+                if (ciMapFilter(flagMap, entry.getKey())) {
+                    matchingCiMappings.add(flagToContraIndicatorMappings.get(entry.getKey()));
+                } else {
+                    presentNotMatchingCiMappings.add(
+                            flagToContraIndicatorMappings.get(entry.getKey()));
+                }
+            } else {
+                unmappedFlags.add(entry.getKey());
+            }
+        }
+
+        logCIsAndUnmatchedFlags(
+                flagMap, matchingCiMappings, presentNotMatchingCiMappings, unmappedFlags);
+
+        List<String> contraIndicators = new ArrayList<>();
+        List<String> matchingCiReasons = new ArrayList<>();
+        for (ContraIndicatorComplexMapping matchedCiMapping : matchingCiMappings) {
+            contraIndicators.add(matchedCiMapping.getCi());
+            matchingCiReasons.add(
+                    String.format(
+                            CI_REASON_FORMAT,
+                            matchedCiMapping.getCi(),
+                            matchedCiMapping.getReason()));
+        }
+        // contraIndicators list is put through a set to remove duplicate CI's
+        List<String> deDuplicatedContraIndicators = new ArrayList<>(Set.copyOf(contraIndicators));
+        List<String> reasonsToFilterOut = getTopLevelReasons(matchingCiReasons);
+
+        // Now remove the filtered reasons
+        // reason removal not done inline to support 2+ specifics
+        // e.g. general,specific mappings
+        matchingCiReasons.removeAll(reasonsToFilterOut);
+
+        // Could also potentially be absorbed above
+        // Checks Passed
+        List<String> presentNotMatchingCiChecks =
+                presentNotMatchingCiMappings.stream()
+                        .map(ContraIndicatorComplexMapping::getCheck)
                         .collect(Collectors.toList());
 
+        // Check Failed
+        List<String> matchingCiChecks =
+                matchingCiMappings.stream()
+                        .map(ContraIndicatorComplexMapping::getCheck)
+                        .collect(Collectors.toList());
+
+        // Results of processing - lists never null
+        return ContraIndicatorMapperResult.builder()
+                .contraIndicators(deDuplicatedContraIndicators)
+                .contraIndicatorReasons(matchingCiReasons)
+                .contraIndicatorChecks(presentNotMatchingCiChecks)
+                .contraIndicatorFailedChecks(matchingCiChecks)
+                .build();
+    }
+
+    private void logCIsAndUnmatchedFlags(
+            Map<String, String> flagMap,
+            List<ContraIndicatorComplexMapping> matchingCiMappings,
+            List<ContraIndicatorComplexMapping> presentNotMatchingCiMappings,
+            List<String> unmappedFlags) {
         int flagsPresentAndMatching = matchingCiMappings.size();
         logger.info("ContraIndicatorsFound ({})", flagsPresentAndMatching);
-
-        // Flag must be present and NOT matching the required flag value
-        List<ContraIndicatorComplexMapping> presentNotMatchingCiMappings =
-                flagMap.keySet().stream()
-                        .filter(flagToContraIndicatorMappings::containsKey)
-                        .filter(flag -> !ciMapFilter(flagMap, flag)) // NOT
-                        .map(flagToContraIndicatorMappings::get)
-                        .collect(Collectors.toList());
 
         int flagPresentNotMatching = presentNotMatchingCiMappings.size();
         logger.info("PresentNotMatching ({})", flagPresentNotMatching);
@@ -165,45 +206,28 @@ public class ContraIndicatorMapper {
         // ContraIndicators+flagPresentNotMatching must equal the flagMap size
         // If not, then the mappingString needs updated with the flags
         // Or there is a mistake in the mapping string
+
+        // Flag map size is number of flags we have documented
         int flagsInitialQuery = flagMap.size();
         boolean hasUnmappedFlags =
                 (flagsInitialQuery != (flagPresentNotMatching + flagsPresentAndMatching));
 
         if (hasUnmappedFlags) {
-            String[] unmappedFlags =
-                    flagMap.keySet().stream()
-                            .filter(
-                                    flag ->
-                                            !flagToContraIndicatorMappings.containsKey(
-                                                    flag)) // Not present
-                            .toArray(String[]::new);
-
+            // Unmapped flags would indicate HMPO are sending something were not prepared for
             String unmappedFlagsAsString = String.join(", ", unmappedFlags);
             logger.error("Unmapped flags encountered: {}", unmappedFlagsAsString);
         }
+    }
 
-        // contraIndicators list is put through a set to remove duplicate CI's
-        List<String> contraIndicators =
-                matchingCiMappings.stream()
-                        .map(ContraIndicatorComplexMapping::getCi)
-                        .collect(Collectors.toList());
-        List<String> deDuplicatedContraIndicators = new ArrayList<>(Set.copyOf(contraIndicators));
-
-        // "Ci,Reason" pair for ciReasons array (will be split in vc evidence)
-        List<String> matchingCiReasons =
-                matchingCiMappings.stream()
-                        .map(
-                                value ->
-                                        String.format(
-                                                CI_REASON_FORMAT, value.getCi(), value.getReason()))
-                        .collect(Collectors.toList());
-
+    private List<String> getTopLevelReasons(List<String> matchingCiReasons) {
         // Apply CI reasons subset mapping rules
-        List<String> specificReasons = new ArrayList<>(ciReasonSubSetMappings.keySet());
 
         // List used for reasonsToFilter in-case of multiple subsets of a general reason
+        // basing logic on response
+
+        //  would it be better in an HMPO specific file
         List<String> reasonsToFilter = new ArrayList<>();
-        for (String specificReason : specificReasons) {
+        for (String specificReason : ciReasonSubSetMappings.keySet()) {
 
             ContraIndicatorComplexMapping generalMapping =
                     ciReasonSubSetMappings.get(specificReason);
@@ -227,37 +251,13 @@ public class ContraIndicatorMapper {
                         ciSpecificReason);
             }
         }
-
-        // Now remove the filtered reasons
-        // reason removal not done inline to support 2+ specifics
-        // e.g. specific>specific>general mappings
-        matchingCiReasons.removeAll(reasonsToFilter);
-
-        // Checks Passed
-        List<String> presentNotMatchingCiChecks =
-                presentNotMatchingCiMappings.stream()
-                        .map(ContraIndicatorComplexMapping::getCheck)
-                        .collect(Collectors.toList());
-
-        // Check Failed
-        List<String> matchingCiChecks =
-                matchingCiMappings.stream()
-                        .map(ContraIndicatorComplexMapping::getCheck)
-                        .collect(Collectors.toList());
-
-        // Results of processing - lists never null
-        return ContraIndicatorMapperResult.builder()
-                .contraIndicators(deDuplicatedContraIndicators)
-                .contraIndicatorReasons(matchingCiReasons)
-                .contraIndicatorChecks(presentNotMatchingCiChecks)
-                .contraIndicatorFailedChecks(matchingCiChecks)
-                .build();
+        return reasonsToFilter;
     }
 
     // Method around filter as the filter is used multiple times and needs to be the same
     private boolean ciMapFilter(Map<String, String> flagMap, String flag) {
 
-        String filterValue = flagToContraIndicatorMappings.get(flag).requiredFlagValue;
+        String filterValue = flagToContraIndicatorMappings.get(flag).getRequiredFlagValue();
         String flagValue = flagMap.get(flag);
 
         return filterValue.equals(flagValue);

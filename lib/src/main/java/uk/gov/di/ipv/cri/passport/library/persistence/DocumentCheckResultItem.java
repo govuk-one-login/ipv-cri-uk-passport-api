@@ -128,7 +128,8 @@ public class DocumentCheckResultItem {
                 && Objects.equals(documentNumber, that.documentNumber)
                 && Objects.equals(expiryDate, that.expiryDate)
                 && Objects.equals(checkDetails, that.checkDetails)
-                && Objects.equals(failedCheckDetails, that.failedCheckDetails);
+                && Objects.equals(failedCheckDetails, that.failedCheckDetails)
+                && Objects.equals(ciReasons, that.ciReasons);
     }
 
     @Override
@@ -143,6 +144,7 @@ public class DocumentCheckResultItem {
                 expiryDate,
                 checkDetails,
                 failedCheckDetails,
-                ttl);
+                ttl,
+                ciReasons);
     }
 }

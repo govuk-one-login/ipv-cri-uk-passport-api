@@ -8,7 +8,7 @@ import uk.gov.di.ipv.cri.common.library.annotations.ExcludeFromGeneratedCoverage
 
 @ExcludeFromGeneratedCoverageReport
 @JsonInclude(JsonInclude.Include.NON_NULL)
-@JsonPropertyOrder({"txn", "checkMethod", "passportCheck"})
+@JsonPropertyOrder({"txn", "checkMethod", "dataCheck"})
 public class Check {
 
     @JsonProperty("dataCheck")

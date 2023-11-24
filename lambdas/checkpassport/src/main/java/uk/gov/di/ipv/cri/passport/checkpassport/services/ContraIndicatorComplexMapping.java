@@ -46,4 +46,8 @@ public final class ContraIndicatorComplexMapping {
     private String titleToSnakeCase(String flag) {
         return flag.replaceAll("([a-z])([A-Z])", "$1_$2").toLowerCase();
     }
+
+    public String getRequiredFlagValue() {
+        return requiredFlagValue;
+    }
 }
