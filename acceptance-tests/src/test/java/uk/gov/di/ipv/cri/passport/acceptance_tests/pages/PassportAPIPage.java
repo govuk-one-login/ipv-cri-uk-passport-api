@@ -8,6 +8,7 @@ import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import com.nimbusds.jwt.SignedJWT;
 import org.apache.commons.lang3.StringUtils;
+import org.apache.logging.log4j.Level;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.junit.Assert;
@@ -24,6 +25,9 @@ import java.net.URISyntaxException;
 import java.net.http.HttpClient;
 import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
+import java.nio.charset.StandardCharsets;
+import java.security.MessageDigest;
+import java.security.NoSuchAlgorithmException;
 import java.text.ParseException;
 import java.util.Base64;
 import java.util.HashMap;
@@ -109,8 +113,13 @@ public class PassportAPIPage extends PassportPageObject {
         assertTrue(StringUtils.isNotBlank(SESSION_ID));
     }
 
+    public void postRequestToPassportEndpoint(String passportJsonRequestBody)
+            throws IOException, InterruptedException, NoSuchFieldException, IllegalAccessException {
+        postRequestToPassportEndpoint(passportJsonRequestBody, "");
+    }
+
     public void postRequestToPassportEndpoint(
-            String passportJsonRequestBody, String jsonEditsString, String documentCheckingRoute)
+            String passportJsonRequestBody, String jsonEditsString)
             throws IOException, InterruptedException, NoSuchFieldException, IllegalAccessException {
         Map<String, String> jsonEdits = new HashMap<>();
         if (!StringUtils.isEmpty(jsonEditsString)) {
@@ -137,9 +146,6 @@ public class PassportAPIPage extends PassportPageObject {
                 .setHeader("Content-Type", "application/json")
                 .setHeader("session_id", SESSION_ID)
                 .POST(HttpRequest.BodyPublishers.ofString(passportInputJsonString));
-        if (documentCheckingRoute != null && !"not-provided".equals(documentCheckingRoute)) {
-            builder.setHeader("document-checking-route", documentCheckingRoute);
-        }
         HttpRequest request = builder.build();
         LOGGER.info("passport RequestBody = " + passportInputJsonString);
         String passportCheckResponse = sendHttpRequest(request).body();
@@ -162,12 +168,6 @@ public class PassportAPIPage extends PassportPageObject {
             RETRY = passportCheckResponse;
             LOGGER.info("RETRY = " + RETRY);
         }
-    }
-
-    public void postRequestToPassportEndpoint(
-            String passportJsonRequestBody, String documentCheckingRoute)
-            throws IOException, InterruptedException, NoSuchFieldException, IllegalAccessException {
-        postRequestToPassportEndpoint(passportJsonRequestBody, "", documentCheckingRoute);
     }
 
     public void retryValueInPassportCheckResponse(Boolean retry) {
@@ -259,13 +259,111 @@ public class PassportAPIPage extends PassportPageObject {
         scoreIs(validityScore, strengthScore, passportCriVc);
     }
 
-    public void assertCheckDetails(String checkDetailsType)
-            throws URISyntaxException, IOException, InterruptedException, ParseException {
-        String passportCriVc = VC;
-        if (null == VC) {
-            passportCriVc = postRequestToPassportVCEndpoint();
+    public void assertVCEvidence(int scenario) throws IOException, NoSuchAlgorithmException {
+
+        int expectedArrayIndex = scenario - 1;
+
+        String emptyArrayHash = "T1PNoYwrqgwDVLtfmj7L5e0Sq02OEbqHPC8RFhICuUU=";
+        String nullElementHash = "47DEQpj8HBSa+/TImW+5JCeuQeRkm5NMpJWZG3hSuFU=";
+
+        String[] ciArrayHashes = {
+            emptyArrayHash,
+            "NE4izyyWEjSKpbBTxHVuF0gqrxibXsfkQvq3wiwI8Rc=",
+            "zvdG3b6B15wfoPIFcbk2yPsSp870Ww6BN0KblxFP8o4=",
+            "zvdG3b6B15wfoPIFcbk2yPsSp870Ww6BN0KblxFP8o4="
+        };
+        String[] checkDetailsArrayHashes = {
+            "OJ1A8Y8ptgNc9fuYBA3/50F6wrHw3FqA65fIV6vN++I=",
+            "47DEQpj8HBSa+/TImW+5JCeuQeRkm5NMpJWZG3hSuFU=",
+            "ErM5+OmTfHBYo0CNuh2FHI+nXlLk1xFl6TVDskSoBjw=",
+            "/gtEhinua5O3bdqX+67vzKBTC02esLnGffHeUeTm9JY="
+        };
+        String[] failedCheckDetailsArrayHashes = {
+            nullElementHash,
+            "/gtEhinua5O3bdqX+67vzKBTC02esLnGffHeUeTm9JY=",
+            "zJjJilDg2lowm2PZjj43zqpI3TC82pnvej/mxIoJlQc=",
+            "99nsWNFMJ4QdCEYGInK/4hTcemYr/6Hf3RYuZFRsRZI="
+        };
+        String[] ciReasonsArrayHashes = {
+            emptyArrayHash,
+            "zwv2uJ/HkFXEvlgie/5MX+KKTztBBsqtq5cP9zrf39Y=",
+            "ECbhSFWj61a98BYpqXRj3k4HjJrMsGkD08TSJMCLjwA=",
+            "Cdf9YoboXyJxqCKvcAgqxvq+r4TCMt2Qh7WtgLWqr8k="
+        };
+
+        JsonNode vcRootNode = objectMapper.readTree((VC));
+
+        // Only the first evidence item
+        JsonNode evidenceArrayFirst = vcRootNode.get("vc").get("evidence").get(0);
+        LOGGER.debug("asserting VC Evidence = " + evidenceArrayFirst.toPrettyString());
+
+        // Contra Indicators
+        JsonNode ciArray = evidenceArrayFirst.get("ci");
+        LOGGER.debug("ciArray = " + ciArray);
+        String ciArrayFoundHash = createBase64Sha254HashOfNode(ciArray);
+        LOGGER.debug("ciArrayFoundHash = " + ciArrayFoundHash);
+        assertTrue(compareHashes(ciArrayHashes[expectedArrayIndex], ciArrayFoundHash));
+
+        // Check Details
+        JsonNode checkDetailsArray = evidenceArrayFirst.get("checkDetails");
+        LOGGER.debug("checkDetailsArray = " + checkDetailsArray);
+        String checkDetailsArrayFoundHash = createBase64Sha254HashOfNode(checkDetailsArray);
+        LOGGER.debug("checkDetailsArrayFoundHash = " + checkDetailsArrayFoundHash);
+        assertTrue(
+                compareHashes(
+                        checkDetailsArrayHashes[expectedArrayIndex], checkDetailsArrayFoundHash));
+
+        // Failed Check Details
+        JsonNode failedCheckDetailsArray = evidenceArrayFirst.get("failedCheckDetails");
+        LOGGER.debug("failedCheckDetailsArray = " + failedCheckDetailsArray);
+        String failedCheckDetailsArrayFoundHash =
+                createBase64Sha254HashOfNode(failedCheckDetailsArray);
+        LOGGER.debug("failedCheckDetailsArrayFoundHash = " + failedCheckDetailsArrayFoundHash);
+        assertTrue(
+                compareHashes(
+                        failedCheckDetailsArrayHashes[expectedArrayIndex],
+                        failedCheckDetailsArrayFoundHash));
+
+        // CI Reasons
+        JsonNode ciReasonsArray = evidenceArrayFirst.get("ciReasons");
+        LOGGER.debug("ciReasons = " + ciReasonsArray);
+        String ciReasonsFoundHash = createBase64Sha254HashOfNode(ciReasonsArray);
+        LOGGER.debug("ciReasonsFoundHash = " + ciReasonsFoundHash);
+        assertTrue(compareHashes(ciReasonsArrayHashes[expectedArrayIndex], ciReasonsFoundHash));
+    }
+
+    private boolean compareHashes(String expectedSha265Bash64Hash, String foundSha265Bash64Hash) {
+
+        boolean match = expectedSha265Bash64Hash.equals(foundSha265Bash64Hash);
+
+        Level level = Level.INFO;
+
+        if (!match) {
+            level = Level.ERROR;
         }
-        assertCheckDetailsWithinVc(checkDetailsType, passportCriVc);
+
+        LOGGER.log(
+                level,
+                "Hash match is "
+                        + match
+                        + ", Comparing Expected Hash : "
+                        + expectedSha265Bash64Hash
+                        + "  to Found Hash : "
+                        + foundSha265Bash64Hash);
+
+        return match;
+    }
+
+    private String createBase64Sha254HashOfNode(JsonNode nodeToHash)
+            throws NoSuchAlgorithmException {
+
+        String stringToHash = nodeToHash == null ? "" : nodeToHash.toString();
+
+        MessageDigest digest = MessageDigest.getInstance("SHA-256");
+
+        byte[] hash = digest.digest(stringToHash.getBytes(StandardCharsets.UTF_8));
+
+        return Base64.getEncoder().encodeToString(hash);
     }
 
     public void ciInPassportCriVc(String ci)

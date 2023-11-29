@@ -19,6 +19,7 @@ import uk.gov.di.ipv.cri.common.library.util.EventProbe;
 import uk.gov.di.ipv.cri.passport.checkpassport.domain.result.DocumentDataVerificationResult;
 import uk.gov.di.ipv.cri.passport.checkpassport.domain.result.ThirdPartyAPIResult;
 import uk.gov.di.ipv.cri.passport.checkpassport.domain.result.fields.APIResultSource;
+import uk.gov.di.ipv.cri.passport.checkpassport.domain.result.fields.ContraIndicatorMapperResult;
 import uk.gov.di.ipv.cri.passport.checkpassport.validation.ValidationResult;
 import uk.gov.di.ipv.cri.passport.library.PassportFormTestDataGenerator;
 import uk.gov.di.ipv.cri.passport.library.domain.PassportFormData;
@@ -26,13 +27,16 @@ import uk.gov.di.ipv.cri.passport.library.error.ErrorResponse;
 import uk.gov.di.ipv.cri.passport.library.exceptions.OAuthErrorResponseException;
 import uk.gov.di.ipv.cri.passport.library.service.ServiceFactory;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyMap;
 import static org.mockito.ArgumentMatchers.eq;
@@ -42,7 +46,6 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.verifyNoMoreInteractions;
 import static org.mockito.Mockito.when;
-import static uk.gov.di.ipv.cri.passport.library.domain.CheckType.DOCUMENT_DATA_VERIFICATION;
 import static uk.gov.di.ipv.cri.passport.library.metrics.Definitions.DOCUMENT_DATA_VERIFICATION_REQUEST_FAILED;
 import static uk.gov.di.ipv.cri.passport.library.metrics.Definitions.DOCUMENT_DATA_VERIFICATION_REQUEST_SUCCEEDED;
 import static uk.gov.di.ipv.cri.passport.library.metrics.Definitions.FORM_DATA_VALIDATION_FAIL;
@@ -73,12 +76,10 @@ class DocumentDataVerificationServiceTest {
 
     @ParameterizedTest
     @CsvSource({
-        "true, false, 0", // Happy path - when we verify a document and no flags present, with
-        // expected no of CIs
-        "false, false, 1", // When a document is not verified with no flags, with expected no of CIs
-        "false, true, 2", // When document is not verified but a flag is present, with expected no
-        // of CIs
-        "true, true, 1", // verified document but a flag, with expected number of CIs
+        "true, false, 0", // Document verified, No flags present - zero CI's
+        "false, false, 1", // Document not verified, No flags present - Main CI only
+        "false, true, 1", // Document not verified, Flag present, Main CI only
+        "true, true, 1", // Document verified, Flag present, Flag CI
     })
     void verifyIdentityShouldReturnResultWhenValidInputProvided(
             boolean documentVerified, boolean flagsPresent, int expectedNumberOfCIs)
@@ -88,15 +89,26 @@ class DocumentDataVerificationServiceTest {
 
         PassportFormData passportFormData = PassportFormTestDataGenerator.generate();
         ThirdPartyAPIResult thirdPartyAPIResult = new ThirdPartyAPIResult();
-        thirdPartyAPIResult.setApiResultSource(APIResultSource.DCS);
+        thirdPartyAPIResult.setApiResultSource(APIResultSource.DVAD);
         thirdPartyAPIResult.setValid(documentVerified);
         thirdPartyAPIResult.setTransactionId("12345");
-        thirdPartyAPIResult.setFlags(Map.of("TestFlag", "true"));
+        thirdPartyAPIResult.setFlags(Map.of("testFlag", "true"));
 
-        // Simulate mapping the TestFlag flag to a CI
+        ContraIndicatorMapperResult contraIndicatorMapperResult;
         if (flagsPresent) {
-            when(mockContraIndicatorMapper.mapFlagsToCIs(anyMap())).thenReturn(List.of("CI1"));
+            // Simulate mapping the TestFlag flag to a CI
+            contraIndicatorMapperResult =
+                    ContraIndicatorMapperResult.builder()
+                            .contraIndicators(new ArrayList<>(List.of("A01")))
+                            .contraIndicatorReasons(new ArrayList<>(List.of("A01,testFlag")))
+                            .contraIndicatorFailedChecks(new ArrayList<>(List.of("test_flag")))
+                            .build();
+        } else {
+            contraIndicatorMapperResult = ContraIndicatorMapperResult.builder().build();
         }
+
+        when(mockContraIndicatorMapper.mapFlagsToCIs(anyMap()))
+                .thenReturn(contraIndicatorMapperResult);
 
         when(mockFormDataValidator.validate(passportFormData))
                 .thenReturn(new ValidationResult<>(true, null));
@@ -133,14 +145,36 @@ class DocumentDataVerificationServiceTest {
         assertEquals(
                 expectedNumberOfCIs, documentDataVerificationResult.getContraIndicators().size());
         assertEquals(4, documentDataVerificationResult.getStrengthScore());
-        if (!documentVerified || expectedNumberOfCIs > 0) {
-            assertEquals(
-                    DOCUMENT_DATA_VERIFICATION.toString(),
-                    documentDataVerificationResult.getChecksFailed().get(0));
-        } else {
-            assertEquals(
-                    DOCUMENT_DATA_VERIFICATION.toString(),
-                    documentDataVerificationResult.getChecksSucceeded().get(0));
+
+        if (documentVerified && !flagsPresent) {
+            assertEquals(1, documentDataVerificationResult.getChecksSucceeded().size());
+            assertTrue(
+                    documentDataVerificationResult.getChecksSucceeded().contains("record_check"));
+
+            assertEquals(0, documentDataVerificationResult.getChecksFailed().size());
+
+        } else if (!documentVerified && !flagsPresent) {
+            assertEquals(0, documentDataVerificationResult.getChecksSucceeded().size());
+
+            assertEquals(1, documentDataVerificationResult.getChecksFailed().size());
+            assertTrue(documentDataVerificationResult.getChecksFailed().contains("record_check"));
+        } else if (documentVerified && flagsPresent) {
+            assertEquals(1, documentDataVerificationResult.getChecksSucceeded().size());
+            assertTrue(
+                    documentDataVerificationResult.getChecksSucceeded().contains("record_check"));
+
+            assertEquals(1, documentDataVerificationResult.getChecksFailed().size());
+            assertTrue(documentDataVerificationResult.getChecksFailed().contains("test_flag"));
+
+        } else { // (!documentVerified && flagsPresent)
+
+            assertEquals(0, documentDataVerificationResult.getChecksSucceeded().size());
+
+            // Main Check overrides all others
+            assertEquals(1, documentDataVerificationResult.getChecksFailed().size());
+            // Only the main flag should be present
+            assertTrue(documentDataVerificationResult.getChecksFailed().contains("record_check"));
+            assertFalse(documentDataVerificationResult.getChecksFailed().contains("test_flag"));
         }
     }
 

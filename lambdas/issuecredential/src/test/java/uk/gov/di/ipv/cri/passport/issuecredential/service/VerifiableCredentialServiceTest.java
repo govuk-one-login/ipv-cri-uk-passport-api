@@ -194,14 +194,17 @@ class VerifiableCredentialServiceTest implements VerifiableCredentialServiceTest
         if (verified) {
             // Verified VC has no CI
             assertNull(evidence.get("ci"));
-            assertEquals("[{\"checkMethod\":\"data\"}]", evidence.get("checkDetails").toString());
+            assertEquals(
+                    "[{\"checkMethod\":\"data\",\"dataCheck\":\"verification_check\"}]",
+                    evidence.get("checkDetails").toString());
 
         } else {
             assertEquals(
                     documentCheckResultItem.getContraIndicators().get(0),
                     evidence.get("ci").get(0).asText());
             assertEquals(
-                    "[{\"checkMethod\":\"data\"}]", evidence.get("failedCheckDetails").toString());
+                    "[{\"checkMethod\":\"data\",\"dataCheck\":\"verification_check\"}]",
+                    evidence.get("failedCheckDetails").toString());
         }
 
         ECDSAVerifier ecVerifier =

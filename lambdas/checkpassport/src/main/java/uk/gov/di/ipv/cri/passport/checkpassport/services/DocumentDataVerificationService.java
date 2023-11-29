@@ -13,6 +13,7 @@ import uk.gov.di.ipv.cri.common.library.util.EventProbe;
 import uk.gov.di.ipv.cri.passport.checkpassport.domain.result.DocumentDataVerificationResult;
 import uk.gov.di.ipv.cri.passport.checkpassport.domain.result.ThirdPartyAPIResult;
 import uk.gov.di.ipv.cri.passport.checkpassport.domain.result.fields.APIResultSource;
+import uk.gov.di.ipv.cri.passport.checkpassport.domain.result.fields.ContraIndicatorMapperResult;
 import uk.gov.di.ipv.cri.passport.checkpassport.validation.ValidationResult;
 import uk.gov.di.ipv.cri.passport.library.domain.PassportFormData;
 import uk.gov.di.ipv.cri.passport.library.error.ErrorResponse;
@@ -20,14 +21,10 @@ import uk.gov.di.ipv.cri.passport.library.exceptions.OAuthErrorResponseException
 import uk.gov.di.ipv.cri.passport.library.helpers.PersonIdentityDetailedHelperMapper;
 import uk.gov.di.ipv.cri.passport.library.service.ServiceFactory;
 
-import java.util.ArrayList;
-import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
-import java.util.Set;
 import java.util.stream.Collectors;
 
-import static uk.gov.di.ipv.cri.passport.library.domain.CheckType.DOCUMENT_DATA_VERIFICATION;
 import static uk.gov.di.ipv.cri.passport.library.metrics.Definitions.DOCUMENT_DATA_VERIFICATION_REQUEST_FAILED;
 import static uk.gov.di.ipv.cri.passport.library.metrics.Definitions.DOCUMENT_DATA_VERIFICATION_REQUEST_SUCCEEDED;
 import static uk.gov.di.ipv.cri.passport.library.metrics.Definitions.FORM_DATA_VALIDATION_FAIL;
@@ -36,7 +33,9 @@ import static uk.gov.di.ipv.cri.passport.library.metrics.Definitions.FORM_DATA_V
 public class DocumentDataVerificationService {
     private static final Logger LOGGER = LogManager.getLogger();
 
-    private static final String DOCUMENT_VALIDITY_CI = "D02";
+    private static final String DOCUMENT_DATA_VERIFICATION_CI = "D02";
+    private static final String DOCUMENT_DATA_VERIFICATION_CHECK_NAME = "record_check";
+    private static final String DOCUMENT_DATA_VERIFICATION_CI_REASON = "NoMatchingRecord";
 
     private static final int MAX_PASSPORT_GPG45_STRENGTH_VALUE = 4;
     private static final int MAX_PASSPORT_GPG45_VALIDITY_VALUE = 2;
@@ -104,8 +103,10 @@ public class DocumentDataVerificationService {
             APIResultSource apiResultSource = thirdPartyAPIResult.getApiResultSource();
 
             LOGGER.info("Mapping contra-indicators from Third party response");
-            List<String> cis = calculateContraIndicators(thirdPartyAPIResult);
+            ContraIndicatorMapperResult contraIndicatorMapperResult =
+                    getContraIndicatorsResult(thirdPartyAPIResult);
 
+            List<String> cis = contraIndicatorMapperResult.getContraIndicators();
             int documentStrengthScore = MAX_PASSPORT_GPG45_STRENGTH_VALUE;
             int documentValidityScore = calculateValidity(thirdPartyAPIResult, cis);
 
@@ -136,15 +137,13 @@ public class DocumentDataVerificationService {
             documentDataVerificationResult.setTransactionId(thirdPartyAPIResult.getTransactionId());
             documentDataVerificationResult.setVerified(thirdPartyAPIResult.isValid());
 
-            List<String> checksSucceeded = new ArrayList<>();
-            List<String> checksFailed = new ArrayList<>();
-            if (documentDataVerificationResult.isVerified() && cis.isEmpty()) {
-                checksSucceeded.add(DOCUMENT_DATA_VERIFICATION.toString());
-            } else {
-                checksFailed.add(DOCUMENT_DATA_VERIFICATION.toString());
-            }
-            documentDataVerificationResult.setChecksSucceeded(checksSucceeded);
-            documentDataVerificationResult.setChecksFailed(checksFailed);
+            // See ContraIndicatorMapperResult as CI Mapper handles CI, CIReasons and CIChecks
+            documentDataVerificationResult.setChecksSucceeded(
+                    contraIndicatorMapperResult.getContraIndicatorChecks());
+            documentDataVerificationResult.setChecksFailed(
+                    contraIndicatorMapperResult.getContraIndicatorFailedChecks());
+            documentDataVerificationResult.setContraIndicatorReasons(
+                    contraIndicatorMapperResult.getContraIndicatorReasons());
 
             LOGGER.info("Sending audit event {}...", AuditEventType.RESPONSE_RECEIVED);
             auditService.sendAuditEvent(
@@ -187,15 +186,13 @@ public class DocumentDataVerificationService {
                 : MAX_PASSPORT_GPG45_VALIDITY_VALUE;
     }
 
-    private List<String> calculateContraIndicators(ThirdPartyAPIResult thirdPartyAPIResult) {
+    // Handles the special case processing for the DOCUMENT_DATA_VERIFICATION_CI
+    private ContraIndicatorMapperResult getContraIndicatorsResult(
+            ThirdPartyAPIResult thirdPartyAPIResult) {
 
-        // Set used to prevent duplicate CI's
-        final Set<String> contraIndicators = new HashSet<>();
+        ContraIndicatorMapperResult contraIndicatorMapperResult;
 
-        if (!thirdPartyAPIResult.isValid()) {
-            contraIndicators.add(DOCUMENT_VALIDITY_CI);
-        }
-
+        // should we not check failed first. Why do all this if were going to clear anyway
         // Legacy API will not set any flags
         if (thirdPartyAPIResult.getFlags() != null) {
             Map<String, String> flagMap = thirdPartyAPIResult.getFlags();
@@ -207,16 +204,46 @@ public class DocumentDataVerificationService {
                 LOGGER.debug(message);
             }
 
-            List<String> flagCIs = contraIndicatorMapper.mapFlagsToCIs(flagMap);
+            contraIndicatorMapperResult = contraIndicatorMapper.mapFlagsToCIs(flagMap);
 
+            List<String> flagCIs = contraIndicatorMapperResult.getContraIndicators();
             for (String ci : flagCIs) {
-                String message = String.format("CI %s ", ci);
+                String message = String.format("Flag CI's %s ", ci);
                 LOGGER.debug(message);
             }
 
-            contraIndicators.addAll(flagCIs);
+        } else {
+            // To maintain legacy compatibility incase DCS needs was re-enabled
+            contraIndicatorMapperResult = ContraIndicatorMapperResult.builder().build();
         }
 
-        return new ArrayList<>(Set.copyOf(contraIndicators));
+        List<String> ciCodes = contraIndicatorMapperResult.getContraIndicators();
+        List<String> ciReason = contraIndicatorMapperResult.getContraIndicatorReasons();
+
+        List<String> ciChecks = contraIndicatorMapperResult.getContraIndicatorChecks();
+        List<String> ciFailedChecks = contraIndicatorMapperResult.getContraIndicatorFailedChecks();
+
+        // isValid to VERIFICATION mapping is not processed as a flag
+        if (!thirdPartyAPIResult.isValid()) {
+
+            // Ensure in this scenario that all other flags are ignored
+            ciCodes.clear();
+            ciReason.clear();
+            ciChecks.clear();
+            ciFailedChecks.clear();
+
+            // CI's
+            ciCodes.add(DOCUMENT_DATA_VERIFICATION_CI);
+
+            // Verification CI Reason "CI,Reason"
+            ciReason.add(
+                    DOCUMENT_DATA_VERIFICATION_CI + "," + DOCUMENT_DATA_VERIFICATION_CI_REASON);
+
+            ciFailedChecks.add(DOCUMENT_DATA_VERIFICATION_CHECK_NAME);
+        } else {
+            ciChecks.add(DOCUMENT_DATA_VERIFICATION_CHECK_NAME);
+        }
+
+        return contraIndicatorMapperResult;
     }
 }

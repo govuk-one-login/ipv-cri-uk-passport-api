@@ -72,8 +72,14 @@ import static uk.gov.di.ipv.cri.passport.library.config.ParameterStoreParameters
 import static uk.gov.di.ipv.cri.passport.library.config.ParameterStoreParameters.IS_DCS_PERFORMANCE_STUB;
 import static uk.gov.di.ipv.cri.passport.library.config.ParameterStoreParameters.IS_DVAD_PERFORMANCE_STUB;
 import static uk.gov.di.ipv.cri.passport.library.config.ParameterStoreParameters.MAXIMUM_ATTEMPT_COUNT;
-import static uk.gov.di.ipv.cri.passport.library.domain.CheckType.DOCUMENT_DATA_VERIFICATION;
-import static uk.gov.di.ipv.cri.passport.library.metrics.Definitions.*;
+import static uk.gov.di.ipv.cri.passport.library.metrics.Definitions.FORM_DATA_PARSE_FAIL;
+import static uk.gov.di.ipv.cri.passport.library.metrics.Definitions.FORM_DATA_PARSE_PASS;
+import static uk.gov.di.ipv.cri.passport.library.metrics.Definitions.LAMBDA_CHECK_PASSPORT_ATTEMPT_STATUS_RETRY;
+import static uk.gov.di.ipv.cri.passport.library.metrics.Definitions.LAMBDA_CHECK_PASSPORT_ATTEMPT_STATUS_UNVERIFIED;
+import static uk.gov.di.ipv.cri.passport.library.metrics.Definitions.LAMBDA_CHECK_PASSPORT_ATTEMPT_STATUS_VERIFIED_PREFIX;
+import static uk.gov.di.ipv.cri.passport.library.metrics.Definitions.LAMBDA_CHECK_PASSPORT_COMPLETED_ERROR;
+import static uk.gov.di.ipv.cri.passport.library.metrics.Definitions.LAMBDA_CHECK_PASSPORT_COMPLETED_OK;
+import static uk.gov.di.ipv.cri.passport.library.metrics.Definitions.LAMBDA_CHECK_PASSPORT_USER_REDIRECTED_ATTEMPTS_OVER_MAX;
 
 @ExtendWith(MockitoExtension.class)
 @ExtendWith(SystemStubsExtension.class)
@@ -139,8 +145,7 @@ class CheckPassportHandlerTest {
         DocumentDataVerificationResult testDocumentDataVerificationResult =
                 DocumentDataVerificationServiceResultDataGenerator.generate(passportFormData);
         testDocumentDataVerificationResult.setContraIndicators(new ArrayList<>());
-        testDocumentDataVerificationResult.setChecksSucceeded(
-                List.of(DOCUMENT_DATA_VERIFICATION.toString()));
+        testDocumentDataVerificationResult.setChecksSucceeded(List.of("verification_check"));
 
         APIGatewayProxyRequestEvent mockRequestEvent =
                 Mockito.mock(APIGatewayProxyRequestEvent.class);
@@ -229,12 +234,10 @@ class CheckPassportHandlerTest {
         DocumentDataVerificationResult testDocumentDataVerificationResult =
                 DocumentDataVerificationServiceResultDataGenerator.generate(passportFormData);
         if (documentVerified) {
-            testDocumentDataVerificationResult.setChecksSucceeded(
-                    List.of(DOCUMENT_DATA_VERIFICATION.toString()));
+            testDocumentDataVerificationResult.setChecksSucceeded(List.of("verification_check"));
             testDocumentDataVerificationResult.setContraIndicators(new ArrayList<>());
         } else {
-            testDocumentDataVerificationResult.setChecksFailed(
-                    List.of(DOCUMENT_DATA_VERIFICATION.toString()));
+            testDocumentDataVerificationResult.setChecksFailed(List.of("verification_check"));
         }
 
         testDocumentDataVerificationResult.setVerified(documentVerified); // Test Parameter
@@ -487,7 +490,6 @@ class CheckPassportHandlerTest {
         CommonExpressOAuthError expectedObject =
                 new CommonExpressOAuthError(
                         OAuth2Error.SERVER_ERROR, OAuth2Error.SERVER_ERROR.getDescription());
-        System.out.println(responseTreeRootNode);
 
         assertNotNull(responseEvent);
         assertNotNull(responseTreeRootNode);
@@ -666,7 +668,7 @@ class CheckPassportHandlerTest {
                 documentDataVerificationResult.getChecksSucceeded());
         documentCheckResultItem.setFailedCheckDetails(
                 documentDataVerificationResult.getChecksFailed());
-
+        documentCheckResultItem.setCiReasons(new ArrayList<>());
         return documentCheckResultItem;
     }
 }

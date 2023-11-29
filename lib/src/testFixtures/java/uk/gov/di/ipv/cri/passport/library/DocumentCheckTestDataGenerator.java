@@ -6,8 +6,6 @@ import java.time.LocalDate;
 import java.util.List;
 import java.util.UUID;
 
-import static uk.gov.di.ipv.cri.passport.library.domain.CheckType.DOCUMENT_DATA_VERIFICATION;
-
 public class DocumentCheckTestDataGenerator {
 
     private DocumentCheckTestDataGenerator() {
@@ -42,7 +40,9 @@ public class DocumentCheckTestDataGenerator {
 
         documentCheckResultItem.setTransactionId(UUID.randomUUID().toString());
 
-        documentCheckResultItem.setCheckDetails(List.of(DOCUMENT_DATA_VERIFICATION.toString()));
+        documentCheckResultItem.setCheckDetails(List.of("verification_check"));
+
+        documentCheckResultItem.setCiReasons(null);
 
         return documentCheckResultItem;
     }
@@ -65,8 +65,9 @@ public class DocumentCheckTestDataGenerator {
 
         documentCheckResultItem.setTransactionId(UUID.randomUUID().toString());
 
-        documentCheckResultItem.setFailedCheckDetails(
-                List.of(DOCUMENT_DATA_VERIFICATION.toString()));
+        documentCheckResultItem.setFailedCheckDetails(List.of("verification_check"));
+
+        documentCheckResultItem.setCiReasons(List.of("CI1,Verification"));
 
         return documentCheckResultItem;
     }

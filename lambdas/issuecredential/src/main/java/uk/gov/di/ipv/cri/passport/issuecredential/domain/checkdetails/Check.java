@@ -8,11 +8,11 @@ import uk.gov.di.ipv.cri.common.library.annotations.ExcludeFromGeneratedCoverage
 
 @ExcludeFromGeneratedCoverageReport
 @JsonInclude(JsonInclude.Include.NON_NULL)
-@JsonPropertyOrder({"txn", "checkMethod", "passportCheck"})
+@JsonPropertyOrder({"txn", "checkMethod", "dataCheck"})
 public class Check {
 
-    @JsonIgnore // @JsonProperty("passportCheck")
-    private String passportCheck;
+    @JsonProperty("dataCheck")
+    private String dataCheck;
 
     @JsonProperty("checkMethod")
     private String checkMethod = "data";
@@ -20,12 +20,12 @@ public class Check {
     @JsonIgnore // @JsonProperty("txn")
     private String txn;
 
-    public Check(String passportCheck) {
-        this.passportCheck = passportCheck;
+    public Check(String dataCheck) {
+        this.dataCheck = dataCheck;
     }
 
-    public String getPassportCheck() {
-        return passportCheck;
+    public String getDataCheck() {
+        return dataCheck;
     }
 
     public String getCheckMethod() {

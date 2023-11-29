@@ -56,9 +56,6 @@ public class CheckPassportHandler
 
     private static final Logger LOGGER = LogManager.getLogger();
 
-    // Header Keys
-    public static final String HEADER_DOCUMENT_CHECKING_ROUTE = "document-checking-route";
-
     // Return values for retry scenario
     public static final String RESULT = "result";
     public static final String RESULT_RETRY = "retry";
@@ -166,8 +163,7 @@ public class CheckPassportHandler
             PassportFormData passportFormData = parsePassportFormRequest(input.getBody());
             eventProbe.counterMetric(FORM_DATA_PARSE_PASS);
 
-            // Dynamic Third party API selection based on new-api header key being present (value
-            // ignored)
+            // Dynamic Third party API selection based on feature toggle
             boolean dvaDigitalEnabled =
                     Boolean.parseBoolean(
                             passportConfigurationService.getStackParameterValue(
@@ -383,7 +379,6 @@ public class CheckPassportHandler
     }
 
     private ThirdPartyAPIService selectThirdPartyAPIService(boolean dvaDigitalEnabled) {
-        // Feature flag and header required for new api
         if (dvaDigitalEnabled) {
             // DVAD
             return thirdPartyAPIServiceFactory.getDvadThirdPartyAPIService();
@@ -402,8 +397,12 @@ public class CheckPassportHandler
         documentCheckResultItem.setSessionId(sessionItem.getSessionId());
 
         documentCheckResultItem.setTransactionId(documentDataVerificationResult.getTransactionId());
+
         documentCheckResultItem.setContraIndicators(
                 documentDataVerificationResult.getContraIndicators());
+        documentCheckResultItem.setCiReasons(
+                documentDataVerificationResult.getContraIndicatorReasons());
+
         documentCheckResultItem.setStrengthScore(documentDataVerificationResult.getStrengthScore());
         documentCheckResultItem.setValidityScore(documentDataVerificationResult.getValidityScore());
 

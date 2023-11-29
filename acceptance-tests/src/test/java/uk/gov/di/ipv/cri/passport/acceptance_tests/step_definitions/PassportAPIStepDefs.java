@@ -8,6 +8,7 @@ import uk.gov.di.ipv.cri.passport.acceptance_tests.pages.PassportAPIPage;
 
 import java.io.IOException;
 import java.net.URISyntaxException;
+import java.security.NoSuchAlgorithmException;
 import java.text.ParseException;
 
 public class PassportAPIStepDefs extends PassportAPIPage {
@@ -31,20 +32,19 @@ public class PassportAPIStepDefs extends PassportAPIPage {
         getSessionIdForPassport();
     }
 
-    @When(
-            "Passport user sends a POST request to Passport endpoint using jsonRequest (.*) and document checking route is (.*)$")
+    @When("Passport user sends a POST request to Passport endpoint using jsonRequest (.*)$")
     public void passport_user_sends_a_post_request_to_passport_end_point(
-            String passportJsonRequestBody, String documentCheckingRoute)
+            String passportJsonRequestBody)
             throws IOException, InterruptedException, NoSuchFieldException, IllegalAccessException {
-        postRequestToPassportEndpoint(passportJsonRequestBody, documentCheckingRoute);
+        postRequestToPassportEndpoint(passportJsonRequestBody);
     }
 
     @When(
-            "Passport user sends a editable POST request to Passport endpoint using jsonRequest (.*) with edited fields (.*) and document checking route is (.*)$")
+            "Passport user sends a editable POST request to Passport endpoint using jsonRequest (.*) with edited fields (.*)$")
     public void passport_user_sends_a_post_request_to_passport_end_point(
-            String passportJsonRequestBody, String jsonEdits, String documentCheckingRoute)
+            String passportJsonRequestBody, String jsonEdits)
             throws IOException, InterruptedException, NoSuchFieldException, IllegalAccessException {
-        postRequestToPassportEndpoint(passportJsonRequestBody, jsonEdits, documentCheckingRoute);
+        postRequestToPassportEndpoint(passportJsonRequestBody, jsonEdits);
     }
 
     @And("Passport check response should contain Retry value as (.*)$")
@@ -72,27 +72,26 @@ public class PassportAPIStepDefs extends PassportAPIPage {
     @And("Passport VC should contain validityScore (.*) and strengthScore (.*)$")
     public void passport_vc_should_contain_validity_score_and_strength_score(
             String validityScore, String strengthScore)
-            throws IOException, InterruptedException, ParseException, URISyntaxException {
+            throws IOException, InterruptedException, ParseException {
         validityScoreAndStrengthScoreInVC(validityScore, strengthScore);
     }
 
     @And("Passport VC should contain ci (.*), validityScore (.*) and strengthScore (.*)$")
     public void passport_vc_should_contain_ci_validity_score_and_strength_score(
             String ci, String validityScore, String strengthScore)
-            throws IOException, InterruptedException, ParseException, URISyntaxException {
+            throws IOException, InterruptedException, ParseException {
         ciInPassportCriVc(ci);
         validityScoreAndStrengthScoreInVC(validityScore, strengthScore);
     }
 
-    @And("Passport VC should contain (.*) checkDetails$")
-    public void passport_vc_should_contain_check_details(String checkDetailsType)
-            throws IOException, InterruptedException, ParseException, URISyntaxException {
-        assertCheckDetails(checkDetailsType);
+    @And("Passport VC Evidence contains expected values for scenario (.*)$")
+    public void passport_vc_should_contain_evidence_for_scenario(int scenario)
+            throws IOException, NoSuchAlgorithmException {
+        assertVCEvidence(scenario);
     }
 
     @And("Check response contains unexpected server error exception")
-    public void passport_check_fails_and_returns_unexpected_exception()
-            throws IOException, InterruptedException, ParseException, URISyntaxException {
+    public void passport_check_fails_and_returns_unexpected_exception() {
         checkPassportResponseContainsException();
     }
 }

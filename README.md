@@ -99,33 +99,18 @@ See onboarding guide for instructions on how to setup the following command line
 - aws cli
 - aws-vault
 - sam cli
-- gds cli
 
 ### Deploy to passport dev account
 
-`gds aws di-ipv-cri-passporta-dev-admin -- ./deploy.sh di-ipv-cri-passport-myusernameORticket`
+`aws-vault exec pa-dev -- ./deploy.sh ipv-cri-passport-MyUsernameOrTicketNumber`
 
 ### Delete stack from passport dev account
-> The stack name *must* be unique to you and created by you in the deploy stage above.
-> Type `y`es when prompted to delete the stack and the folders in S3 bucket
+> The stack name *must* be unique to you and created by you in the deploy step above.
+> Type `y`es when prompted to delete the stack and the folders in the S3 bucket
 
 The command to run is:
 
-`gds aws di-ipv-cri-passporta-dev-admin -- sam delete --config-env dev --stack-name di-ipv-cri-passport-myusernameORticket`
-
-### Deploy to shared dev account
-
-edit deploy.sh and set DevEnvironment=cri-dev
-
-`gds aws di-ipv-cri-dev -- ./deploy.sh di-ipv-cri-passport-myusernameORticket`
-
-### Delete stack from shared dev account
-> The stack name *must* be unique to you and created by you in the deploy stage above.
-> Type `y`es when prompted to delete the stack and the folders in S3 bucket
-
-The command to run is:
-
-`gds aws ROLE -- sam delete --config-env dev --stack-name <unique-stack-name>`
+`aws-vault exec pa-dev -- sam delete --stack-name ipv-cri-passport-MyUsernameOrTicketNumber`
 
 ### Parameter prefix
 
@@ -139,6 +124,13 @@ Can also be used with the following limitations in development.
 - Existing stack needs to have all the parameters needed for the stack with the prefix enabled.
 - Existing stack parameters values if changed will trigger behaviour changes in the stack with the prefix enabled.
 - Existing stack if deleted will cause errors in the deployed stack.
+
+## Testing with self deployed stub
+If testing against a self deployed stub in the passporta dev environment.
+The domain used by the stubs lambda function url will need added to
+- The dns firewall allowed domains list
+- A new rule added to the network firewall suricata rules config
+  This will enable your deployed stack to connect to your deployed stub.
 
 ## Acceptance Test
 

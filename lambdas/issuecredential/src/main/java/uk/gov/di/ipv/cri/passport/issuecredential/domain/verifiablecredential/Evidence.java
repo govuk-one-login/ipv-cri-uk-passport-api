@@ -2,6 +2,7 @@ package uk.gov.di.ipv.cri.passport.issuecredential.domain.verifiablecredential;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
 import uk.gov.di.ipv.cri.common.library.annotations.ExcludeFromGeneratedCoverageReport;
+import uk.gov.di.ipv.cri.passport.issuecredential.domain.CiReasons;
 import uk.gov.di.ipv.cri.passport.issuecredential.domain.checkdetails.Check;
 
 import java.util.List;
@@ -19,6 +20,8 @@ public class Evidence {
     private List<Check> checkDetails;
 
     private List<Check> failedCheckDetails;
+
+    private List<CiReasons> ciReasons;
 
     public Evidence() {}
 
@@ -85,19 +88,35 @@ public class Evidence {
         this.failedCheckDetails = failedCheckDetails;
     }
 
+    public List<CiReasons> getCiReasons() {
+        return ciReasons;
+    }
+
+    public void setCiReasons(List<CiReasons> ciReasons) {
+        this.ciReasons = ciReasons;
+    }
+
     @Override
     public String toString() {
         return "Evidence{"
-                + "type="
+                + "type='"
                 + type
-                + ", txn="
+                + '\''
+                + ", txn='"
                 + txn
-                + ", strength="
+                + '\''
+                + ", strengthScore="
                 + strengthScore
-                + ", validity="
+                + ", validityScore="
                 + validityScore
                 + ", ci="
                 + ci
+                + ", checkDetails="
+                + checkDetails
+                + ", failedCheckDetails="
+                + failedCheckDetails
+                + ", ciReasons="
+                + ciReasons
                 + '}';
     }
 }
