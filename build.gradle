@@ -81,7 +81,8 @@ reporting {
 dependencies {
 	jacocoAggregation project(':lib'),
 			project("lambdas:checkpassport"),
-			project("lambdas:issuecredential")
+			project("lambdas:issuecredential"),
+			project("lambdas:certexpiryreminder")
 }
 
 spotless {
