@@ -4,9 +4,17 @@ import software.amazon.lambda.powertools.parameters.ParamManager;
 import software.amazon.lambda.powertools.parameters.SSMProvider;
 import uk.gov.di.ipv.cri.common.library.annotations.ExcludeFromGeneratedCoverageReport;
 import uk.gov.di.ipv.cri.common.library.service.ConfigurationService;
+import uk.gov.di.ipv.cri.passport.library.helpers.KeyCertHelper;
 
+import java.security.cert.CertificateException;
+import java.security.cert.X509Certificate;
 import java.time.temporal.ChronoUnit;
+import java.util.Map;
 import java.util.Optional;
+
+import static uk.gov.di.ipv.cri.passport.library.config.ParameterStoreParameters.HMPO_HTTPCLIENT_TLS_CERT;
+import static uk.gov.di.ipv.cri.passport.library.config.ParameterStoreParameters.HMPO_HTTPCLIENT_TLS_INTER_CERT;
+import static uk.gov.di.ipv.cri.passport.library.config.ParameterStoreParameters.HMPO_HTTPCLIENT_TLS_ROOT_CERT;
 
 public final class PassportConfigurationService extends ConfigurationService {
     private static final String PARAMETER_NAME_FORMAT = "/%s/%s";
@@ -74,5 +82,29 @@ public final class PassportConfigurationService extends ConfigurationService {
     public String getStackParameterValue(String parameterName) {
         return ssmProvider.get(
                 String.format(PARAMETER_NAME_FORMAT, stackParameterPrefix, parameterName));
+    }
+
+    public Map<String, X509Certificate> getHMPOCertificates() throws CertificateException {
+
+        X509Certificate tlsCertExpiry =
+                (X509Certificate)
+                        KeyCertHelper.getDecodedX509Certificate(
+                                getParameterValue(HMPO_HTTPCLIENT_TLS_CERT));
+        X509Certificate tlsIntermediateCertExpiry =
+                (X509Certificate)
+                        KeyCertHelper.getDecodedX509Certificate(
+                                getParameterValue(HMPO_HTTPCLIENT_TLS_INTER_CERT));
+        X509Certificate tlsRootCertExpiry =
+                (X509Certificate)
+                        KeyCertHelper.getDecodedX509Certificate(
+                                getParameterValue(HMPO_HTTPCLIENT_TLS_ROOT_CERT));
+
+        return Map.of(
+                HMPO_HTTPCLIENT_TLS_CERT,
+                tlsCertExpiry,
+                HMPO_HTTPCLIENT_TLS_INTER_CERT,
+                tlsIntermediateCertExpiry,
+                HMPO_HTTPCLIENT_TLS_ROOT_CERT,
+                tlsRootCertExpiry);
     }
 }

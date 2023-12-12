@@ -42,6 +42,13 @@ public class Definitions {
     public static final String DOCUMENT_DATA_VERIFICATION_REQUEST_FAILED =
             "document_data_verification_request_failed";
 
+    // Cert Expiry Reminder
+    public static final String CERTIFICATE_EXPIRY_REMINDER =
+            "hmpo_cert_expiry_reminder_alert_metric";
+
+    // Cert Expiry metric
+    public static final String CERTIFICATE_EXPIRYS = "hmpo_cert_expiry_metric";
+
     public static final String PASSPORT_CI_PREFIX = "passport_ci_";
 
     public static final String PASSPORT_FALL_BACK_EXECUTING = "passport_fallback_executing";
