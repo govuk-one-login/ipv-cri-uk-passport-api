@@ -456,7 +456,7 @@ Resources:
             - Fn::ImportValue:
                 !Sub "${VpcStackName}-PrivateSubnetIdB"
       Handler: uk.gov.di.ipv.cri.passport.checkpassport.handler.CheckPassportHandler::handleRequest
-      Runtime: java11
+      Runtime: java17
       CodeUri: ../../lambdas/checkpassport
       Environment:
         # checkov:skip=CKV_AWS_173: These environment variables do not require encryption.
@@ -560,7 +560,7 @@ Resources:
       # checkov:skip=CKV_AWS_116: Lambdas invoked via API Gateway do not support Dead Letter Queues.
       # checkov:skip=CKV_AWS_117: Lambdas will migrate to our own VPC in future work.
       Handler: uk.gov.di.ipv.cri.passport.issuecredential.handler.IssueCredentialHandler::handleRequest
-      Runtime: java11
+      Runtime: java17
       CodeUri: ../../lambdas/issuecredential
       Environment:
         # checkov:skip=CKV_AWS_173: These environment variables do not require encryption.
@@ -642,7 +642,7 @@ Resources:
     Type: AWS::Serverless::Function
     Properties:
       Handler: uk.gov.di.ipv.cri.passport.certexpiryreminder.handler.CertExpiryReminderHandler::handleRequest
-      Runtime: java11
+      Runtime: java17
       CodeUri: ../../lambdas/certexpiryreminder
       Environment:
         Variables:

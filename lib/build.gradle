@@ -5,7 +5,7 @@ plugins {
 	id "java-library"
 	id "idea"
 	id "jacoco"
-	id 'io.freefair.aspectj.post-compile-weaving' version '6.3.0'
+	id 'io.freefair.aspectj.post-compile-weaving' version '8.4'
 	id 'java-test-fixtures'
 }
 
@@ -27,7 +27,8 @@ dependencies {
 
 	aspect "software.amazon.lambda:powertools-logging:${dependencyVersions.aws_powertools_logging_version}",
 			"software.amazon.lambda:powertools-metrics:${dependencyVersions.aws_powertools_metrics_version}",
-			"software.amazon.lambda:powertools-parameters:${dependencyVersions.aws_powertools_parameters_version}"
+			"software.amazon.lambda:powertools-parameters:${dependencyVersions.aws_powertools_parameters_version}",
+			"org.aspectj:aspectjrt:${dependencyVersions.aspectjrt_version}"
 
 	testImplementation "org.junit.jupiter:junit-jupiter-engine:${dependencyVersions.junit_version}",
 			"org.junit.jupiter:junit-jupiter-api:${dependencyVersions.junit_version}",

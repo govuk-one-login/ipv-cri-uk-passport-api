@@ -2,10 +2,10 @@ plugins {
 	id "java"
 	id "idea"
 	id "org.sonarqube" version "4.0.0.2929"
-	id "io.freefair.lombok" version "8.0.1"
+	id "io.freefair.lombok" version "8.4"
 	id "jacoco"
 	id "jacoco-report-aggregation"
-	id "com.diffplug.spotless" version "6.1.0"
+	id "com.diffplug.spotless" version "6.23.3"
 	id "org.owasp.dependencycheck" version "8.4.0"
 }
 
@@ -43,16 +43,15 @@ ext {
 		wiremock_version                   : "3.0.1",
 		webcompere_version                 : "2.0.2",
 		// testFixturesImplementation
-		aspectjrt_version                  : "1.9.7",
-		// acceptance tests Implementation
-		cucumber_version                   : "7.11.2",
-		selenium_version                   : "4.9.0",
-		axe_core_selenium_version          : "4.6.0",
-		webdrivermanager_version           : "5.3.2",
-		// acceptance tests testImplementation
-		rest_assured_version               : "5.3.0",
-		cucumber_junit_version             : "7.11.2"
+		aspectjrt_version                  : "1.9.21",
 	]
+
+	// Sets the version used on the lambda + lib (ac tests have separate dependencies)
+	javaCompatibility = [
+		source : JavaVersion.VERSION_17,
+		target : JavaVersion.VERSION_17
+	]
+
 	// Code Coverage (Lines/Branches) cannot be below this value on a per sub project basis
 	minUnitTestLineCoverage = 0.9
 	minUnitTestBranchCoverage = 0.8
@@ -91,6 +90,8 @@ spotless {
 		googleJavaFormat("1.13.0").aosp()
 		importOrder "", "javax", "java", "\\#"
 		endWithNewline()
+		sourceCompatibility = "${javaCompatibility.source}"
+		targetCompatibility = "${javaCompatibility.target}"
 	}
 	groovyGradle {
 		target '**/*.gradle'
@@ -120,10 +121,20 @@ subprojects {
 		//}
 	}
 
-	java {
-		sourceCompatibility = JavaVersion.VERSION_11
-		targetCompatibility = JavaVersion.VERSION_11
+	plugins.withId('java') {
+		sourceCompatibility = "${javaCompatibility.source}"
+		targetCompatibility = "${javaCompatibility.target}"
+	}
+
+	plugins.withId('java-library') {
+		sourceCompatibility = "${javaCompatibility.source}"
+		targetCompatibility = "${javaCompatibility.target}"
 	}
 
 	task allDeps(type: DependencyReportTask) {}
+}
+
+clean.doFirst {
+	delete "${rootDir}/dist/"
+	delete "${rootDir}/.aws-sam"
 }
