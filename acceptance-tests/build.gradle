@@ -1,6 +1,6 @@
 plugins {
 	id 'java'
-	id "io.freefair.aspectj.post-compile-weaving" version "6.3.0"
+	id 'io.freefair.aspectj.post-compile-weaving' version '8.4'
 }
 
 defaultTasks 'clean', 'build'
@@ -35,6 +35,7 @@ dependencies {
 		aws_powertools_logging_version     : "1.17.0",
 		aws_powertools_metrics_version     : "1.17.0",
 		aws_powertools_parameters_version  : "1.17.0",
+		aspectjrt_version                  : "1.9.21",
 		// Compile/Annotation
 		lombok_version                     : "1.18.22",
 		// Test
@@ -44,7 +45,7 @@ dependencies {
 		wiremock_version                   : "3.0.1",
 		webcompere_version                 : "2.0.2",
 		// testFixturesImplementation
-		aspectjrt_version                  : "1.9.7",
+
 		// acceptance tests Implementation
 		cucumber_version                   : "7.13.0",
 		selenium_version                   : "4.11.0",
@@ -83,12 +84,13 @@ dependencies {
 
 	aspect "software.amazon.lambda:powertools-logging:${dependencyVersions.aws_powertools_logging_version}",
 			"software.amazon.lambda:powertools-metrics:${dependencyVersions.aws_powertools_metrics_version}",
-			"software.amazon.lambda:powertools-parameters:${dependencyVersions.aws_powertools_parameters_version}"
+			"software.amazon.lambda:powertools-parameters:${dependencyVersions.aws_powertools_parameters_version}",
+			"org.aspectj:aspectjrt:${dependencyVersions.aspectjrt_version}"
 }
 
 java {
-	sourceCompatibility = JavaVersion.VERSION_11
-	targetCompatibility = JavaVersion.VERSION_11
+	sourceCompatibility = JavaVersion.VERSION_17
+	targetCompatibility = JavaVersion.VERSION_17
 }
 
 test {
