@@ -145,10 +145,11 @@ class PreLambdaHandler implements HttpHandler {
             Map<String, String> jsonMap = new HashMap<>();
 
             // Logic to place the response into a json object so it can be understood by pact
-            jsonMap.put("vc", response.getBody());
-            response.setBody(new ObjectMapper().writeValueAsString(jsonMap));
+//            jsonMap.put("vc", response.getBody());
+//            response.setBody(new ObjectMapper().writeValueAsString(jsonMap));
             String body = response.getBody();
-            exchange.getResponseHeaders().set("Content-Type", "application/json");
+            exchange.getResponseHeaders().set("Content-Type", "application/jwt; charset=UTF-8");
+            //exchange.getResponseHeaders().set("Content-Type", "text/plain; charset=UTF-8");
             // Logic to place the response into a json object so it can be understood by pact
 
             exchange.sendResponseHeaders(statusCode, body.length());

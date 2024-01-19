@@ -93,6 +93,7 @@ class IssueCredentialHandlerTest {
     @BeforeAll
     static void setupServer() {
         System.setProperty("pact.verifier.publishResults", "true");
+        System.setProperty("pact.content_type.override.application/jwt", "text");
     }
 
     @BeforeEach

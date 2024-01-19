@@ -1,0 +1,79 @@
+{
+  "consumer": {
+    "name": "IpvCoreBack"
+  },
+  "interactions": [
+    {
+      "description": "Valid POST request",
+      "providerStates": [
+        {
+          "name": "dummyApiKey is a valid api key"
+        },
+        {
+          "name": "dummyAccessToken is a valid access token"
+        },
+        {
+          "name": "test-subject is a valid subject"
+        },
+        {
+          "name": "dummyPassportComponentId is a valid issuer"
+        },
+        {
+          "name": "VC givenName is Mary"
+        },
+        {
+          "name": "VC familyName is Watson"
+        },
+        {
+          "name": "VC birthDate is 1932-02-25"
+        },
+        {
+          "name": "VC passport documentNumber is 824159121"
+        },
+        {
+          "name": "VC passport expiryDate is 2030-01-01"
+        }
+      ],
+      "request": {
+        "headers": {
+          "Authorization": "Bearer dummyAccessToken",
+          "x-api-key": "dummyApiKey"
+        },
+        "method": "POST",
+        "path": "/issue/credential"
+      },
+      "response": {
+        "headers": {
+          "Content-Type": "application/jwt; charset=UTF-8"
+        },
+        "body": "eyJ0eXAiOiJKV1QiLCJhbGciOiJFUzI1NiJ9.eyJpc3MiOiJkdW1teVBhc3Nwb3J0Q29tcG9uZW50SWQiLCJzdWIiOiJ0ZXN0LXN1YmplY3QiLCJuYmYiOjQwNzA5MDg4MDAsImV4cCI6NDA3MDkwOTQwMCwidmMiOnsiQGNvbnRleHQiOlsiaHR0cHM6Ly93d3cudzMub3JnLzIwMTgvY3JlZGVudGlhbHMvdjEiLCJodHRwczovL3ZvY2FiLmxvbmRvbi5jbG91ZGFwcHMuZGlnaXRhbC9jb250ZXh0cy9pZGVudGl0eS12MS5qc29ubGQiXSwidHlwZSI6WyJWZXJpZmlhYmxlQ3JlZGVudGlhbCIsIklkZW50aXR5Q2hlY2tDcmVkZW50aWFsIl0sImNyZWRlbnRpYWxTdWJqZWN0Ijp7InBhc3Nwb3J0IjpbeyJleHBpcnlEYXRlIjoiMjAzMC0wMS0wMSIsImRvY3VtZW50TnVtYmVyIjoiODI0MTU5MTIxIn1dLCJiaXJ0aERhdGUiOlt7InZhbHVlIjoiMTkzMi0wMi0yNSJ9XSwibmFtZSI6W3sibmFtZVBhcnRzIjpbeyJ0eXBlIjoiR2l2ZW5OYW1lIiwidmFsdWUiOiJNYXJ5In0seyJ0eXBlIjoiRmFtaWx5TmFtZSIsInZhbHVlIjoiV2F0c29uIn1dfV19LCJldmlkZW5jZSI6W3sidmVyaWZpY2F0aW9uU2NvcmUiOiIwIiwiY2kiOlsiQTAyIiwiQTAzIl0sInR4biI6IkRTSkpTRUUyOTM5MiIsInR5cGUiOiJJZGVudGl0eUNoZWNrIn1dfX0.lDEi47XWnjyZ20fU-vb02BV1MSan68AqLUEQxCZGM_r8i4bG06uzdpXOJZeg-Kdhsf-NtWbqb-xM0P36YGwIeg",
+        "matchingRules": {
+          "body": {
+            "$": {
+              "matchers": [
+                {
+                  "match": "regex",
+                  "regex": "^eyJ0eXAiOiJKV1QiLCJhbGciOiJFUzI1NiJ9.*",
+                  "value": "eyJ0eXAiOiJKV1QiLCJhbGciOiJFUzI1NiJ9"
+                }
+              ],
+              "combine": "AND"
+            }
+          }
+        },
+        "status": 200
+      }
+    }
+  ],
+  "metadata": {
+    "pact-jvm": {
+      "version": "4.6.3"
+    },
+    "pactSpecification": {
+      "version": "3.0.0"
+    }
+  },
+  "provider": {
+    "name": "PassportCriProvider"
+  }
+}
