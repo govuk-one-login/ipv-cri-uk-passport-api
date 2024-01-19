@@ -137,6 +137,8 @@ class PreLambdaHandler implements HttpHandler {
             throws IOException {
         Integer statusCode = response.getStatusCode();
 
+        Headers serverRequestHeaders = exchange.getRequestHeaders();
+
         Headers serverResponseHeaders = exchange.getResponseHeaders();
         response.getHeaders().forEach(serverResponseHeaders::set);
 
@@ -144,11 +146,15 @@ class PreLambdaHandler implements HttpHandler {
             LOGGER.info("getting response body");
             Map<String, String> jsonMap = new HashMap<>();
 
-            // Logic to place the response into a json object so it can be understood by pact
-            jsonMap.put("vc", response.getBody());
-            response.setBody(new ObjectMapper().writeValueAsString(jsonMap));
             String body = response.getBody();
-            exchange.getResponseHeaders().set("Content-Type", "application/json");
+            // Logic to place the response into a json object so it can be understood by pact
+            if (serverRequestHeaders.containsKey("scenario")
+                    && !serverRequestHeaders.get("scenario").get(0).equals("real-request")) {
+                jsonMap.put("vc", response.getBody());
+                response.setBody(new ObjectMapper().writeValueAsString(jsonMap));
+                body = response.getBody();
+                exchange.getResponseHeaders().set("Content-Type", "application/json");
+            }
             // Logic to place the response into a json object so it can be understood by pact
 
             exchange.sendResponseHeaders(statusCode, body.length());

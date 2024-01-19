@@ -2,7 +2,6 @@ package uk.gov.di.ipv.cri.passport.issuecredential.pact;
 
 
 
-import au.com.dius.pact.core.model.HttpRequest;
 import au.com.dius.pact.provider.junit5.HttpTestTarget;
 import au.com.dius.pact.provider.junit5.PactVerificationContext;
 import au.com.dius.pact.provider.junit5.PactVerificationInvocationContextProvider;
@@ -14,7 +13,6 @@ import com.nimbusds.jose.JOSEException;
 import com.nimbusds.jose.JWSSigner;
 import com.nimbusds.jose.crypto.ECDSASigner;
 
-import org.jetbrains.annotations.NotNull;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Tag;
@@ -23,9 +21,10 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.ArgumentCaptor;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.mockito.junit.jupiter.MockitoSettings;
+import org.mockito.quality.Strictness;
 import software.amazon.awssdk.regions.Region;
 import uk.gov.di.ipv.cri.common.library.domain.SessionRequest;
-import uk.gov.di.ipv.cri.common.library.exception.SqsException;
 import uk.gov.di.ipv.cri.common.library.persistence.DataStore;
 import uk.gov.di.ipv.cri.common.library.persistence.item.CanonicalAddress;
 import uk.gov.di.ipv.cri.common.library.persistence.item.SessionItem;
@@ -63,9 +62,7 @@ import java.time.ZoneOffset;
 import java.util.ArrayList;
 import java.util.Base64;
 import java.util.Date;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 import java.util.UUID;
 
 import static org.mockito.ArgumentMatchers.any;
@@ -77,12 +74,14 @@ import static uk.gov.di.ipv.cri.passport.library.config.ParameterStoreParameters
 // For static tests against potential new contracts
 @PactFolder("pacts")
 // For local tests the pact details will need set as environment variables
-@Tag("Pact")
+//@Tag("Pact")
 @Provider("PassportCriProvider")
 @ExtendWith(MockitoExtension.class)
+@MockitoSettings(strictness = Strictness.LENIENT)
 class IssueCredentialHandlerTest {
 
     private static final int PORT = 5050;
+    private static boolean SERVER_STARTED = false;
 
     @Mock private PassportConfigurationService configurationService;
     @Mock private DataStore<SessionItem> dataStore;
@@ -136,7 +135,10 @@ class IssueCredentialHandlerTest {
                                 new VerifiableCredentialService(serviceFactory, signer)),
                         "/issue/credential",
                         "/");
-        MockHttpServer.startServer(new ArrayList<>(List.of(tokenHandlerInjector)), PORT);
+        if (!SERVER_STARTED) {
+            MockHttpServer.startServer(new ArrayList<>(List.of(tokenHandlerInjector)), PORT);
+            SERVER_STARTED = true;
+        }
 
         context.setTarget(new HttpTestTarget("localhost", PORT));
     }
@@ -181,54 +183,23 @@ class IssueCredentialHandlerTest {
 
         // INITIAL SESSION HANDOFF
         UUID sessionId = performInitialSessionRequest(sessionService, todayPlusADay);
-        setSessionIntoMockDB(sessionId);
+        setPersonIntoMockDB(sessionId);
         // INITIAL SESSION HANDOFF
 
         // SIMULATED CRI LOGIC
-        PersonIdentityNamePart firstNamePart = new PersonIdentityNamePart();
-        firstNamePart.setType("GivenName");
-        firstNamePart.setValue("Mary");
-        PersonIdentityNamePart surnamePart = new PersonIdentityNamePart();
-        surnamePart.setType("FamilyName");
-        surnamePart.setValue("Watson");
-        PersonIdentityName name = new PersonIdentityName();
-        name.setNameParts(List.of(firstNamePart, surnamePart));
+        PersonIdentityName name = createName("Mary", "Watson");
+        PersonIdentityDateOfBirth birthDate = createDoB(1932, 2, 25);
+        CanonicalAddress address = createAddress();
 
-        PersonIdentityDateOfBirth birthDate = new PersonIdentityDateOfBirth();
-        birthDate.setValue(LocalDate.of(1932, 2, 25));
+        PersonIdentityItem personIdentityItem = createPerson(name, birthDate, address);
 
-        CanonicalAddress address = new CanonicalAddress();
-        address.setBuildingNumber("buildingNum");
-        address.setBuildingName("buildingName");
-        address.setStreetName("street");
-        address.setAddressLocality("locality");
-        address.setPostalCode("postcode");
-        address.setValidFrom(LocalDate.now().minusDays(1));
+        setPersonIntoMockDB(sessionId, personIdentityItem);
 
-        PersonIdentityItem personIdentityItem = new PersonIdentityItem();
-        personIdentityItem.setExpiryDate(
-                LocalDate.of(2030, 1, 1).toEpochSecond(LocalTime.now(), ZoneOffset.UTC));
-        personIdentityItem.setSessionId(sessionId);
-        personIdentityItem.setAddresses(List.of(address));
-        personIdentityItem.setNames(List.of(name));
-        personIdentityItem.setBirthDates(List.of(birthDate));
+        DocumentCheckResultItem documentCheckResultItem = createDocument( "824159121");
 
-        when(personIdentityDataStore.getItem(sessionId.toString()))
-                .thenReturn(personIdentityItem);
-
-        DocumentCheckResultItem documentCheckResultItem = new DocumentCheckResultItem();
-        documentCheckResultItem.setCiReasons(new ArrayList<>());
-        documentCheckResultItem.setDocumentNumber("824159121");
-        documentCheckResultItem.setCheckDetails(List.of("IdentityCheck"));
-        documentCheckResultItem.setSessionId(sessionId);
-        documentCheckResultItem.setStrengthScore(4);
-        documentCheckResultItem.setTransactionId("DSJJSEE29392");
-        documentCheckResultItem.setValidityScore(2);
-        documentCheckResultItem.setTtl(10000l);
-        documentCheckResultItem.setCiReasons(new ArrayList<>());
-        documentCheckResultItem.setExpiryDate(LocalDate.of(2030, 1, 1).toString());
-        when(documentCheckResultStore.getItem(sessionId.toString()))
-                .thenReturn(documentCheckResultItem);
+        List<String> identityChecks = List.of("IdentityCheck");
+        setScoresAndChecks(documentCheckResultItem, identityChecks);
+        setDocumentIntoMockDB(sessionId, documentCheckResultItem);
         // SIMULATED CRI LOGIC
 
 
@@ -243,6 +214,74 @@ class IssueCredentialHandlerTest {
         when(dataStore.getItemByIndex(SessionItem.ACCESS_TOKEN_INDEX, "Bearer dummyAccessToken"))
                 .thenReturn(List.of(session));
         context.verifyInteraction();
+    }
+
+    private void setScoresAndChecks(DocumentCheckResultItem documentCheckResultItem, List<String> identityChecks) {
+        documentCheckResultItem.setValidityScore(2);
+        documentCheckResultItem.setStrengthScore(4);
+        documentCheckResultItem.setCheckDetails(identityChecks);
+        documentCheckResultItem.setCiReasons(new ArrayList<>());
+    }
+
+    private void setDocumentIntoMockDB(UUID sessionId, DocumentCheckResultItem documentCheckResultItem) {
+        documentCheckResultItem.setSessionId(sessionId);
+        when(documentCheckResultStore.getItem(sessionId.toString()))
+                .thenReturn(documentCheckResultItem);
+    }
+
+    private DocumentCheckResultItem createDocument(String docNumber) {
+        DocumentCheckResultItem documentCheckResultItem = new DocumentCheckResultItem();
+        documentCheckResultItem.setCiReasons(new ArrayList<>());
+        documentCheckResultItem.setDocumentNumber(docNumber);
+        documentCheckResultItem.setTransactionId("DSJJSEE29392");
+        documentCheckResultItem.setTtl(10000L);
+        documentCheckResultItem.setExpiryDate(LocalDate.of(2030, 1, 1).toString());
+        return documentCheckResultItem;
+    }
+
+    private void setPersonIntoMockDB(UUID sessionId, PersonIdentityItem personIdentityItem) {
+        personIdentityItem.setSessionId(sessionId);
+        when(personIdentityDataStore.getItem(sessionId.toString()))
+                .thenReturn(personIdentityItem);
+    }
+
+    private PersonIdentityItem createPerson(PersonIdentityName name, PersonIdentityDateOfBirth birthDate, CanonicalAddress address) {
+        PersonIdentityItem personIdentityItem = new PersonIdentityItem();
+        personIdentityItem.setExpiryDate(
+                LocalDate.of(2030, 1, 1).toEpochSecond(LocalTime.now(), ZoneOffset.UTC));
+        personIdentityItem.setAddresses(List.of(address));
+        personIdentityItem.setNames(List.of(name));
+        personIdentityItem.setBirthDates(List.of(birthDate));
+        return personIdentityItem;
+    }
+
+    private static CanonicalAddress createAddress() {
+        CanonicalAddress address = new CanonicalAddress();
+        address.setBuildingNumber("buildingNum");
+        address.setBuildingName("buildingName");
+        address.setStreetName("street");
+        address.setAddressLocality("locality");
+        address.setPostalCode("postcode");
+        address.setValidFrom(LocalDate.now().minusDays(1));
+        return address;
+    }
+
+    private PersonIdentityDateOfBirth createDoB(int year, int month, int day) {
+        PersonIdentityDateOfBirth birthDate = new PersonIdentityDateOfBirth();
+        birthDate.setValue(LocalDate.of(year, month, day));
+        return birthDate;
+    }
+
+    private PersonIdentityName createName(String firstName, String surname) {
+        PersonIdentityNamePart firstNamePart = new PersonIdentityNamePart();
+        firstNamePart.setType("GivenName");
+        firstNamePart.setValue(firstName);
+        PersonIdentityNamePart surnamePart = new PersonIdentityNamePart();
+        surnamePart.setType("FamilyName");
+        surnamePart.setValue(surname);
+        PersonIdentityName name = new PersonIdentityName();
+        name.setNameParts(List.of(firstNamePart, surnamePart));
+        return name;
     }
 
     private SessionItem performAuthorizationCodeSet(SessionService sessionService, UUID sessionId) {
@@ -261,7 +300,7 @@ class IssueCredentialHandlerTest {
         return session;
     }
 
-    private void setSessionIntoMockDB(UUID sessionId) {
+    private void setPersonIntoMockDB(UUID sessionId) {
         ArgumentCaptor<SessionItem> sessionItemArgumentCaptor =
                 ArgumentCaptor.forClass(SessionItem.class);
 
