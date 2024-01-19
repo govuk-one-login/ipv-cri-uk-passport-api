@@ -54,6 +54,10 @@ public class ClientFactoryService {
         awsRegion = Region.of(System.getenv("AWS_REGION"));
     }
 
+    public ClientFactoryService(Region awsRegion) {
+        this.awsRegion = awsRegion;
+    }
+
     public KmsClient getKMSClient() {
         return KmsClient.builder()
                 .httpClientBuilder(UrlConnectionHttpClient.builder())
