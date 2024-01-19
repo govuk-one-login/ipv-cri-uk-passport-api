@@ -34,6 +34,25 @@ public class ServiceFactory {
         // Lazy Init Singletons (NOT thread safe)
     }
 
+    public ServiceFactory(
+            ObjectMapper objectMapper,
+            EventProbe eventProbe,
+            ClientFactoryService clientFactoryService,
+            PassportConfigurationService passportConfigurationService,
+            SessionService sessionService,
+            AuditService auditService,
+            PersonIdentityService personIdentityService,
+            DataStore<DocumentCheckResultItem> documentCheckResultStore) {
+        this.objectMapper = objectMapper;
+        this.eventProbe = eventProbe;
+        this.clientFactoryService = clientFactoryService;
+        this.passportConfigurationService = passportConfigurationService;
+        this.sessionService = sessionService;
+        this.auditService = auditService;
+        this.personIdentityService = personIdentityService;
+        this.documentCheckResultStore = documentCheckResultStore;
+    }
+
     public ObjectMapper getObjectMapper() {
 
         if (objectMapper == null) {

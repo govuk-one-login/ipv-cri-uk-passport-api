@@ -36,7 +36,10 @@ dependencies {
 			"org.hamcrest:hamcrest:${dependencyVersions.hamcrest_version}",
 			"com.github.tomakehurst:wiremock-jre8:${dependencyVersions.wiremock_version}",
 			"uk.org.webcompere:system-stubs-core:${dependencyVersions.webcompere_version}",
-			"uk.org.webcompere:system-stubs-jupiter:${dependencyVersions.webcompere_version}"
+			"uk.org.webcompere:system-stubs-jupiter:${dependencyVersions.webcompere_version}",
+			'au.com.dius.pact:provider:4.6.4',
+			'au.com.dius.pact.provider:junit5:4.6.4',
+			'software.amazon.awssdk:dynamodb:2.21.24'
 }
 
 tasks.register('buildZip', Zip) {
@@ -49,7 +52,9 @@ tasks.register('buildZip', Zip) {
 }
 
 test {
-	useJUnitPlatform ()
+	useJUnitPlatform {
+		excludeTags 'Pact'
+	}
 	finalizedBy jacocoTestReport, jacocoTestCoverageVerification
 }
 
@@ -95,4 +100,14 @@ jacocoTestCoverageVerification {
 			}
 		}
 	}
+}
+
+tasks.register("pactTests", Test) {
+	useJUnitPlatform {
+		includeTags 'Pact'
+	}
+}
+
+configurations.configureEach {
+	exclude group:"software.amazon.awssdk", module: "apache-client"
 }

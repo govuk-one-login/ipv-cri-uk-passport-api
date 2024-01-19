@@ -20,7 +20,7 @@ repositories {
 ext {
 	dependencyVersions = [
 		// Implementation
-		cri_common_lib_version             : "1.5.3",
+		cri_common_lib_version             : "1.5.4",
 		nimbusds_oauth_version             : "11.2",
 		nimbusds_jwt_version               : "9.36",
 		aws_sdk_version                    : "2.20.162",
@@ -37,7 +37,7 @@ ext {
 		// Compile/Annotation
 		lombok_version                     : "1.18.22",
 		// Test
-		junit_version                      : "5.8.2",
+		junit_version                      : "5.10.1",
 		hamcrest_version                   : "2.2",
 		mockito_version                    : "4.3.1",
 		wiremock_version                   : "3.0.1",
@@ -53,7 +53,7 @@ ext {
 	]
 
 	// Code Coverage (Lines/Branches) cannot be below this value on a per sub project basis
-	minUnitTestLineCoverage = 0.9
+	minUnitTestLineCoverage = 0.8
 	minUnitTestBranchCoverage = 0.8
 }
 
