@@ -34,6 +34,7 @@ public class ServiceFactory {
         // Lazy Init Singletons (NOT thread safe)
     }
 
+    @SuppressWarnings("java:S107")
     public ServiceFactory(
             ObjectMapper objectMapper,
             EventProbe eventProbe,
