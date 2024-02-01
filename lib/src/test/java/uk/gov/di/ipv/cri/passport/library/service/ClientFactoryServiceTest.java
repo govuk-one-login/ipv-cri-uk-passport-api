@@ -8,6 +8,7 @@ import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.CsvSource;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import software.amazon.awssdk.regions.Region;
 import software.amazon.awssdk.services.kms.KmsClient;
 import software.amazon.awssdk.services.sqs.SqsClient;
 import software.amazon.awssdk.services.ssm.SsmClient;
@@ -95,6 +96,14 @@ class ClientFactoryServiceTest {
                         false, mockPassportConfigurationService);
 
         assertNotNull(closeableHttpClient);
+    }
+
+    @Test
+    void shouldReturnClientWithRegionManuallySet() {
+        ClientFactoryService clientFactoryServiceManual =
+                new ClientFactoryService(Region.EU_WEST_2);
+
+        assertNotNull(clientFactoryServiceManual);
     }
 
     @Test
