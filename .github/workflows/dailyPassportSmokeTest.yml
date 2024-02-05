@@ -15,18 +15,17 @@ jobs:
 
     steps:
       - name: Checkout main branch from GitHub
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
 
       - name: Set up JDK 17
-        uses: actions/setup-java@v2
-
+        uses: actions/setup-java@v4
         with:
           java-version: '17'
           distribution: 'temurin'
           server-id: github # Value of the distributionManagement/repository/id field of the pom.xml
           settings-path: ${{ github.workspace }} # location for the settings.xml file
 
-      - uses: gradle/gradle-build-action@v2
+      - uses: gradle/actions/setup-gradle@v3
 
       - name: Run Passport Smoke test against staging environment
         env:
@@ -40,7 +39,7 @@ jobs:
         run: cd acceptance-tests && gradle passportCriSmokeStaging
 
       - name: Get test results history
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
         if: always()
         continue-on-error: true
         with:
@@ -48,7 +47,7 @@ jobs:
           path: LIME-Cucumber-gh-pages
 
       - name: Cucumber HTML Report action
-        uses: PavanMudigonda/html-reporter-github-pages@v1.0
+        uses: PavanMudigonda/html-reporter-github-pages@v1.1
         id: test-report
         if: always()
         with:
@@ -58,7 +57,7 @@ jobs:
 
       - name: Publish Github Pages
         if: always()
-        uses: peaceiris/actions-gh-pages@v3.8.0
+        uses: peaceiris/actions-gh-pages@v3.9.3
         with:
           github_token: ${{ secrets.GITHUB_TOKEN }}
           publish_branch: LIME-Cucumber-gh-pages
