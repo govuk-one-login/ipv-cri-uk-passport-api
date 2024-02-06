@@ -7,6 +7,11 @@ on:
     paths:
       - "infrastructure/lambda/template.yaml"
       - ".github/workflows/checkov.yml"
+
+  push:
+    branches:
+      - ips-447-fix-workflow-warnings
+
 jobs:
   RunCheckov:
     runs-on: ubuntu-latest
