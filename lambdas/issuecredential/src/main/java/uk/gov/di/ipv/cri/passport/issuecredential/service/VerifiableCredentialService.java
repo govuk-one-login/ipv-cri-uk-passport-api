@@ -4,6 +4,8 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.nimbusds.jose.JOSEException;
 import com.nimbusds.jose.JWSSigner;
 import com.nimbusds.jwt.SignedJWT;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 import uk.gov.di.ipv.cri.common.library.domain.personidentity.BirthDate;
 import uk.gov.di.ipv.cri.common.library.domain.personidentity.Passport;
 import uk.gov.di.ipv.cri.common.library.domain.personidentity.PersonIdentityDetailed;
@@ -32,6 +34,8 @@ public class VerifiableCredentialService {
     private PassportConfigurationService passportConfigurationService;
     private SignedJWTFactory signedJwtFactory;
     private VerifiableCredentialClaimsSetBuilder vcClaimsSetBuilder;
+    private static final Logger LOGGER = LogManager.getLogger();
+
 
     public VerifiableCredentialService(ServiceFactory serviceFactory, JWSSigner jwsSigner) {
         this.objectMapper = serviceFactory.getObjectMapper();
@@ -70,6 +74,7 @@ public class VerifiableCredentialService {
                                         convertBirthDates(personIdentityDetailed.getBirthDates())))
                         .verifiableCredentialEvidence(calculateEvidence(documentCheckResultItem))
                         .build();
+        LOGGER.info("Our VC jti is {}", claimsSet.getClaim("jti"));
 
         return signedJwtFactory.createSignedJwt(claimsSet);
     }

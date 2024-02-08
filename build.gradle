@@ -20,7 +20,7 @@ repositories {
 ext {
 	dependencyVersions = [
 		// Implementation
-		cri_common_lib_version             : "1.5.3",
+		cri_common_lib_version             : "1.5.4",
 		nimbusds_oauth_version             : "11.2",
 		nimbusds_jwt_version               : "9.36",
 		aws_sdk_version                    : "2.20.162",

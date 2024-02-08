@@ -416,6 +416,11 @@ public class PassportStepDefs extends PassportPageObject {
         expiryAbsentFromVC(exp);
     }
 
+    @And("^Passport VC should contain JTI field$")
+    public void jsonPayloadShouldContainJtiField() throws IOException {
+        assertJtiIsPresentAndNotNull();
+    }
+
     @Then("User enters expiry date as current date minus (.*) months and minus (.*) days$")
     public void expiryDateAsCurrentMinus(int monthsToSubtract, int daysToSubtract) {
         userReEntersExpiryDateAsCurrentDateMinus(monthsToSubtract, daysToSubtract);

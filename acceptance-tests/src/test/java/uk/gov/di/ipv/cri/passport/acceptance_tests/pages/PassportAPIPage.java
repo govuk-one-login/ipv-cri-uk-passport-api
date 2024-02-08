@@ -259,6 +259,17 @@ public class PassportAPIPage extends PassportPageObject {
         scoreIs(validityScore, strengthScore, passportCriVc);
     }
 
+    public void assertJtiIsPresent() throws IOException, ParseException, InterruptedException {
+        String result = postRequestToPassportVCEndpoint();
+        LOGGER.info("result = " + result);
+        ObjectMapper objectMapper = new ObjectMapper();
+        JsonNode jsonNode = objectMapper.readTree(result);
+        JsonNode jtiNode = jsonNode.get("jti");
+        LOGGER.info("jti = " + jtiNode.asText());
+
+        assertNotNull(jtiNode.asText());
+    }
+
     public void assertVCEvidence(int scenario) throws IOException, NoSuchAlgorithmException {
 
         int expectedArrayIndex = scenario - 1;

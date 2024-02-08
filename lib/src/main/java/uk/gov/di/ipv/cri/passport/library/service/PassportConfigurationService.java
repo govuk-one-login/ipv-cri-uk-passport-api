@@ -1,5 +1,7 @@
 package uk.gov.di.ipv.cri.passport.library.service;
 
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 import software.amazon.lambda.powertools.parameters.ParamManager;
 import software.amazon.lambda.powertools.parameters.SSMProvider;
 import uk.gov.di.ipv.cri.common.library.annotations.ExcludeFromGeneratedCoverageReport;
@@ -21,6 +23,7 @@ public final class PassportConfigurationService extends ConfigurationService {
     private final SSMProvider ssmProvider;
     private final String parameterPrefix; // Parameters that can hava prefix override
     private final String stackParameterPrefix; // Parameters that must always be from the stack
+    private static final Logger LOGGER = LogManager.getLogger();
 
     // Note - Do not add to this class
     // TODO Delete this class once withDecryption
@@ -69,6 +72,7 @@ public final class PassportConfigurationService extends ConfigurationService {
      */
     @Override
     public String getParameterValue(String parameterName) {
+        LOGGER.info(String.format(PARAMETER_NAME_FORMAT, parameterPrefix, parameterName));
         return ssmProvider.get(
                 String.format(PARAMETER_NAME_FORMAT, parameterPrefix, parameterName));
     }
