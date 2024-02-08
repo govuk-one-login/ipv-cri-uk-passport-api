@@ -70,9 +70,8 @@ jobs:
         working-directory: ./infrastructure/lambda
         run: sam validate --region ${{ env.AWS_REGION }}
 
-      - name: SAM build and test
-        working-directory: ./infrastructure/lambda/
-        run: sam build
+      - name: SAM build
+        run: sam build -t infrastructure/lambda/template.yaml -b out
 
       - name: Login to Amazon ECR
         id: login-ecr
@@ -103,5 +102,4 @@ jobs:
         with:
             artifact-bucket-name: ${{ secrets.ARTIFACT_BUCKET_NAME }}
             signing-profile-name: ${{ secrets.SIGNING_PROFILE_NAME }}
-            working-directory: ./infrastructure/lambda/
-            template-file: template.yaml
+            working-directory: ./out
