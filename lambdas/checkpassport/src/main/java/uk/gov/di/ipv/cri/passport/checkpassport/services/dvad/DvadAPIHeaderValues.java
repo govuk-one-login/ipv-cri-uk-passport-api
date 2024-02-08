@@ -21,12 +21,17 @@ public class DvadAPIHeaderValues {
 
     public DvadAPIHeaderValues(PassportConfigurationService passportConfigurationService) {
         apiKey = passportConfigurationService.getEncryptedSsmParameter(HMPO_API_HEADER_API_KEY);
-        userAgent = passportConfigurationService.getParameterValue(HMPO_API_HEADER_USER_AGENT);
-        networkType = passportConfigurationService.getParameterValue(HMPO_API_HEADER_NETWORK_TYPE);
+        userAgent =
+                passportConfigurationService.getPassportParameterValue(HMPO_API_HEADER_USER_AGENT);
+        networkType =
+                passportConfigurationService.getPassportParameterValue(
+                        HMPO_API_HEADER_NETWORK_TYPE);
 
-        clientId = passportConfigurationService.getParameterValue(HMPO_API_HEADER_CLIENT_ID);
-        secret = passportConfigurationService.getParameterValue(HMPO_API_HEADER_SECRET);
+        clientId =
+                passportConfigurationService.getPassportParameterValue(HMPO_API_HEADER_CLIENT_ID);
+        secret = passportConfigurationService.getPassportParameterValue(HMPO_API_HEADER_SECRET);
 
-        grantType = passportConfigurationService.getParameterValue(HMPO_API_HEADER_GRANT_TYPE);
+        grantType =
+                passportConfigurationService.getPassportParameterValue(HMPO_API_HEADER_GRANT_TYPE);
     }
 }

@@ -35,11 +35,13 @@ public class ThirdPartyAPIServiceFactory {
         // TLS On/Off
         boolean tlsOnDvad =
                 !Boolean.parseBoolean(
-                        passportConfigurationService.getParameterValue(IS_DVAD_PERFORMANCE_STUB));
+                        passportConfigurationService.getPassportParameterValue(
+                                IS_DVAD_PERFORMANCE_STUB));
 
         boolean tlsOnDCS =
                 !Boolean.parseBoolean(
-                        passportConfigurationService.getParameterValue(IS_DCS_PERFORMANCE_STUB));
+                        passportConfigurationService.getPassportParameterValue(
+                                IS_DCS_PERFORMANCE_STUB));
 
         // Done this way to allow switching if needed to lazy init + singletons
         thirdPartyAPIServices[DVAD] = createDvadThirdPartyAPIService(tlsOnDvad);

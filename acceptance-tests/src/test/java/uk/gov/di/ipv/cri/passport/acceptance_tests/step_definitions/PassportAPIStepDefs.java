@@ -91,7 +91,8 @@ public class PassportAPIStepDefs extends PassportAPIPage {
     }
 
     @And("Passport VC should contain JTI field value")
-    public void passport_vc_should_contain_jti_field_value() throws IOException, ParseException, InterruptedException {
+    public void passport_vc_should_contain_jti_field_value()
+            throws IOException, ParseException, InterruptedException {
         assertJtiIsPresent();
     }
 

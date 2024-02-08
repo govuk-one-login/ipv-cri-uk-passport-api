@@ -9,15 +9,15 @@ Feature: Passport Test
     And I assert the url path contains details
     And I set the document checking route
 
-  @Passport_test @build @staging @integration @smoke @testing
+  @Passport_test @build @staging @integration @smoke
   Scenario Outline: Passport details page happy path
     Given User enters data as a <PassportSubject>
     When User clicks on continue
     Then I navigate to the passport verifiable issuer to check for a Valid response
     And JSON payload should contain validity score 2 and strength score 4
     And JSON response should contain documentNumber 321654987 same as given passport
-    And exp should be absent in the JSON payload
     And Passport VC should contain JTI field
+    And exp should be absent in the JSON payload
     And The test is complete and I close the driver
     Examples:
       |PassportSubject             |
