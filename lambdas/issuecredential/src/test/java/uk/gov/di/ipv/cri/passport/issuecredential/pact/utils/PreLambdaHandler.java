@@ -4,9 +4,12 @@ import com.amazonaws.services.lambda.runtime.Context;
 import com.amazonaws.services.lambda.runtime.RequestHandler;
 import com.amazonaws.services.lambda.runtime.events.APIGatewayProxyRequestEvent;
 import com.amazonaws.services.lambda.runtime.events.APIGatewayProxyResponseEvent;
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.nimbusds.jose.JOSEException;
 import com.nimbusds.jose.JWSHeader;
 import com.nimbusds.jose.JWSSigner;
+import com.nimbusds.jose.util.Base64URL;
 import com.nimbusds.jwt.JWT;
 import com.nimbusds.jwt.JWTClaimsSet;
 import com.nimbusds.jwt.JWTParser;
@@ -28,6 +31,7 @@ import java.sql.Date;
 import java.text.ParseException;
 import java.time.LocalDate;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.TreeMap;
 import java.util.UUID;
@@ -168,9 +172,13 @@ class PreLambdaHandler implements HttpHandler {
                 Map<String, Object> vc = (Map<String, Object>) vcClaim;
                 Map<String, Object> credentialSubject =
                         (Map<String, Object>) vc.get("credentialSubject");
+                List<Object> evidence = (List<Object>) vc.get("evidence");
+                List<Object> sortedEvidence =
+                        evidence.stream().sorted().collect(Collectors.toList());
                 TreeMap<Object, Object> sortedCredentialSubject = new TreeMap<>(credentialSubject);
 
                 vc.put("credentialSubject", sortedCredentialSubject);
+                vc.put("evidence", sortedEvidence);
 
                 SignedJWT signedJWT = amendClaimSet(jwt, nbf, vc, claimsSet);
 
@@ -189,11 +197,24 @@ class PreLambdaHandler implements HttpHandler {
 
     private SignedJWT amendClaimSet(
             JWT jwt, Date nbf, Map<String, Object> vc, JWTClaimsSet claimsSet)
-            throws JOSEException {
+            throws JOSEException, ParseException, JsonProcessingException {
+
         JWTClaimsSet modifiedClaimsSet =
                 new JWTClaimsSet.Builder(claimsSet).notBeforeTime(nbf).claim("vc", vc).build();
         SignedJWT signedJWT = new SignedJWT((JWSHeader) jwt.getHeader(), modifiedClaimsSet);
         signedJWT.sign(signer);
-        return signedJWT;
+
+        TreeMap<String, Object> test = new TreeMap<>();
+        test.put("typ", jwt.getHeader().getType().getType());
+        test.put("alg", jwt.getHeader().getAlgorithm().getName());
+
+        Base64URL jwtHeader = Base64URL.encode(new ObjectMapper().writeValueAsString(test));
+        String[] serialize = signedJWT.serialize().split("\\.");
+
+        SignedJWT signedJWTNew =
+                new SignedJWT(
+                        jwtHeader, Base64URL.from(serialize[1]), Base64URL.from(serialize[2]));
+
+        return signedJWTNew;
     }
 }

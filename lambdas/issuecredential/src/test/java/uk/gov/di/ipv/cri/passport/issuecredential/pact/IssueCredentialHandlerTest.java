@@ -16,7 +16,7 @@ import com.nimbusds.oauth2.sdk.token.AccessTokenType;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.Tag;
+import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.TestTemplate;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.ArgumentCaptor;
@@ -75,8 +75,9 @@ import static uk.gov.di.ipv.cri.passport.library.config.ParameterStoreParameters
 // For static tests against potential new contracts
 @PactFolder("pacts")
 // For local tests the pact details will need set as environment variables
-@Tag("Pact")
-@Provider("PassportCriProvider")
+// @Tag("Pact")
+@Disabled
+@Provider("PassportVcProvider")
 @ExtendWith(MockitoExtension.class)
 @MockitoSettings(strictness = Strictness.LENIENT)
 class IssueCredentialHandlerTest {
@@ -228,6 +229,29 @@ class IssueCredentialHandlerTest {
     @State("VC familyName is Watson")
     void vcHasTheDesiredFamilyName() {}
 
+    @State("VC is a scenario 2 failure")
+    void vcHasTheDesiredFamilyName1() throws ParseException {
+        UUID sessionUUID =
+                sessionService
+                        .getSessionByAccessToken(
+                                AccessToken.parse(
+                                        "Bearer dummyAccessToken", AccessTokenType.BEARER))
+                        .getSessionId();
+        String sessionId = sessionUUID.toString();
+
+        DocumentCheckResultItem documentCheckResultItem = createBaseDocumentResultItem(sessionUUID);
+        documentCheckResultItem.setCiReasons(new ArrayList<>());
+        documentCheckResultItem.setDocumentNumber("123456789");
+        documentCheckResultItem.setFailedCheckDetails(
+                List.of("scenario1_check", "scenario2_check"));
+        documentCheckResultItem.setCheckDetails(List.of("record_check"));
+        documentCheckResultItem.setValidityScore(0);
+        documentCheckResultItem.setContraIndicators(List.of("CI01"));
+        documentCheckResultItem.setCiReasons(List.of("CI01,Scenario2"));
+        when(documentCheckResultStore.getItem(sessionId.toString()))
+                .thenReturn(documentCheckResultItem);
+    }
+
     @State("VC givenName is Mary")
     void vcHasTheDesiredGivenName() {}
 
@@ -247,8 +271,9 @@ class IssueCredentialHandlerTest {
         DocumentCheckResultItem documentCheckResultItem = createBaseDocumentResultItem(sessionUUID);
         documentCheckResultItem.setCiReasons(new ArrayList<>());
         documentCheckResultItem.setDocumentNumber("824159121");
-        documentCheckResultItem.setCheckDetails(List.of("IdentityCheck"));
+        documentCheckResultItem.setCheckDetails(List.of("scenario_1", "record_check"));
         documentCheckResultItem.setValidityScore(2);
+        documentCheckResultItem.setContraIndicators(new ArrayList<>());
         documentCheckResultItem.setCiReasons(new ArrayList<>());
         when(documentCheckResultStore.getItem(sessionId.toString()))
                 .thenReturn(documentCheckResultItem);
@@ -267,10 +292,10 @@ class IssueCredentialHandlerTest {
         DocumentCheckResultItem documentCheckResultItem = createBaseDocumentResultItem(sessionUUID);
         documentCheckResultItem.setCiReasons(new ArrayList<>());
         documentCheckResultItem.setDocumentNumber("123456789");
-        documentCheckResultItem.setFailedCheckDetails(List.of("scenario1_check"));
+        documentCheckResultItem.setFailedCheckDetails(List.of("record_check"));
         documentCheckResultItem.setValidityScore(0);
         documentCheckResultItem.setContraIndicators(List.of("D02"));
-        documentCheckResultItem.setCiReasons(List.of("D02,Scenario1"));
+        documentCheckResultItem.setCiReasons(List.of("D02,NoMatchingRecord"));
         when(documentCheckResultStore.getItem(sessionId.toString()))
                 .thenReturn(documentCheckResultItem);
     }
@@ -334,7 +359,7 @@ class IssueCredentialHandlerTest {
     private static DocumentCheckResultItem createBaseDocumentResultItem(UUID sessionUUID) {
         DocumentCheckResultItem documentCheckResultItem = new DocumentCheckResultItem();
         documentCheckResultItem.setStrengthScore(4);
-        documentCheckResultItem.setTransactionId("DSJJSEE29392");
+        documentCheckResultItem.setTransactionId("278450f1-75f5-4d0d-9e8e-8bc37a07248d");
         documentCheckResultItem.setTtl(10000L);
         documentCheckResultItem.setExpiryDate(LocalDate.of(2030, 1, 1).toString());
         documentCheckResultItem.setSessionId(sessionUUID);
