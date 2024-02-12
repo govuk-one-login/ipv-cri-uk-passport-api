@@ -41,7 +41,6 @@ import uk.gov.di.ipv.cri.passport.library.DocumentCheckTestDataGenerator;
 import uk.gov.di.ipv.cri.passport.library.PassportFormTestDataGenerator;
 import uk.gov.di.ipv.cri.passport.library.helpers.PersonIdentityDetailedHelperMapper;
 import uk.gov.di.ipv.cri.passport.library.persistence.DocumentCheckResultItem;
-import uk.gov.di.ipv.cri.passport.library.service.ClientFactoryService;
 import uk.gov.di.ipv.cri.passport.library.service.PassportConfigurationService;
 import uk.gov.di.ipv.cri.passport.library.service.ServiceFactory;
 import uk.org.webcompere.systemstubs.environment.EnvironmentVariables;
@@ -79,7 +78,6 @@ class IssueCredentialHandlerTest {
     private final ObjectMapper realObjectMapper =
             new ObjectMapper().registerModule(new JavaTimeModule());
     @Mock private static EventProbe mockEventProbe;
-    @Mock private static ClientFactoryService mockClientFactoryService;
     @Mock private static PassportConfigurationService mockPassportConfigurationService;
     @Mock private static SessionService mockSessionService;
     @Mock private static AuditService mockAuditService;
