@@ -67,8 +67,7 @@ public final class PassportConfigurationService extends ConfigurationService {
      * @param parameterName
      * @return value in the parameter
      */
-    @Override
-    public String getParameterValue(String parameterName) {
+    public String getPassportParameterValue(String parameterName) {
         return ssmProvider.get(
                 String.format(PARAMETER_NAME_FORMAT, parameterPrefix, parameterName));
     }
@@ -89,15 +88,15 @@ public final class PassportConfigurationService extends ConfigurationService {
         X509Certificate tlsCertExpiry =
                 (X509Certificate)
                         KeyCertHelper.getDecodedX509Certificate(
-                                getParameterValue(HMPO_HTTPCLIENT_TLS_CERT));
+                                getPassportParameterValue(HMPO_HTTPCLIENT_TLS_CERT));
         X509Certificate tlsIntermediateCertExpiry =
                 (X509Certificate)
                         KeyCertHelper.getDecodedX509Certificate(
-                                getParameterValue(HMPO_HTTPCLIENT_TLS_INTER_CERT));
+                                getPassportParameterValue(HMPO_HTTPCLIENT_TLS_INTER_CERT));
         X509Certificate tlsRootCertExpiry =
                 (X509Certificate)
                         KeyCertHelper.getDecodedX509Certificate(
-                                getParameterValue(HMPO_HTTPCLIENT_TLS_ROOT_CERT));
+                                getPassportParameterValue(HMPO_HTTPCLIENT_TLS_ROOT_CERT));
 
         return Map.of(
                 HMPO_HTTPCLIENT_TLS_CERT,

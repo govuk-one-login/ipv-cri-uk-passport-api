@@ -110,13 +110,13 @@ class ContraindicationMappingsTest {
         when(mockServiceFactory.getPassportConfigurationService())
                 .thenReturn(mockPassportConfigurationService);
 
-        when(mockPassportConfigurationService.getParameterValue(CONTRAINDICATION_MAPPINGS))
+        when(mockPassportConfigurationService.getPassportParameterValue(CONTRAINDICATION_MAPPINGS))
                 .thenReturn(CI_MAP);
         ContraIndicatorMapper testContraIndicatorMapper =
                 new ContraIndicatorMapper(mockServiceFactory);
 
         verify(mockPassportConfigurationService, times(1))
-                .getParameterValue(CONTRAINDICATION_MAPPINGS);
+                .getPassportParameterValue(CONTRAINDICATION_MAPPINGS);
         assertNotNull(testContraIndicatorMapper);
     }
 

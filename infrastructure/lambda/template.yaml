@@ -211,7 +211,13 @@ Mappings:
       integration: "true"
       production: "true"
 
-
+  VcContainsUniqueIdMapping:
+    Environment:
+      dev: "true"
+      build: "true"
+      staging: "true"
+      integration: "true"
+      production: "true"
 
   # VC Permitted values: SECONDS,MINUTES,HOURS,DAYS,MONTHS,YEARS
   JwtTtlUnitMapping:
@@ -597,6 +603,9 @@ Resources:
                 - ssm:GetParameter
               Resource:
                 - !Sub "arn:aws:ssm:${AWS::Region}:${AWS::AccountId}:parameter/release-flags/vc-expiry-removed"
+                - !Sub
+                  - "arn:aws:ssm:${AWS::Region}:${AWS::AccountId}:parameter/${PREFIX}/release-flags/vc-contains-unique-id"
+                  - PREFIX: !If [IsDeployedFromPipeline, !Ref AWS::StackName , !Ref AWS::StackName]
                 - !Sub "arn:aws:ssm:${AWS::Region}:${AWS::AccountId}:parameter/${AWS::StackName}/DocumentCheckResultTableName"
                 - !Sub "arn:aws:ssm:${AWS::Region}:${AWS::AccountId}:parameter/${AWS::StackName}/JwtTtlUnit"
                 - !Sub "arn:aws:ssm:${AWS::Region}:${AWS::AccountId}:parameter/${AWS::StackName}/MaxJwtTtl"
@@ -793,6 +802,14 @@ Resources:
       Value: !FindInMap [ VcExpiryRemoved, Environment, !Ref Environment ]
       Type: String
       Description: Expiry date release toggle
+
+  ReleaseFlagsVcContainsUniqueIdParameter:
+    Type: AWS::SSM::Parameter
+    Properties:
+      Name: !Sub "/${AWS::StackName}/release-flags/vc-contains-unique-id"
+      Value: !FindInMap [ VcContainsUniqueIdMapping, Environment, !Ref Environment ]
+      Type: String
+      Description: Verifiable Credential Contains UniqueId Mapping
 
   ParameterDocumentCheckResultTableName:
     Type: AWS::SSM::Parameter

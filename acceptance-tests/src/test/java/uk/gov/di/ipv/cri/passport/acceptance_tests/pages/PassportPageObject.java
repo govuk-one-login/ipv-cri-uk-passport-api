@@ -27,6 +27,7 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.stream.Collectors;
 
+import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
 import static org.junit.Assert.fail;
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -772,6 +773,17 @@ public class PassportPageObject extends UniversalSteps {
 
     public void expiryAbsentFromVC(String exp) throws JsonProcessingException {
         assertNbfIsRecentAndExpiryIsNull();
+    }
+
+    public void assertJtiIsPresentAndNotNull() throws JsonProcessingException {
+        String result = JSONPayload.getText();
+        LOGGER.info("result = " + result);
+        ObjectMapper objectMapper = new ObjectMapper();
+        JsonNode jsonNode = objectMapper.readTree(result);
+        JsonNode jtiNode = jsonNode.get("jti");
+        LOGGER.info("jti = " + jtiNode.asText());
+
+        assertNotNull(jtiNode.asText());
     }
 
     private void assertNbfIsRecentAndExpiryIsNull() throws JsonProcessingException {

@@ -89,7 +89,9 @@ public class DcsThirdPartyAPIService implements ThirdPartyAPIService {
         try {
             JWSObject preparedDcsPayload = dcsCryptographyService.preparePayload(passportFormData);
             String requestBody = preparedDcsPayload.serialize();
-            URI endpoint = URI.create(passportConfigurationService.getParameterValue(DCS_POST_URL));
+            URI endpoint =
+                    URI.create(
+                            passportConfigurationService.getPassportParameterValue(DCS_POST_URL));
             request = requestBuilder(endpoint, requestBody);
         } catch (CertificateException
                 | NoSuchAlgorithmException

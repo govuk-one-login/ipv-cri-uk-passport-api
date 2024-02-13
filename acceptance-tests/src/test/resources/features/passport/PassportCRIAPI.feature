@@ -12,6 +12,7 @@ Feature: Passport CRI API
     Then User requests Passport CRI VC
     And Passport VC should contain validityScore 2 and strengthScore 4
     And Passport VC Evidence contains expected values for scenario 1
+    And Passport VC should contain JTI field value
 
   @hmpoDVAD @passportCRI_API @pre-merge @dev
   Scenario: Passport Retry Journey Happy Path

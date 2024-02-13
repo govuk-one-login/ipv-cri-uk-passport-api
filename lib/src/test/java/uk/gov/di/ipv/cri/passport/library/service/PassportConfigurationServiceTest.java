@@ -101,13 +101,15 @@ class PassportConfigurationServiceTest {
         assertEquals(passportConfigurationService.getHMPOCertificates(), hmpoCertMap);
 
         assertEquals(
-                passportConfigurationService.getParameterValue(HMPO_HTTPCLIENT_TLS_CERT),
+                passportConfigurationService.getPassportParameterValue(HMPO_HTTPCLIENT_TLS_CERT),
                 TEST_CERT);
         assertEquals(
-                passportConfigurationService.getParameterValue(HMPO_HTTPCLIENT_TLS_INTER_CERT),
+                passportConfigurationService.getPassportParameterValue(
+                        HMPO_HTTPCLIENT_TLS_INTER_CERT),
                 TEST_CERT);
         assertEquals(
-                passportConfigurationService.getParameterValue(HMPO_HTTPCLIENT_TLS_ROOT_CERT),
+                passportConfigurationService.getPassportParameterValue(
+                        HMPO_HTTPCLIENT_TLS_ROOT_CERT),
                 TEST_CERT);
     }
 
@@ -116,7 +118,8 @@ class PassportConfigurationServiceTest {
         String fullParamName = String.format("/%s/%s", AWS_STACK_NAME, TEST_PARAM_NAME);
         when(mockSSMProvider.get(fullParamName)).thenReturn(TEST_PARAM_VALUE);
         assertEquals(
-                TEST_PARAM_VALUE, passportConfigurationService.getParameterValue(TEST_PARAM_NAME));
+                TEST_PARAM_VALUE,
+                passportConfigurationService.getPassportParameterValue(TEST_PARAM_NAME));
         verify(mockSSMProvider).get(fullParamName);
     }
 }

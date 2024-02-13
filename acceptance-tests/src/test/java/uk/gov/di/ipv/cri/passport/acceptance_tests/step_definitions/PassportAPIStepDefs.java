@@ -90,6 +90,12 @@ public class PassportAPIStepDefs extends PassportAPIPage {
         assertVCEvidence(scenario);
     }
 
+    @And("Passport VC should contain JTI field value")
+    public void passport_vc_should_contain_jti_field_value()
+            throws IOException, ParseException, InterruptedException {
+        assertJtiIsPresent();
+    }
+
     @And("Check response contains unexpected server error exception")
     public void passport_check_fails_and_returns_unexpected_exception() {
         checkPassportResponseContainsException();

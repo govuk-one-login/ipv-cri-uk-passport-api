@@ -24,15 +24,15 @@ public class DvadAPIEndpointFactory {
 
         // Url of the API
         final String hmpoEndPoint =
-                passportConfigurationService.getParameterValue(HMPO_API_ENDPOINT_URL);
+                passportConfigurationService.getPassportParameterValue(HMPO_API_ENDPOINT_URL);
 
         // Paths used to accommodate per endpoint versioning i.e "/v1/service..."
         final String healthPath =
-                passportConfigurationService.getParameterValue(HMPO_API_ENDPOINT_HEALTH);
+                passportConfigurationService.getPassportParameterValue(HMPO_API_ENDPOINT_HEALTH);
         final String tokenPath =
-                passportConfigurationService.getParameterValue(HMPO_API_ENDPOINT_TOKEN);
+                passportConfigurationService.getPassportParameterValue(HMPO_API_ENDPOINT_TOKEN);
         final String graphQLPath =
-                passportConfigurationService.getParameterValue(HMPO_API_ENDPOINT_GRAPHQL);
+                passportConfigurationService.getPassportParameterValue(HMPO_API_ENDPOINT_GRAPHQL);
 
         healthEndpoint = String.format(END_POINT_PATH_FORMAT, hmpoEndPoint, healthPath);
         tokenEndpoint = String.format(END_POINT_PATH_FORMAT, hmpoEndPoint, tokenPath);

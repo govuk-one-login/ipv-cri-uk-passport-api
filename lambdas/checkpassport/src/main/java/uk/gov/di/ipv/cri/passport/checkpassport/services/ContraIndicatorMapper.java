@@ -50,7 +50,8 @@ public class ContraIndicatorMapper {
 
         final String contraindicatorMappingString =
                 System.getenv().get(CI_MAP) == null
-                        ? passportConfigurationService.getParameterValue(CONTRAINDICATION_MAPPINGS)
+                        ? passportConfigurationService.getPassportParameterValue(
+                                CONTRAINDICATION_MAPPINGS)
                         : System.getenv().get(CI_MAP);
 
         parseCIMappingStringAndPopulateMappings(contraindicatorMappingString);

@@ -90,15 +90,16 @@ class GraphQLRequestServiceTest {
         // Mock Parameter store fetches in DvadAPIHeaderValues
         when(mockPassportConfigurationService.getEncryptedSsmParameter(HMPO_API_HEADER_API_KEY))
                 .thenReturn("TEST_KEY");
-        when(mockPassportConfigurationService.getParameterValue(HMPO_API_HEADER_USER_AGENT))
+        when(mockPassportConfigurationService.getPassportParameterValue(HMPO_API_HEADER_USER_AGENT))
                 .thenReturn("TEST_USER_AGENT");
-        when(mockPassportConfigurationService.getParameterValue(HMPO_API_HEADER_NETWORK_TYPE))
+        when(mockPassportConfigurationService.getPassportParameterValue(
+                        HMPO_API_HEADER_NETWORK_TYPE))
                 .thenReturn("TEST_NETWORK_TYPE");
-        when(mockPassportConfigurationService.getParameterValue(HMPO_API_HEADER_CLIENT_ID))
+        when(mockPassportConfigurationService.getPassportParameterValue(HMPO_API_HEADER_CLIENT_ID))
                 .thenReturn("TEST_CLIENT_ID");
-        when(mockPassportConfigurationService.getParameterValue(HMPO_API_HEADER_SECRET))
+        when(mockPassportConfigurationService.getPassportParameterValue(HMPO_API_HEADER_SECRET))
                 .thenReturn("TEST_SECRET");
-        when(mockPassportConfigurationService.getParameterValue(HMPO_API_HEADER_GRANT_TYPE))
+        when(mockPassportConfigurationService.getPassportParameterValue(HMPO_API_HEADER_GRANT_TYPE))
                 .thenReturn("TEST_GRANT_TYPE");
 
         realDvadAPIHeaderValues = new DvadAPIHeaderValues(mockPassportConfigurationService);

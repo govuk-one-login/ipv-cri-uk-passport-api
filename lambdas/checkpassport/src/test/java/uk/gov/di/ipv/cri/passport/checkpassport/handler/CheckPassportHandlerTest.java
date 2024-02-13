@@ -117,9 +117,9 @@ class CheckPassportHandlerTest {
 
         mockServiceFactoryBehaviour();
 
-        when(mockPassportConfigurationService.getParameterValue(IS_DVAD_PERFORMANCE_STUB))
+        when(mockPassportConfigurationService.getPassportParameterValue(IS_DVAD_PERFORMANCE_STUB))
                 .thenReturn("false");
-        when(mockPassportConfigurationService.getParameterValue(IS_DCS_PERFORMANCE_STUB))
+        when(mockPassportConfigurationService.getPassportParameterValue(IS_DCS_PERFORMANCE_STUB))
                 .thenReturn("false");
 
         this.checkPassportHandler =
