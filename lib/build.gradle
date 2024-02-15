@@ -39,6 +39,7 @@ dependencies {
 			"uk.org.webcompere:system-stubs-core:${dependencyVersions.webcompere_version}",
 			"uk.org.webcompere:system-stubs-jupiter:${dependencyVersions.webcompere_version}"
 
+<<<<<<< HEAD
 	testFixturesImplementation "org.aspectj:aspectjrt:${dependencyVersions.aspectjrt_version}",
 			"com.fasterxml.jackson.core:jackson-core:${dependencyVersions.jackson_version}",
 			"com.fasterxml.jackson.datatype:jackson-datatype-jsr310:${dependencyVersions.jackson_version}",
@@ -47,6 +48,9 @@ dependencies {
 			"com.fasterxml.jackson.core:jackson-annotations:${dependencyVersions.jackson_version}",
 			"org.apache.httpcomponents:httpcore:${dependencyVersions.httpcomponents_core_version}",
 			"org.apache.httpcomponents:httpclient:${dependencyVersions.httpcomponents_client_version}"
+=======
+	testFixturesImplementation "org.aspectj:aspectjrt:${dependencyVersions.aspectjrt_version}"
+>>>>>>> 7d04ec2 (LIME-991 Align aws components to ipv-cri-lib and cleanup dependencies in build.gradle's)
 }
 
 tasks.named("jar") {
