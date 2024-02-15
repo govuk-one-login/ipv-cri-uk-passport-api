@@ -23,7 +23,7 @@ import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.when;
 
 @ExtendWith(MockitoExtension.class)
-public class CertExpiryReminderHandlerTest {
+class CertExpiryReminderHandlerTest {
 
     @Mock private PassportConfigurationService passportConfigurationService;
     @Mock private X509Certificate mockTlsRootCert;

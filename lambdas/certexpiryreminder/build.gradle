@@ -34,7 +34,6 @@ dependencies {
 			"org.mockito:mockito-junit-jupiter:${dependencyVersions.mockito_version}",
 			"org.mockito:mockito-inline:${dependencyVersions.mockito_version}",
 			"org.hamcrest:hamcrest:${dependencyVersions.hamcrest_version}",
-			"com.github.tomakehurst:wiremock-jre8:${dependencyVersions.wiremock_version}",
 			"uk.org.webcompere:system-stubs-core:${dependencyVersions.webcompere_version}",
 			"uk.org.webcompere:system-stubs-jupiter:${dependencyVersions.webcompere_version}"
 }
