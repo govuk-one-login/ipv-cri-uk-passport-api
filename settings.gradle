@@ -1,7 +1,6 @@
 rootProject.name = 'di-ipv-cri-uk-passport-api'
 
 include "lib",
-		"lambdas",
 		"lambdas:checkpassport",
 		"lambdas:issuecredential",
 		"lambdas:certexpiryreminder",
