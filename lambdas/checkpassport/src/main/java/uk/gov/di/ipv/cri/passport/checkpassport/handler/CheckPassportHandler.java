@@ -27,7 +27,6 @@ import uk.gov.di.ipv.cri.passport.checkpassport.domain.result.DocumentDataVerifi
 import uk.gov.di.ipv.cri.passport.checkpassport.services.ContraIndicatorMapper;
 import uk.gov.di.ipv.cri.passport.checkpassport.services.DocumentDataVerificationService;
 import uk.gov.di.ipv.cri.passport.checkpassport.services.FormDataValidator;
-import uk.gov.di.ipv.cri.passport.checkpassport.services.ThirdPartyAPIService;
 import uk.gov.di.ipv.cri.passport.checkpassport.services.ThirdPartyAPIServiceFactory;
 import uk.gov.di.ipv.cri.passport.library.domain.PassportFormData;
 import uk.gov.di.ipv.cri.passport.library.error.CommonExpressOAuthError;
@@ -35,8 +34,9 @@ import uk.gov.di.ipv.cri.passport.library.error.ErrorResponse;
 import uk.gov.di.ipv.cri.passport.library.exceptions.OAuthErrorResponseException;
 import uk.gov.di.ipv.cri.passport.library.helpers.PersonIdentityDetailedHelperMapper;
 import uk.gov.di.ipv.cri.passport.library.persistence.DocumentCheckResultItem;
-import uk.gov.di.ipv.cri.passport.library.service.PassportConfigurationService;
+import uk.gov.di.ipv.cri.passport.library.service.ParameterStoreService;
 import uk.gov.di.ipv.cri.passport.library.service.ServiceFactory;
+import uk.gov.di.ipv.cri.passport.library.service.ThirdPartyAPIService;
 
 import java.time.Clock;
 import java.time.temporal.ChronoUnit;
@@ -60,7 +60,7 @@ public class CheckPassportHandler
     public static final String RESULT = "result";
     public static final String RESULT_RETRY = "retry";
 
-    private PassportConfigurationService passportConfigurationService;
+    private ParameterStoreService parameterStoreService;
 
     // CRI-Lib Common Services and objects
     private EventProbe eventProbe;
@@ -103,7 +103,7 @@ public class CheckPassportHandler
             ServiceFactory serviceFactory,
             DocumentDataVerificationService documentDataVerificationService) {
         this.objectMapper = serviceFactory.getObjectMapper();
-        this.passportConfigurationService = serviceFactory.getPassportConfigurationService();
+        this.parameterStoreService = serviceFactory.getParameterStoreService();
 
         this.eventProbe = serviceFactory.getEventProbe();
         this.sessionService = serviceFactory.getSessionService();
@@ -135,8 +135,7 @@ public class CheckPassportHandler
             // Attempt Start
             final int MAX_ATTEMPTS =
                     Integer.parseInt(
-                            passportConfigurationService.getStackParameterValue(
-                                    MAXIMUM_ATTEMPT_COUNT));
+                            parameterStoreService.getStackParameterValue(MAXIMUM_ATTEMPT_COUNT));
 
             sessionItem.setAttemptCount(sessionItem.getAttemptCount() + 1);
             LOGGER.info("Attempt Number {}", sessionItem.getAttemptCount());
@@ -166,8 +165,7 @@ public class CheckPassportHandler
             // Dynamic Third party API selection based on feature toggle
             boolean dvaDigitalEnabled =
                     Boolean.parseBoolean(
-                            passportConfigurationService.getStackParameterValue(
-                                    DVA_DIGITAL_ENABLED));
+                            parameterStoreService.getStackParameterValue(DVA_DIGITAL_ENABLED));
 
             ThirdPartyAPIService thirdPartyAPIService =
                     selectThirdPartyAPIService(dvaDigitalEnabled);
@@ -231,7 +229,7 @@ public class CheckPassportHandler
             // Note Unit tests expect server error (correctly)
             // and will fail if this is set (during unit tests)
             if (Boolean.parseBoolean(
-                    passportConfigurationService.getStackParameterValue(
+                    parameterStoreService.getStackParameterValue(
                             DEV_ENVIRONMENT_ONLY_ENHANCED_DEBUG))) {
                 String customOAuth2ErrorDescription = e.getErrorReason();
                 return ApiGatewayResponseGenerator.proxyJsonResponse(
@@ -418,7 +416,7 @@ public class CheckPassportHandler
 
         final long ttl =
                 Long.parseLong(
-                        passportConfigurationService.getCommonParameterValue(
+                        parameterStoreService.getCommonParameterValue(
                                 DOCUMENT_CHECK_RESULT_TTL_PARAMETER));
 
         documentCheckResultItem.setTtl(

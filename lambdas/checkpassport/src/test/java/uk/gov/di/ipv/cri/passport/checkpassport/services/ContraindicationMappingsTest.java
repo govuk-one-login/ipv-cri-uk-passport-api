@@ -11,7 +11,7 @@ import org.mockito.Mock;
 import org.mockito.MockedStatic;
 import org.mockito.junit.jupiter.MockitoExtension;
 import uk.gov.di.ipv.cri.passport.checkpassport.domain.result.fields.ContraIndicatorMapperResult;
-import uk.gov.di.ipv.cri.passport.library.service.PassportConfigurationService;
+import uk.gov.di.ipv.cri.passport.library.service.ParameterStoreService;
 import uk.gov.di.ipv.cri.passport.library.service.ServiceFactory;
 import uk.org.webcompere.systemstubs.environment.EnvironmentVariables;
 import uk.org.webcompere.systemstubs.jupiter.SystemStub;
@@ -81,7 +81,7 @@ class ContraindicationMappingsTest {
 
     @Mock private ServiceFactory mockServiceFactory;
 
-    @Mock private PassportConfigurationService mockPassportConfigurationService;
+    @Mock private ParameterStoreService mockParameterStoreService;
 
     private ContraIndicatorMapper contraIndicatorMapper;
 
@@ -107,16 +107,14 @@ class ContraindicationMappingsTest {
         // Not used in this test as mapper setup via parameter store is being tested
         contraIndicatorMapper = null;
 
-        when(mockServiceFactory.getPassportConfigurationService())
-                .thenReturn(mockPassportConfigurationService);
+        when(mockServiceFactory.getParameterStoreService()).thenReturn(mockParameterStoreService);
 
-        when(mockPassportConfigurationService.getPassportParameterValue(CONTRAINDICATION_MAPPINGS))
+        when(mockParameterStoreService.getParameterValue(CONTRAINDICATION_MAPPINGS))
                 .thenReturn(CI_MAP);
         ContraIndicatorMapper testContraIndicatorMapper =
                 new ContraIndicatorMapper(mockServiceFactory);
 
-        verify(mockPassportConfigurationService, times(1))
-                .getPassportParameterValue(CONTRAINDICATION_MAPPINGS);
+        verify(mockParameterStoreService, times(1)).getParameterValue(CONTRAINDICATION_MAPPINGS);
         assertNotNull(testContraIndicatorMapper);
     }
 

@@ -26,7 +26,7 @@ import uk.gov.di.ipv.cri.passport.checkpassport.domain.response.dcs.DcsSignedEnc
 import uk.gov.di.ipv.cri.passport.checkpassport.exception.dcs.IpvCryptoException;
 import uk.gov.di.ipv.cri.passport.library.domain.PassportFormData;
 import uk.gov.di.ipv.cri.passport.library.helpers.KeyCertHelper;
-import uk.gov.di.ipv.cri.passport.library.service.PassportConfigurationService;
+import uk.gov.di.ipv.cri.passport.library.service.ParameterStoreService;
 
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
@@ -48,13 +48,13 @@ import static uk.gov.di.ipv.cri.passport.library.config.ParameterStoreParameters
 
 public class DcsCryptographyService {
 
-    private final PassportConfigurationService passportConfigurationService;
+    private final ParameterStoreService parameterStoreService;
     private final Gson gson = new Gson();
     private final ObjectMapper objectMapper =
             new ObjectMapper().registerModule(new JavaTimeModule());
 
-    public DcsCryptographyService(PassportConfigurationService passportConfigurationService) {
-        this.passportConfigurationService = passportConfigurationService;
+    public DcsCryptographyService(ParameterStoreService parameterStoreService) {
+        this.parameterStoreService = parameterStoreService;
     }
 
     public JWSObject preparePayload(PassportFormData passportFormData)
@@ -117,7 +117,7 @@ public class DcsCryptographyService {
                         new Payload(stringToSign));
 
         String base64String =
-                passportConfigurationService.getEncryptedSsmParameter(DCS_PASSPORT_CRI_SIGNING_KEY);
+                parameterStoreService.getEncryptedParameterValue(DCS_PASSPORT_CRI_SIGNING_KEY);
 
         PrivateKey privateKey = KeyCertHelper.getDecodedPrivateRSAKey(base64String);
 
@@ -130,7 +130,7 @@ public class DcsCryptographyService {
             throws CertificateException, NoSuchAlgorithmException {
 
         String base64String =
-                passportConfigurationService.getEncryptedSsmParameter(certificateParameter);
+                parameterStoreService.getEncryptedParameterValue(certificateParameter);
 
         X509Certificate cert =
                 (X509Certificate) KeyCertHelper.getDecodedX509Certificate(base64String);
@@ -156,8 +156,7 @@ public class DcsCryptographyService {
                         .build();
         var jwe = new JWEObject(header, new Payload(data));
 
-        String base64String =
-                passportConfigurationService.getEncryptedSsmParameter(DCS_ENCRYPTION_CERT);
+        String base64String = parameterStoreService.getEncryptedParameterValue(DCS_ENCRYPTION_CERT);
 
         RSAPublicKey rsaPublicKey =
                 (RSAPublicKey) KeyCertHelper.getDecodedX509Certificate(base64String).getPublicKey();
@@ -174,8 +173,7 @@ public class DcsCryptographyService {
     private boolean isInvalidSignature(JWSObject jwsObject)
             throws CertificateException, JOSEException {
 
-        String base64String =
-                passportConfigurationService.getEncryptedSsmParameter(DCS_SIGNING_CERT);
+        String base64String = parameterStoreService.getEncryptedParameterValue(DCS_SIGNING_CERT);
 
         RSAPublicKey rsaPublicKey =
                 (RSAPublicKey) KeyCertHelper.getDecodedX509Certificate(base64String).getPublicKey();
@@ -188,7 +186,7 @@ public class DcsCryptographyService {
     public JWSObject decrypt(JWEObject encrypted) {
         try {
             String base64String =
-                    passportConfigurationService.getEncryptedSsmParameter(
+                    parameterStoreService.getEncryptedParameterValue(
                             DCS_PASSPORT_CRI_ENCRYPTION_KEY);
 
             PrivateKey privateKey = KeyCertHelper.getDecodedPrivateRSAKey(base64String);

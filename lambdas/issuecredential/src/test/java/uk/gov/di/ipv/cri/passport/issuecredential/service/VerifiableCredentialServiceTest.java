@@ -20,13 +20,14 @@ import org.junit.jupiter.params.provider.CsvSource;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import uk.gov.di.ipv.cri.common.library.domain.personidentity.PersonIdentityDetailed;
+import uk.gov.di.ipv.cri.common.library.service.ConfigurationService;
 import uk.gov.di.ipv.cri.passport.library.DocumentCheckTestDataGenerator;
 import uk.gov.di.ipv.cri.passport.library.PassportFormTestDataGenerator;
 import uk.gov.di.ipv.cri.passport.library.VerifiableCredentialServiceTestFixtures;
 import uk.gov.di.ipv.cri.passport.library.domain.PassportFormData;
 import uk.gov.di.ipv.cri.passport.library.helpers.PersonIdentityDetailedHelperMapper;
 import uk.gov.di.ipv.cri.passport.library.persistence.DocumentCheckResultItem;
-import uk.gov.di.ipv.cri.passport.library.service.PassportConfigurationService;
+import uk.gov.di.ipv.cri.passport.library.service.ParameterStoreService;
 import uk.gov.di.ipv.cri.passport.library.service.ServiceFactory;
 
 import java.security.NoSuchAlgorithmException;
@@ -64,7 +65,8 @@ class VerifiableCredentialServiceTest implements VerifiableCredentialServiceTest
     // Returned via the ServiceFactory
     private final ObjectMapper realObjectMapper =
             new ObjectMapper().registerModule(new JavaTimeModule());
-    @Mock private PassportConfigurationService mockPassportConfigurationService;
+    @Mock private ParameterStoreService mockParameterStoreService;
+    @Mock private ConfigurationService mockCommonLibConfigurationService;
 
     private VerifiableCredentialService verifiableCredentialService;
 
@@ -114,10 +116,10 @@ class VerifiableCredentialServiceTest implements VerifiableCredentialServiceTest
                             sessionID, passportFormData.getPassportNumber());
         }
 
-        when(mockPassportConfigurationService.getMaxJwtTtl()).thenReturn(TTL);
-        when(mockPassportConfigurationService.getStackParameterValue(MAX_JWT_TTL_UNIT))
+        when(mockCommonLibConfigurationService.getMaxJwtTtl()).thenReturn(TTL);
+        when(mockParameterStoreService.getStackParameterValue(MAX_JWT_TTL_UNIT))
                 .thenReturn(JWT_TTL_UNIT);
-        when(mockPassportConfigurationService.getVerifiableCredentialIssuer())
+        when(mockCommonLibConfigurationService.getVerifiableCredentialIssuer())
                 .thenReturn(UNIT_TEST_VC_ISSUER);
 
         SignedJWT signedJWT =
@@ -215,7 +217,8 @@ class VerifiableCredentialServiceTest implements VerifiableCredentialServiceTest
 
     private void mockServiceFactoryBehaviour() {
         when(mockServiceFactory.getObjectMapper()).thenReturn(realObjectMapper);
-        when(mockServiceFactory.getPassportConfigurationService())
-                .thenReturn(mockPassportConfigurationService);
+        when(mockServiceFactory.getParameterStoreService()).thenReturn(mockParameterStoreService);
+        when(mockServiceFactory.getCommonLibConfigurationService())
+                .thenReturn(mockCommonLibConfigurationService);
     }
 }
