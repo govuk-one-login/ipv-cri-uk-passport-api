@@ -6,6 +6,7 @@ import uk.gov.di.ipv.cri.common.library.annotations.ExcludeFromGeneratedCoverage
 import uk.gov.di.ipv.cri.common.library.persistence.DataStore;
 import uk.gov.di.ipv.cri.common.library.service.AuditEventFactory;
 import uk.gov.di.ipv.cri.common.library.service.AuditService;
+import uk.gov.di.ipv.cri.common.library.service.ConfigurationService;
 import uk.gov.di.ipv.cri.common.library.service.PersonIdentityService;
 import uk.gov.di.ipv.cri.common.library.service.SessionService;
 import uk.gov.di.ipv.cri.common.library.util.EventProbe;
@@ -20,7 +21,8 @@ public class ServiceFactory {
     private ObjectMapper objectMapper;
     private EventProbe eventProbe;
     private ClientFactoryService clientFactoryService;
-    private PassportConfigurationService passportConfigurationService;
+    private ParameterStoreService parameterStoreService;
+    private ConfigurationService commonLibConfigurationService;
     private SessionService sessionService;
     private AuditService auditService;
     private PersonIdentityService personIdentityService;
@@ -41,7 +43,7 @@ public class ServiceFactory {
             ObjectMapper objectMapper,
             EventProbe eventProbe,
             ClientFactoryService clientFactoryService,
-            PassportConfigurationService passportConfigurationService,
+            ParameterStoreService parameterStoreService,
             SessionService sessionService,
             AuditService auditService,
             PersonIdentityService personIdentityService,
@@ -49,7 +51,7 @@ public class ServiceFactory {
         this.objectMapper = objectMapper;
         this.eventProbe = eventProbe;
         this.clientFactoryService = clientFactoryService;
-        this.passportConfigurationService = passportConfigurationService;
+        this.parameterStoreService = parameterStoreService;
         this.sessionService = sessionService;
         this.auditService = auditService;
         this.personIdentityService = personIdentityService;
@@ -83,20 +85,19 @@ public class ServiceFactory {
         return clientFactoryService;
     }
 
-    public PassportConfigurationService getPassportConfigurationService() {
+    public ParameterStoreService getParameterStoreService() {
 
-        if (passportConfigurationService == null) {
-            passportConfigurationService =
-                    new PassportConfigurationService(getClientFactoryService());
+        if (parameterStoreService == null) {
+            parameterStoreService = new ParameterStoreService(getClientFactoryService());
         }
 
-        return passportConfigurationService;
+        return parameterStoreService;
     }
 
     public SessionService getSessionService() {
 
         if (sessionService == null) {
-            sessionService = new SessionService(getPassportConfigurationService());
+            sessionService = new SessionService(getCommonLibConfigurationService());
         }
 
         return sessionService;
@@ -108,10 +109,10 @@ public class ServiceFactory {
             auditService =
                     new AuditService(
                             getClientFactoryService().getSqsClient(),
-                            getPassportConfigurationService(),
+                            getCommonLibConfigurationService(),
                             getObjectMapper(),
                             new AuditEventFactory(
-                                    getPassportConfigurationService(), Clock.systemUTC()));
+                                    getCommonLibConfigurationService(), Clock.systemUTC()));
         }
 
         return auditService;
@@ -120,17 +121,27 @@ public class ServiceFactory {
     public PersonIdentityService getPersonIdentityService() {
 
         if (personIdentityService == null) {
-            personIdentityService = new PersonIdentityService(getPassportConfigurationService());
+            personIdentityService = new PersonIdentityService(getCommonLibConfigurationService());
         }
 
         return personIdentityService;
+    }
+
+    public ConfigurationService getCommonLibConfigurationService() {
+
+        if (commonLibConfigurationService == null) {
+            commonLibConfigurationService =
+                    new uk.gov.di.ipv.cri.common.library.service.ConfigurationService();
+        }
+
+        return commonLibConfigurationService;
     }
 
     public DataStore<DocumentCheckResultItem> getDocumentCheckResultStore() {
 
         if (documentCheckResultStore == null) {
             final String tableName =
-                    getPassportConfigurationService()
+                    getParameterStoreService()
                             .getStackParameterValue(DOCUMENT_CHECK_RESULT_TABLE_NAME);
 
             documentCheckResultStore =
