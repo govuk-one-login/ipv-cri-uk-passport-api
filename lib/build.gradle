@@ -39,7 +39,14 @@ dependencies {
 			"uk.org.webcompere:system-stubs-core:${dependencyVersions.webcompere_version}",
 			"uk.org.webcompere:system-stubs-jupiter:${dependencyVersions.webcompere_version}"
 
-	testFixturesImplementation "org.aspectj:aspectjrt:${dependencyVersions.aspectjrt_version}"
+	testFixturesImplementation "org.aspectj:aspectjrt:${dependencyVersions.aspectjrt_version}",
+			"com.fasterxml.jackson.core:jackson-core:${dependencyVersions.jackson_version}",
+			"com.fasterxml.jackson.datatype:jackson-datatype-jsr310:${dependencyVersions.jackson_version}",
+			"com.fasterxml.jackson.datatype:jackson-datatype-jdk8:${dependencyVersions.jackson_version}",
+			"com.fasterxml.jackson.core:jackson-databind:${dependencyVersions.jackson_version}",
+			"com.fasterxml.jackson.core:jackson-annotations:${dependencyVersions.jackson_version}",
+			"org.apache.httpcomponents:httpcore:${dependencyVersions.httpcomponents_core_version}",
+			"org.apache.httpcomponents:httpclient:${dependencyVersions.httpcomponents_client_version}"
 }
 
 tasks.named("jar") {

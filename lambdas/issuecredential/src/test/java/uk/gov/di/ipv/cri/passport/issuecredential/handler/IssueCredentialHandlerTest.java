@@ -5,7 +5,6 @@ import com.amazonaws.services.lambda.runtime.events.APIGatewayProxyRequestEvent;
 import com.amazonaws.services.lambda.runtime.events.APIGatewayProxyResponseEvent;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import com.nimbusds.common.contenttype.ContentType;
 import com.nimbusds.jose.JOSEException;
 import com.nimbusds.jwt.JWTClaimNames;
@@ -32,6 +31,7 @@ import uk.gov.di.ipv.cri.common.library.exception.SqsException;
 import uk.gov.di.ipv.cri.common.library.persistence.DataStore;
 import uk.gov.di.ipv.cri.common.library.persistence.item.SessionItem;
 import uk.gov.di.ipv.cri.common.library.service.AuditService;
+import uk.gov.di.ipv.cri.common.library.service.ConfigurationService;
 import uk.gov.di.ipv.cri.common.library.service.PersonIdentityService;
 import uk.gov.di.ipv.cri.common.library.service.SessionService;
 import uk.gov.di.ipv.cri.common.library.util.EventProbe;
@@ -41,7 +41,7 @@ import uk.gov.di.ipv.cri.passport.library.DocumentCheckTestDataGenerator;
 import uk.gov.di.ipv.cri.passport.library.PassportFormTestDataGenerator;
 import uk.gov.di.ipv.cri.passport.library.helpers.PersonIdentityDetailedHelperMapper;
 import uk.gov.di.ipv.cri.passport.library.persistence.DocumentCheckResultItem;
-import uk.gov.di.ipv.cri.passport.library.service.PassportConfigurationService;
+import uk.gov.di.ipv.cri.passport.library.service.ParameterStoreService;
 import uk.gov.di.ipv.cri.passport.library.service.ServiceFactory;
 import uk.org.webcompere.systemstubs.environment.EnvironmentVariables;
 import uk.org.webcompere.systemstubs.jupiter.SystemStub;
@@ -74,15 +74,13 @@ class IssueCredentialHandlerTest {
 
     @Mock private ServiceFactory mockServiceFactory;
 
-    // Returned via the ServiceFactory
-    private final ObjectMapper realObjectMapper =
-            new ObjectMapper().registerModule(new JavaTimeModule());
-    @Mock private static EventProbe mockEventProbe;
-    @Mock private static PassportConfigurationService mockPassportConfigurationService;
-    @Mock private static SessionService mockSessionService;
-    @Mock private static AuditService mockAuditService;
-    @Mock private static PersonIdentityService mockPersonIdentityService;
-    @Mock private static DataStore<DocumentCheckResultItem> mockDocumentCheckResultStore;
+    @Mock private EventProbe mockEventProbe;
+    @Mock private ParameterStoreService mockParameterStoreService;
+    @Mock private ConfigurationService mockCommonLibConfigurationService;
+    @Mock private SessionService mockSessionService;
+    @Mock private AuditService mockAuditService;
+    @Mock private PersonIdentityService mockPersonIdentityService;
+    @Mock private DataStore<DocumentCheckResultItem> mockDocumentCheckResultStore;
 
     // Issue Credential only services
     @Mock private VerifiableCredentialService mockVerifiableCredentialService;
@@ -360,8 +358,9 @@ class IssueCredentialHandlerTest {
     private void mockServiceFactoryBehaviour() {
         when(mockServiceFactory.getEventProbe()).thenReturn(mockEventProbe);
 
-        when(mockServiceFactory.getPassportConfigurationService())
-                .thenReturn(mockPassportConfigurationService);
+        when(mockServiceFactory.getParameterStoreService()).thenReturn(mockParameterStoreService);
+        when(mockServiceFactory.getCommonLibConfigurationService())
+                .thenReturn(mockCommonLibConfigurationService);
 
         when(mockServiceFactory.getSessionService()).thenReturn(mockSessionService);
         when(mockServiceFactory.getAuditService()).thenReturn(mockAuditService);

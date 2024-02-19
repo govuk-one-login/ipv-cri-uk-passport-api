@@ -31,18 +31,18 @@ import uk.gov.di.ipv.cri.common.library.service.SessionService;
 import uk.gov.di.ipv.cri.common.library.util.EventProbe;
 import uk.gov.di.ipv.cri.passport.checkpassport.domain.result.DocumentDataVerificationResult;
 import uk.gov.di.ipv.cri.passport.checkpassport.services.DocumentDataVerificationService;
-import uk.gov.di.ipv.cri.passport.checkpassport.services.ThirdPartyAPIService;
 import uk.gov.di.ipv.cri.passport.checkpassport.services.dcs.DcsThirdPartyAPIService;
-import uk.gov.di.ipv.cri.passport.checkpassport.services.dvad.DvadThirdPartyAPIService;
 import uk.gov.di.ipv.cri.passport.checkpassport.util.DocumentDataVerificationServiceResultDataGenerator;
 import uk.gov.di.ipv.cri.passport.library.PassportFormTestDataGenerator;
 import uk.gov.di.ipv.cri.passport.library.domain.PassportFormData;
+import uk.gov.di.ipv.cri.passport.library.dvad.services.DvadThirdPartyAPIService;
 import uk.gov.di.ipv.cri.passport.library.error.CommonExpressOAuthError;
 import uk.gov.di.ipv.cri.passport.library.exceptions.OAuthErrorResponseException;
 import uk.gov.di.ipv.cri.passport.library.persistence.DocumentCheckResultItem;
 import uk.gov.di.ipv.cri.passport.library.service.ClientFactoryService;
-import uk.gov.di.ipv.cri.passport.library.service.PassportConfigurationService;
+import uk.gov.di.ipv.cri.passport.library.service.ParameterStoreService;
 import uk.gov.di.ipv.cri.passport.library.service.ServiceFactory;
+import uk.gov.di.ipv.cri.passport.library.service.ThirdPartyAPIService;
 import uk.org.webcompere.systemstubs.environment.EnvironmentVariables;
 import uk.org.webcompere.systemstubs.jupiter.SystemStub;
 import uk.org.webcompere.systemstubs.jupiter.SystemStubsExtension;
@@ -95,7 +95,7 @@ class CheckPassportHandlerTest {
     // Returned via the ServiceFactory
     @Mock private EventProbe mockEventProbe;
     @Mock private ClientFactoryService mockClientFactoryService;
-    @Mock private PassportConfigurationService mockPassportConfigurationService;
+    @Mock private ParameterStoreService mockParameterStoreService;
     @Mock private SessionService mockSessionService;
     @Mock private PersonIdentityService mockPersonIdentityService;
     @Mock private DataStore<DocumentCheckResultItem> mockDocumentCheckResultStore;
@@ -117,9 +117,9 @@ class CheckPassportHandlerTest {
 
         mockServiceFactoryBehaviour();
 
-        when(mockPassportConfigurationService.getPassportParameterValue(IS_DVAD_PERFORMANCE_STUB))
+        when(mockParameterStoreService.getParameterValue(IS_DVAD_PERFORMANCE_STUB))
                 .thenReturn("false");
-        when(mockPassportConfigurationService.getPassportParameterValue(IS_DCS_PERFORMANCE_STUB))
+        when(mockParameterStoreService.getParameterValue(IS_DCS_PERFORMANCE_STUB))
                 .thenReturn("false");
 
         this.checkPassportHandler =
@@ -168,14 +168,13 @@ class CheckPassportHandlerTest {
                         eq(requestHeaders)))
                 .thenReturn(testDocumentDataVerificationResult);
 
-        when(mockPassportConfigurationService.getStackParameterValue(MAXIMUM_ATTEMPT_COUNT))
+        when(mockParameterStoreService.getStackParameterValue(MAXIMUM_ATTEMPT_COUNT))
                 .thenReturn("2");
 
-        when(mockPassportConfigurationService.getStackParameterValue(DVA_DIGITAL_ENABLED))
+        when(mockParameterStoreService.getStackParameterValue(DVA_DIGITAL_ENABLED))
                 .thenReturn("true");
 
-        when(mockPassportConfigurationService.getCommonParameterValue(
-                        DOCUMENT_CHECK_RESULT_TTL_PARAMETER))
+        when(mockParameterStoreService.getCommonParameterValue(DOCUMENT_CHECK_RESULT_TTL_PARAMETER))
                 .thenReturn("7200");
 
         when(mockLambdaContext.getFunctionName()).thenReturn("functionName");
@@ -267,15 +266,15 @@ class CheckPassportHandlerTest {
                             eq(requestHeaders)))
                     .thenReturn(testDocumentDataVerificationResult);
 
-            when(mockPassportConfigurationService.getStackParameterValue(DVA_DIGITAL_ENABLED))
+            when(mockParameterStoreService.getStackParameterValue(DVA_DIGITAL_ENABLED))
                     .thenReturn("true");
 
-            when(mockPassportConfigurationService.getCommonParameterValue(
+            when(mockParameterStoreService.getCommonParameterValue(
                             DOCUMENT_CHECK_RESULT_TTL_PARAMETER))
                     .thenReturn("7200");
         }
 
-        when(mockPassportConfigurationService.getStackParameterValue(MAXIMUM_ATTEMPT_COUNT))
+        when(mockParameterStoreService.getStackParameterValue(MAXIMUM_ATTEMPT_COUNT))
                 .thenReturn(String.valueOf(MAX_ATTEMPTS));
 
         when(mockLambdaContext.getFunctionName()).thenReturn("functionName");
@@ -470,7 +469,7 @@ class CheckPassportHandlerTest {
         // parsePassportFormRequest
         when(mockRequestEvent.getBody()).thenReturn(testRequestBody);
 
-        when(mockPassportConfigurationService.getStackParameterValue(MAXIMUM_ATTEMPT_COUNT))
+        when(mockParameterStoreService.getStackParameterValue(MAXIMUM_ATTEMPT_COUNT))
                 .thenReturn(String.valueOf(MAX_ATTEMPTS));
 
         when(mockLambdaContext.getFunctionName()).thenReturn("functionName");
@@ -540,7 +539,7 @@ class CheckPassportHandlerTest {
                         eq(requestHeaders)))
                 .thenThrow(new RuntimeException("An Unhandled exception that has occurred"));
 
-        when(mockPassportConfigurationService.getStackParameterValue(MAXIMUM_ATTEMPT_COUNT))
+        when(mockParameterStoreService.getStackParameterValue(MAXIMUM_ATTEMPT_COUNT))
                 .thenReturn("2");
 
         when(mockLambdaContext.getFunctionName()).thenReturn("functionName");
@@ -593,11 +592,11 @@ class CheckPassportHandlerTest {
 
         if (dvaDigitalEnabled) {
             when(mockClientFactoryService.getCloseableHttpClient(
-                            any(boolean.class), eq(mockPassportConfigurationService)))
+                            any(boolean.class), eq(mockParameterStoreService)))
                     .thenReturn(mockCloseableHttpClient);
         } else {
             when(mockClientFactoryService.getLegacyCloseableHttpClient(
-                            any(boolean.class), eq(mockPassportConfigurationService)))
+                            any(boolean.class), eq(mockParameterStoreService)))
                     .thenReturn(mockCloseableHttpClient);
         }
 
@@ -634,8 +633,7 @@ class CheckPassportHandlerTest {
 
         when(mockServiceFactory.getClientFactoryService()).thenReturn(mockClientFactoryService);
 
-        when(mockServiceFactory.getPassportConfigurationService())
-                .thenReturn(mockPassportConfigurationService);
+        when(mockServiceFactory.getParameterStoreService()).thenReturn(mockParameterStoreService);
 
         when(mockServiceFactory.getSessionService()).thenReturn(mockSessionService);
 

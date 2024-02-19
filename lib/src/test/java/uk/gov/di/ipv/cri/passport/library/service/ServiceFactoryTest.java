@@ -9,6 +9,7 @@ import org.mockito.MockedConstruction;
 import org.mockito.junit.jupiter.MockitoExtension;
 import uk.gov.di.ipv.cri.common.library.persistence.DataStore;
 import uk.gov.di.ipv.cri.common.library.service.AuditService;
+import uk.gov.di.ipv.cri.common.library.service.ConfigurationService;
 import uk.gov.di.ipv.cri.common.library.service.PersonIdentityService;
 import uk.gov.di.ipv.cri.common.library.service.SessionService;
 import uk.gov.di.ipv.cri.common.library.util.EventProbe;
@@ -72,13 +73,22 @@ class ServiceFactoryTest {
 
     @Test
     void shouldReturnPassportConfigurationService() {
-        PassportConfigurationService passportConfigurationService =
-                serviceFactory.getPassportConfigurationService();
-        assertNotNull(passportConfigurationService);
+        ParameterStoreService parameterStoreService1 = serviceFactory.getParameterStoreService();
+        assertNotNull(parameterStoreService1);
 
-        PassportConfigurationService passportConfigurationService2 =
-                serviceFactory.getPassportConfigurationService();
-        assertEquals(passportConfigurationService, passportConfigurationService2);
+        ParameterStoreService parameterStoreService2 = serviceFactory.getParameterStoreService();
+        assertEquals(parameterStoreService1, parameterStoreService2);
+    }
+
+    @Test
+    void shouldReturnCommonLibConfigurationService() {
+        ConfigurationService commonLibConfigurationService1 =
+                serviceFactory.getCommonLibConfigurationService();
+        assertNotNull(commonLibConfigurationService1);
+
+        ConfigurationService commonLibConfigurationService2 =
+                serviceFactory.getCommonLibConfigurationService();
+        assertEquals(commonLibConfigurationService1, commonLibConfigurationService2);
     }
 
     @Test

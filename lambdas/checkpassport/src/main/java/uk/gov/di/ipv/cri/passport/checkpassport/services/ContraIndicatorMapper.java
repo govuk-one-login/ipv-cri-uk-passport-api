@@ -3,7 +3,7 @@ package uk.gov.di.ipv.cri.passport.checkpassport.services;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import uk.gov.di.ipv.cri.passport.checkpassport.domain.result.fields.ContraIndicatorMapperResult;
-import uk.gov.di.ipv.cri.passport.library.service.PassportConfigurationService;
+import uk.gov.di.ipv.cri.passport.library.service.ParameterStoreService;
 import uk.gov.di.ipv.cri.passport.library.service.ServiceFactory;
 
 import java.util.ArrayList;
@@ -45,13 +45,11 @@ public class ContraIndicatorMapper {
 
     public ContraIndicatorMapper(ServiceFactory serviceFactory) {
 
-        PassportConfigurationService passportConfigurationService =
-                serviceFactory.getPassportConfigurationService();
+        ParameterStoreService parameterStoreService = serviceFactory.getParameterStoreService();
 
         final String contraindicatorMappingString =
                 System.getenv().get(CI_MAP) == null
-                        ? passportConfigurationService.getPassportParameterValue(
-                                CONTRAINDICATION_MAPPINGS)
+                        ? parameterStoreService.getParameterValue(CONTRAINDICATION_MAPPINGS)
                         : System.getenv().get(CI_MAP);
 
         parseCIMappingStringAndPopulateMappings(contraindicatorMappingString);

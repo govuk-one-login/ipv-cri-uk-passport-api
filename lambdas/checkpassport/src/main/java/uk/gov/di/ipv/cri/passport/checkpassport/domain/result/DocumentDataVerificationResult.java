@@ -1,7 +1,7 @@
 package uk.gov.di.ipv.cri.passport.checkpassport.domain.result;
 
 import lombok.Getter;
-import uk.gov.di.ipv.cri.passport.checkpassport.domain.result.fields.APIResultSource;
+import uk.gov.di.ipv.cri.passport.library.domain.result.fields.APIResultSource;
 
 import java.util.ArrayList;
 import java.util.List;

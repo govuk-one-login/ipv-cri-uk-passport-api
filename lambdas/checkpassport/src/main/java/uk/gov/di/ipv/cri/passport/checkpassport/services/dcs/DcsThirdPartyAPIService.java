@@ -15,17 +15,17 @@ import org.apache.logging.log4j.Logger;
 import software.amazon.awssdk.http.HttpStatusCode;
 import uk.gov.di.ipv.cri.common.library.util.EventProbe;
 import uk.gov.di.ipv.cri.passport.checkpassport.domain.response.dcs.DcsResponse;
-import uk.gov.di.ipv.cri.passport.checkpassport.domain.result.ThirdPartyAPIResult;
-import uk.gov.di.ipv.cri.passport.checkpassport.domain.result.fields.APIResultSource;
 import uk.gov.di.ipv.cri.passport.checkpassport.exception.dcs.IpvCryptoException;
-import uk.gov.di.ipv.cri.passport.checkpassport.services.ThirdPartyAPIService;
-import uk.gov.di.ipv.cri.passport.checkpassport.util.HTTPReply;
-import uk.gov.di.ipv.cri.passport.checkpassport.util.HTTPReplyHelper;
 import uk.gov.di.ipv.cri.passport.library.config.HttpRequestConfig;
 import uk.gov.di.ipv.cri.passport.library.domain.PassportFormData;
+import uk.gov.di.ipv.cri.passport.library.domain.result.ThirdPartyAPIResult;
+import uk.gov.di.ipv.cri.passport.library.domain.result.fields.APIResultSource;
 import uk.gov.di.ipv.cri.passport.library.error.ErrorResponse;
 import uk.gov.di.ipv.cri.passport.library.exceptions.OAuthErrorResponseException;
-import uk.gov.di.ipv.cri.passport.library.service.PassportConfigurationService;
+import uk.gov.di.ipv.cri.passport.library.service.ParameterStoreService;
+import uk.gov.di.ipv.cri.passport.library.service.ThirdPartyAPIService;
+import uk.gov.di.ipv.cri.passport.library.util.HTTPReply;
+import uk.gov.di.ipv.cri.passport.library.util.HTTPReplyHelper;
 
 import java.io.IOException;
 import java.net.URI;
@@ -34,9 +34,9 @@ import java.security.cert.CertificateException;
 import java.security.spec.InvalidKeySpecException;
 import java.text.ParseException;
 
-import static uk.gov.di.ipv.cri.passport.checkpassport.domain.result.fields.APIResultSource.DCS;
 import static uk.gov.di.ipv.cri.passport.library.config.ParameterStoreParameters.DCS_POST_URL;
 import static uk.gov.di.ipv.cri.passport.library.config.ParameterStoreParameters.LOG_DCS_RESPONSE;
+import static uk.gov.di.ipv.cri.passport.library.domain.result.fields.APIResultSource.DCS;
 import static uk.gov.di.ipv.cri.passport.library.metrics.ThirdPartyAPIEndpointMetric.DCS_REQUEST_CREATED;
 import static uk.gov.di.ipv.cri.passport.library.metrics.ThirdPartyAPIEndpointMetric.DCS_REQUEST_SEND_ERROR;
 import static uk.gov.di.ipv.cri.passport.library.metrics.ThirdPartyAPIEndpointMetric.DCS_REQUEST_SEND_OK;
@@ -56,7 +56,7 @@ public class DcsThirdPartyAPIService implements ThirdPartyAPIService {
 
     private final EventProbe eventProbe;
 
-    private final PassportConfigurationService passportConfigurationService;
+    private final ParameterStoreService parameterStoreService;
 
     private final CloseableHttpClient closeableHttpClient;
     private final RequestConfig defaultRequestConfig;
@@ -64,12 +64,12 @@ public class DcsThirdPartyAPIService implements ThirdPartyAPIService {
     private final DcsCryptographyService dcsCryptographyService;
 
     public DcsThirdPartyAPIService(
-            PassportConfigurationService passportConfigurationService,
+            ParameterStoreService parameterStoreService,
             EventProbe eventProbe,
             DcsCryptographyService dcsCryptographyService,
             CloseableHttpClient closeableHttpClient) {
 
-        this.passportConfigurationService = passportConfigurationService;
+        this.parameterStoreService = parameterStoreService;
         this.eventProbe = eventProbe;
         this.dcsCryptographyService = dcsCryptographyService;
         this.closeableHttpClient = closeableHttpClient;
@@ -89,9 +89,7 @@ public class DcsThirdPartyAPIService implements ThirdPartyAPIService {
         try {
             JWSObject preparedDcsPayload = dcsCryptographyService.preparePayload(passportFormData);
             String requestBody = preparedDcsPayload.serialize();
-            URI endpoint =
-                    URI.create(
-                            passportConfigurationService.getPassportParameterValue(DCS_POST_URL));
+            URI endpoint = URI.create(parameterStoreService.getParameterValue(DCS_POST_URL));
             request = requestBuilder(endpoint, requestBody);
         } catch (CertificateException
                 | NoSuchAlgorithmException
@@ -119,7 +117,7 @@ public class DcsThirdPartyAPIService implements ThirdPartyAPIService {
                             response, API_RESULT_SOURCE.getName());
 
             if (Boolean.parseBoolean(
-                    passportConfigurationService.getStackParameterValue(LOG_DCS_RESPONSE))) {
+                    parameterStoreService.getStackParameterValue(LOG_DCS_RESPONSE))) {
                 LOGGER.info("DCS response {}", httpReply.responseBody);
             }
         } catch (IOException e) {

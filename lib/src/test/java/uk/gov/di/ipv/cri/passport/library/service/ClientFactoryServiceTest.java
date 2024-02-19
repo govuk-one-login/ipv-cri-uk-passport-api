@@ -11,7 +11,7 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import software.amazon.awssdk.regions.Region;
 import software.amazon.awssdk.services.kms.KmsClient;
 import software.amazon.awssdk.services.sqs.SqsClient;
-import software.amazon.awssdk.services.ssm.SsmClient;
+import software.amazon.lambda.powertools.parameters.SSMProvider;
 import uk.gov.di.ipv.cri.passport.library.exceptions.HttpClientException;
 import uk.org.webcompere.systemstubs.environment.EnvironmentVariables;
 import uk.org.webcompere.systemstubs.jupiter.SystemStub;
@@ -42,7 +42,7 @@ import static uk.gov.di.ipv.cri.passport.library.config.ParameterStoreParameters
 class ClientFactoryServiceTest {
     @SystemStub private EnvironmentVariables environmentVariables = new EnvironmentVariables();
 
-    @Mock private PassportConfigurationService mockPassportConfigurationService;
+    @Mock private ParameterStoreService mockParameterStoreService;
 
     private ClientFactoryService clientFactoryService;
 
@@ -63,11 +63,11 @@ class ClientFactoryServiceTest {
     }
 
     @Test
-    void shouldReturnSsmClient() {
+    void shouldReturnSSMProvider() {
 
-        SsmClient ssmClient = clientFactoryService.getSsmClient();
+        SSMProvider ssmProvider = clientFactoryService.getSSMProvider();
 
-        assertNotNull(ssmClient);
+        assertNotNull(ssmProvider);
     }
 
     @Test
@@ -82,8 +82,7 @@ class ClientFactoryServiceTest {
     void shouldReturnLegacyHTTPClientWithNoSSL() {
 
         CloseableHttpClient closeableHttpClient =
-                clientFactoryService.getLegacyCloseableHttpClient(
-                        false, mockPassportConfigurationService);
+                clientFactoryService.getLegacyCloseableHttpClient(false, mockParameterStoreService);
 
         assertNotNull(closeableHttpClient);
     }
@@ -92,8 +91,7 @@ class ClientFactoryServiceTest {
     void shouldReturnHttpClientWithNoSSL() {
 
         CloseableHttpClient closeableHttpClient =
-                clientFactoryService.getCloseableHttpClient(
-                        false, mockPassportConfigurationService);
+                clientFactoryService.getCloseableHttpClient(false, mockParameterStoreService);
 
         assertNotNull(closeableHttpClient);
     }
@@ -109,20 +107,17 @@ class ClientFactoryServiceTest {
     @Test
     void shouldReturnLegacyHTTPClientWithSSL() {
 
-        when(mockPassportConfigurationService.getEncryptedSsmParameter(DCS_HTTPCLIENT_TLS_CERT))
+        when(mockParameterStoreService.getEncryptedParameterValue(DCS_HTTPCLIENT_TLS_CERT))
                 .thenReturn(TEST_TLS_CRT);
-        when(mockPassportConfigurationService.getEncryptedSsmParameter(DCS_HTTPCLIENT_TLS_KEY))
+        when(mockParameterStoreService.getEncryptedParameterValue(DCS_HTTPCLIENT_TLS_KEY))
                 .thenReturn(TEST_TLS_KEY);
-        when(mockPassportConfigurationService.getEncryptedSsmParameter(
-                        DCS_HTTPCLIENT_TLS_ROOT_CERT))
+        when(mockParameterStoreService.getEncryptedParameterValue(DCS_HTTPCLIENT_TLS_ROOT_CERT))
                 .thenReturn(TEST_ROOT_CRT);
-        when(mockPassportConfigurationService.getEncryptedSsmParameter(
-                        DCS_HTTPCLIENT_TLS_INTER_CERT))
+        when(mockParameterStoreService.getEncryptedParameterValue(DCS_HTTPCLIENT_TLS_INTER_CERT))
                 .thenReturn(TEST_TLS_CRT);
 
         CloseableHttpClient closeableHttpClient =
-                clientFactoryService.getLegacyCloseableHttpClient(
-                        true, mockPassportConfigurationService);
+                clientFactoryService.getLegacyCloseableHttpClient(true, mockParameterStoreService);
 
         assertNotNull(closeableHttpClient);
     }
@@ -146,11 +141,11 @@ class ClientFactoryServiceTest {
                 expectedReturnedException = new HttpClientException(new CertificateException());
 
                 if (legaccy) {
-                    when(mockPassportConfigurationService.getEncryptedSsmParameter(
+                    when(mockParameterStoreService.getEncryptedParameterValue(
                                     DCS_HTTPCLIENT_TLS_CERT))
                             .thenReturn(badData);
                 } else {
-                    when(mockPassportConfigurationService.getEncryptedSsmParameter(
+                    when(mockParameterStoreService.getEncryptedParameterValue(
                                     HMPO_HTTPCLIENT_TLS_CERT))
                             .thenReturn(badData);
                 }
@@ -158,17 +153,17 @@ class ClientFactoryServiceTest {
                 break;
             case "InvalidKeySpecException":
                 if (legaccy) {
-                    when(mockPassportConfigurationService.getEncryptedSsmParameter(
+                    when(mockParameterStoreService.getEncryptedParameterValue(
                                     DCS_HTTPCLIENT_TLS_CERT))
                             .thenReturn(TEST_TLS_CRT);
-                    when(mockPassportConfigurationService.getEncryptedSsmParameter(
+                    when(mockParameterStoreService.getEncryptedParameterValue(
                                     DCS_HTTPCLIENT_TLS_KEY))
                             .thenReturn(badData);
                 } else {
-                    when(mockPassportConfigurationService.getEncryptedSsmParameter(
+                    when(mockParameterStoreService.getEncryptedParameterValue(
                                     HMPO_HTTPCLIENT_TLS_CERT))
                             .thenReturn(TEST_TLS_CRT);
-                    when(mockPassportConfigurationService.getEncryptedSsmParameter(
+                    when(mockParameterStoreService.getEncryptedParameterValue(
                                     HMPO_HTTPCLIENT_TLS_KEY))
                             .thenReturn(badData);
                 }
@@ -185,7 +180,7 @@ class ClientFactoryServiceTest {
                             HttpClientException.class,
                             () ->
                                     clientFactoryService.getLegacyCloseableHttpClient(
-                                            true, mockPassportConfigurationService),
+                                            true, mockParameterStoreService),
                             "An Error Message");
         } else {
             thrownException =
@@ -193,7 +188,7 @@ class ClientFactoryServiceTest {
                             HttpClientException.class,
                             () ->
                                     clientFactoryService.getCloseableHttpClient(
-                                            true, mockPassportConfigurationService),
+                                            true, mockParameterStoreService),
                             "An Error Message");
         }
 
@@ -204,19 +199,17 @@ class ClientFactoryServiceTest {
     @Test
     void shouldReturnHTTPClientWithSSL() {
 
-        when(mockPassportConfigurationService.getEncryptedSsmParameter(HMPO_HTTPCLIENT_TLS_CERT))
+        when(mockParameterStoreService.getEncryptedParameterValue(HMPO_HTTPCLIENT_TLS_CERT))
                 .thenReturn(TEST_TLS_CRT);
-        when(mockPassportConfigurationService.getEncryptedSsmParameter(HMPO_HTTPCLIENT_TLS_KEY))
+        when(mockParameterStoreService.getEncryptedParameterValue(HMPO_HTTPCLIENT_TLS_KEY))
                 .thenReturn(TEST_TLS_KEY);
-        when(mockPassportConfigurationService.getEncryptedSsmParameter(
-                        HMPO_HTTPCLIENT_TLS_ROOT_CERT))
+        when(mockParameterStoreService.getEncryptedParameterValue(HMPO_HTTPCLIENT_TLS_ROOT_CERT))
                 .thenReturn(TEST_ROOT_CRT);
-        when(mockPassportConfigurationService.getEncryptedSsmParameter(
-                        HMPO_HTTPCLIENT_TLS_INTER_CERT))
+        when(mockParameterStoreService.getEncryptedParameterValue(HMPO_HTTPCLIENT_TLS_INTER_CERT))
                 .thenReturn(TEST_TLS_CRT);
 
         CloseableHttpClient closeableHttpClient =
-                clientFactoryService.getCloseableHttpClient(true, mockPassportConfigurationService);
+                clientFactoryService.getCloseableHttpClient(true, mockParameterStoreService);
 
         assertNotNull(closeableHttpClient);
     }

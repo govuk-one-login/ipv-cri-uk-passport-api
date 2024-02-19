@@ -33,14 +33,14 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import software.amazon.awssdk.http.HttpStatusCode;
 import uk.gov.di.ipv.cri.common.library.util.EventProbe;
 import uk.gov.di.ipv.cri.passport.checkpassport.domain.response.dcs.DcsResponse;
-import uk.gov.di.ipv.cri.passport.checkpassport.domain.result.ThirdPartyAPIResult;
 import uk.gov.di.ipv.cri.passport.checkpassport.exception.dcs.IpvCryptoException;
-import uk.gov.di.ipv.cri.passport.checkpassport.services.ThirdPartyAPIService;
 import uk.gov.di.ipv.cri.passport.library.PassportFormTestDataGenerator;
 import uk.gov.di.ipv.cri.passport.library.domain.PassportFormData;
+import uk.gov.di.ipv.cri.passport.library.domain.result.ThirdPartyAPIResult;
 import uk.gov.di.ipv.cri.passport.library.error.ErrorResponse;
 import uk.gov.di.ipv.cri.passport.library.exceptions.OAuthErrorResponseException;
-import uk.gov.di.ipv.cri.passport.library.service.PassportConfigurationService;
+import uk.gov.di.ipv.cri.passport.library.service.ParameterStoreService;
+import uk.gov.di.ipv.cri.passport.library.service.ThirdPartyAPIService;
 
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
@@ -88,7 +88,7 @@ class DcsThirdPartyAPIServiceTest {
 
     @Mock private DcsCryptographyService mockDcsCryptographyService;
 
-    @Mock private PassportConfigurationService mockPassportConfigurationService;
+    @Mock private ParameterStoreService mockParameterStoreService;
 
     @Mock private CloseableHttpClient mockCloseableHttpClient;
 
@@ -101,7 +101,7 @@ class DcsThirdPartyAPIServiceTest {
     void setUp() {
         dcsThirdPartyAPIService =
                 new DcsThirdPartyAPIService(
-                        mockPassportConfigurationService,
+                        mockParameterStoreService,
                         mockEventProbe,
                         mockDcsCryptographyService,
                         mockCloseableHttpClient);
@@ -121,7 +121,7 @@ class DcsThirdPartyAPIServiceTest {
         when(mockDcsCryptographyService.preparePayload(any(PassportFormData.class)))
                 .thenReturn(jwsPayloadObject);
 
-        when(mockPassportConfigurationService.getPassportParameterValue(DCS_POST_URL))
+        when(mockParameterStoreService.getParameterValue(DCS_POST_URL))
                 .thenReturn(TEST_ENDPOINT_URL);
 
         ArgumentCaptor<HttpPost> httpRequestCaptor = ArgumentCaptor.forClass(HttpPost.class);
@@ -242,7 +242,7 @@ class DcsThirdPartyAPIServiceTest {
         when(mockDcsCryptographyService.preparePayload(any(PassportFormData.class)))
                 .thenReturn(jwsPayloadObject);
 
-        when(mockPassportConfigurationService.getPassportParameterValue(DCS_POST_URL))
+        when(mockParameterStoreService.getParameterValue(DCS_POST_URL))
                 .thenReturn(TEST_ENDPOINT_URL);
 
         ArgumentCaptor<HttpPost> httpRequestCaptor = ArgumentCaptor.forClass(HttpPost.class);
@@ -286,7 +286,7 @@ class DcsThirdPartyAPIServiceTest {
         when(mockDcsCryptographyService.preparePayload(any(PassportFormData.class)))
                 .thenReturn(jwsPayloadObject);
 
-        when(mockPassportConfigurationService.getPassportParameterValue(DCS_POST_URL))
+        when(mockParameterStoreService.getParameterValue(DCS_POST_URL))
                 .thenReturn(TEST_ENDPOINT_URL);
 
         ArgumentCaptor<HttpPost> httpRequestCaptor = ArgumentCaptor.forClass(HttpPost.class);
@@ -342,7 +342,7 @@ class DcsThirdPartyAPIServiceTest {
         when(mockDcsCryptographyService.preparePayload(any(PassportFormData.class)))
                 .thenReturn(jwsPayloadObject);
 
-        when(mockPassportConfigurationService.getPassportParameterValue(DCS_POST_URL))
+        when(mockParameterStoreService.getParameterValue(DCS_POST_URL))
                 .thenReturn(TEST_ENDPOINT_URL);
 
         ArgumentCaptor<HttpPost> httpRequestCaptor = ArgumentCaptor.forClass(HttpPost.class);
@@ -413,7 +413,7 @@ class DcsThirdPartyAPIServiceTest {
         when(mockDcsCryptographyService.preparePayload(any(PassportFormData.class)))
                 .thenReturn(jwsPayloadObject);
 
-        when(mockPassportConfigurationService.getPassportParameterValue(DCS_POST_URL))
+        when(mockParameterStoreService.getParameterValue(DCS_POST_URL))
                 .thenReturn(TEST_ENDPOINT_URL);
 
         ArgumentCaptor<HttpPost> httpRequestCaptor = ArgumentCaptor.forClass(HttpPost.class);
@@ -473,7 +473,7 @@ class DcsThirdPartyAPIServiceTest {
         when(mockDcsCryptographyService.preparePayload(any(PassportFormData.class)))
                 .thenReturn(jwsPayloadObject);
 
-        when(mockPassportConfigurationService.getPassportParameterValue(DCS_POST_URL))
+        when(mockParameterStoreService.getParameterValue(DCS_POST_URL))
                 .thenReturn(TEST_ENDPOINT_URL);
 
         ArgumentCaptor<HttpPost> httpRequestCaptor = ArgumentCaptor.forClass(HttpPost.class);
