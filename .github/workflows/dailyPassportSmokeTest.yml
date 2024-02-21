@@ -26,6 +26,8 @@ jobs:
           settings-path: ${{ github.workspace }} # location for the settings.xml file
 
       - uses: gradle/actions/setup-gradle@v3
+        with:
+          gradle-version: wrapper
 
       - name: Run Passport Smoke test against staging environment
         env:
@@ -36,7 +38,7 @@ jobs:
           coreStubUsername: ${{ secrets.PASSPORT_CORE_STUB_USERNAME }}
           coreStubPassword: ${{ secrets.PASSPORT_CORE_STUB_PASSWORD }}
           orchestratorStubUrl: ${{ secrets.ORCHESTRATOR_STUB_URL }}
-        run: cd acceptance-tests && gradle passportCriSmokeStaging
+        run: cd acceptance-tests && ./gradlew passportCriSmokeStaging
 
       - name: Get test results history
         uses: actions/checkout@v4

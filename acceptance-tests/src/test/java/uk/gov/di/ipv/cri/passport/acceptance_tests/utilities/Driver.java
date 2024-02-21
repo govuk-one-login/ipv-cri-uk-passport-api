@@ -38,13 +38,14 @@ public class Driver {
                     break;
                 case "chrome-headless":
                     WebDriverManager.chromedriver().setup();
-                    ChromeOptions chromeOptions = new ChromeOptions().setHeadless(true);
+                    ChromeOptions chromeOptions = new ChromeOptions();
                     chromeOptions.addArguments("--remote-allow-origins=*");
+                    chromeOptions.addArguments("--headless");
+
                     if (ConfigurationReader.noChromeSandbox()) {
                         // no-sandbox is needed for chrome-headless when running in a container due
                         // to restricted syscalls
                         chromeOptions.addArguments("--no-sandbox");
-                        chromeOptions.addArguments("--headless");
                         chromeOptions.addArguments("--whitelisted-ips= ");
                         chromeOptions.addArguments("--disable-dev-shm-usage");
                         chromeOptions.addArguments("--remote-debugging-port=9222");
@@ -61,7 +62,11 @@ public class Driver {
                     break;
                 case "firefox-headless":
                     WebDriverManager.firefoxdriver().setup();
-                    driverPool.set(new FirefoxDriver(new FirefoxOptions().setHeadless(true)));
+
+                    FirefoxOptions firefoxOptions = new FirefoxOptions();
+                    firefoxOptions.addArguments("--headless");
+
+                    driverPool.set(new FirefoxDriver(firefoxOptions));
                     break;
                 case "ie":
                     if (!System.getProperty("os.name").toLowerCase().contains("windows"))

@@ -122,7 +122,7 @@ public class PassportStepDefs extends PassportPageObject {
     }
 
     @And("^I see the passport Selection sentence starts with (.*)$")
-    public void ICanSeeThePageDescriptionAs(String expectedText) throws Throwable {
+    public void ICanSeeThePageDescriptionAs(String expectedText) {
         assertPageDescription(expectedText);
     }
 
