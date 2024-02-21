@@ -279,10 +279,6 @@ public class IssueCredentialHandler
     }
 
     private void recordCIMetrics(String ciRequestPrefix, List<String> contraIndications) {
-        if (contraIndications == null) {
-            return;
-        }
-
         for (String ci : contraIndications) {
             eventProbe.counterMetric(ciRequestPrefix + ci);
         }
