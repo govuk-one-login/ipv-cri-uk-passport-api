@@ -146,7 +146,6 @@ Feature: Passport Test
     When User clicks on continue
     Then Proper error message for Could not find your details is displayed
     When User click on ‘prove your identity another way' Link
-    And User selects prove another way radio button
     Then I navigate to the passport verifiable issuer to check for a Valid response
     And JSON payload should contain ci D02, validity score 0 and strength score 4
     And The test is complete and I close the driver
@@ -165,7 +164,6 @@ Feature: Passport Test
     Given User enters data as a <PassportSubject>
     When User clicks on continue
     When User click on ‘prove your identity another way' Link
-    And User selects prove another way radio button
     Then I navigate to the passport verifiable issuer to check for a Valid response
     And JSON response should contain documentNumber 887766551 same as given passport
     And The test is complete and I close the driver
