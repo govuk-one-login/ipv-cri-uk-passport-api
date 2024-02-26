@@ -25,9 +25,9 @@ public class HttpRequestConfig {
         // RequestConfig is set per request to apply the timeouts
         // Only socket read maters if the HTTP client is able to re-use a connection
         return RequestConfig.custom()
+                .setConnectionRequestTimeout(HTTP_CONN_POOL_REQ_TIMEOUT_MS)
                 .setConnectTimeout(HTTP_INITIAL_CONNECTION_TIMEOUT_MS)
                 .setSocketTimeout(HTTP_SOCKET_READ_TIMEOUT_MS)
-                .setConnectionRequestTimeout(HTTP_CONN_POOL_REQ_TIMEOUT_MS)
                 .build();
     }
 }

@@ -9,6 +9,8 @@ import software.amazon.awssdk.regions.Region;
 import software.amazon.awssdk.services.kms.KmsClient;
 import software.amazon.awssdk.services.sqs.SqsClient;
 import software.amazon.awssdk.services.ssm.SsmClient;
+import software.amazon.lambda.powertools.parameters.ParamManager;
+import software.amazon.lambda.powertools.parameters.SSMProvider;
 import uk.gov.di.ipv.cri.passport.library.exceptions.HttpClientException;
 import uk.gov.di.ipv.cri.passport.library.helpers.KeyCertHelper;
 
@@ -25,6 +27,7 @@ import java.security.UnrecoverableKeyException;
 import java.security.cert.Certificate;
 import java.security.cert.CertificateException;
 import java.security.spec.InvalidKeySpecException;
+import java.time.temporal.ChronoUnit;
 import java.util.UUID;
 
 import static uk.gov.di.ipv.cri.passport.library.config.ParameterStoreParameters.DCS_HTTPCLIENT_TLS_CERT;
@@ -73,28 +76,29 @@ public class ClientFactoryService {
                 .build();
     }
 
-    public SsmClient getSsmClient() {
-        return SsmClient.builder()
-                .region(awsRegion)
-                .httpClient(UrlConnectionHttpClient.create())
-                .build();
+    public SSMProvider getSSMProvider() {
+        SsmClient ssmClient =
+                SsmClient.builder()
+                        .region(awsRegion)
+                        .httpClient(UrlConnectionHttpClient.create())
+                        .build();
+
+        return ParamManager.getSsmProvider(ssmClient).defaultMaxAge(300, ChronoUnit.SECONDS);
     }
 
     public CloseableHttpClient getLegacyCloseableHttpClient(
-            boolean tlsOn, PassportConfigurationService passportConfigurationService) {
+            boolean tlsOn, ParameterStoreService parameterStoreService) {
         try {
             if (tlsOn) {
                 final String base64TLSCertString =
-                        passportConfigurationService.getEncryptedSsmParameter(
-                                DCS_HTTPCLIENT_TLS_CERT);
+                        parameterStoreService.getEncryptedParameterValue(DCS_HTTPCLIENT_TLS_CERT);
                 final String base64TLSKeyString =
-                        passportConfigurationService.getEncryptedSsmParameter(
-                                DCS_HTTPCLIENT_TLS_KEY);
+                        parameterStoreService.getEncryptedParameterValue(DCS_HTTPCLIENT_TLS_KEY);
                 final String base64TLSRootCertString =
-                        passportConfigurationService.getEncryptedSsmParameter(
+                        parameterStoreService.getEncryptedParameterValue(
                                 DCS_HTTPCLIENT_TLS_ROOT_CERT);
                 final String base64TLSIntCertString =
-                        passportConfigurationService.getEncryptedSsmParameter(
+                        parameterStoreService.getEncryptedParameterValue(
                                 DCS_HTTPCLIENT_TLS_INTER_CERT);
 
                 return generateHTTPClientFromExternalApacheHttpClient(
@@ -117,20 +121,18 @@ public class ClientFactoryService {
     }
 
     public CloseableHttpClient getCloseableHttpClient(
-            boolean tlsOn, PassportConfigurationService passportConfigurationService) {
+            boolean tlsOn, ParameterStoreService parameterStoreService) {
         try {
             if (tlsOn) {
                 final String base64TLSCertString =
-                        passportConfigurationService.getEncryptedSsmParameter(
-                                HMPO_HTTPCLIENT_TLS_CERT);
+                        parameterStoreService.getEncryptedParameterValue(HMPO_HTTPCLIENT_TLS_CERT);
                 final String base64TLSKeyString =
-                        passportConfigurationService.getEncryptedSsmParameter(
-                                HMPO_HTTPCLIENT_TLS_KEY);
+                        parameterStoreService.getEncryptedParameterValue(HMPO_HTTPCLIENT_TLS_KEY);
                 final String base64TLSRootCertString =
-                        passportConfigurationService.getEncryptedSsmParameter(
+                        parameterStoreService.getEncryptedParameterValue(
                                 HMPO_HTTPCLIENT_TLS_ROOT_CERT);
                 final String base64TLSIntCertString =
-                        passportConfigurationService.getEncryptedSsmParameter(
+                        parameterStoreService.getEncryptedParameterValue(
                                 HMPO_HTTPCLIENT_TLS_INTER_CERT);
 
                 return generateHTTPClientFromExternalApacheHttpClient(

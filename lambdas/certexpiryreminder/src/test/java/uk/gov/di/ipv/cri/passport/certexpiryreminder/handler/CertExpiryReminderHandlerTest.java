@@ -7,7 +7,8 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import uk.gov.di.ipv.cri.common.library.util.EventProbe;
-import uk.gov.di.ipv.cri.passport.library.service.PassportConfigurationService;
+import uk.gov.di.ipv.cri.passport.certexpiryreminder.handler.config.CertExpiryReminderConfig;
+import uk.gov.di.ipv.cri.passport.library.service.ParameterStoreService;
 
 import java.security.cert.CertificateException;
 import java.security.cert.X509Certificate;
@@ -25,7 +26,8 @@ import static org.mockito.Mockito.when;
 @ExtendWith(MockitoExtension.class)
 class CertExpiryReminderHandlerTest {
 
-    @Mock private PassportConfigurationService passportConfigurationService;
+    @Mock private ParameterStoreService parameterStoreService;
+    @Mock private CertExpiryReminderConfig certExpiryReminderConfig;
     @Mock private X509Certificate mockTlsRootCert;
     @Mock private X509Certificate mockTlsIntermediateCert;
     @Mock private X509Certificate mockTlsCert;
@@ -40,7 +42,7 @@ class CertExpiryReminderHandlerTest {
         // The following certs are outside the expiryWindow (4 weeks)
         createCertificateMocks();
 
-        when(passportConfigurationService.getHMPOCertificates())
+        when(certExpiryReminderConfig.getHMPOCertificates())
                 .thenReturn(
                         Map.of(
                                 "tlsCert", mockTlsCert,
@@ -49,7 +51,8 @@ class CertExpiryReminderHandlerTest {
 
         // Use below certificate as control for tests
         this.certExpiryReminderHandler =
-                new CertExpiryReminderHandler(passportConfigurationService, eventProbe);
+                new CertExpiryReminderHandler(
+                        parameterStoreService, certExpiryReminderConfig, eventProbe);
     }
 
     @Test

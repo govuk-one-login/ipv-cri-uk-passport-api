@@ -17,15 +17,16 @@ import uk.gov.di.ipv.cri.common.library.persistence.item.SessionItem;
 import uk.gov.di.ipv.cri.common.library.service.AuditService;
 import uk.gov.di.ipv.cri.common.library.util.EventProbe;
 import uk.gov.di.ipv.cri.passport.checkpassport.domain.result.DocumentDataVerificationResult;
-import uk.gov.di.ipv.cri.passport.checkpassport.domain.result.ThirdPartyAPIResult;
-import uk.gov.di.ipv.cri.passport.checkpassport.domain.result.fields.APIResultSource;
 import uk.gov.di.ipv.cri.passport.checkpassport.domain.result.fields.ContraIndicatorMapperResult;
 import uk.gov.di.ipv.cri.passport.checkpassport.validation.ValidationResult;
 import uk.gov.di.ipv.cri.passport.library.PassportFormTestDataGenerator;
 import uk.gov.di.ipv.cri.passport.library.domain.PassportFormData;
+import uk.gov.di.ipv.cri.passport.library.domain.result.ThirdPartyAPIResult;
+import uk.gov.di.ipv.cri.passport.library.domain.result.fields.APIResultSource;
 import uk.gov.di.ipv.cri.passport.library.error.ErrorResponse;
 import uk.gov.di.ipv.cri.passport.library.exceptions.OAuthErrorResponseException;
 import uk.gov.di.ipv.cri.passport.library.service.ServiceFactory;
+import uk.gov.di.ipv.cri.passport.library.service.ThirdPartyAPIService;
 
 import java.util.ArrayList;
 import java.util.List;
