@@ -34,6 +34,7 @@ import uk.gov.di.ipv.cri.common.library.persistence.item.personidentity.PersonId
 import uk.gov.di.ipv.cri.common.library.persistence.item.personidentity.PersonIdentityName;
 import uk.gov.di.ipv.cri.common.library.persistence.item.personidentity.PersonIdentityNamePart;
 import uk.gov.di.ipv.cri.common.library.service.AuditService;
+import uk.gov.di.ipv.cri.common.library.service.ConfigurationService;
 import uk.gov.di.ipv.cri.common.library.service.PersonIdentityMapper;
 import uk.gov.di.ipv.cri.common.library.service.PersonIdentityService;
 import uk.gov.di.ipv.cri.common.library.service.SessionService;
@@ -45,7 +46,7 @@ import uk.gov.di.ipv.cri.passport.issuecredential.pact.utils.MockHttpServer;
 import uk.gov.di.ipv.cri.passport.issuecredential.service.VerifiableCredentialService;
 import uk.gov.di.ipv.cri.passport.library.persistence.DocumentCheckResultItem;
 import uk.gov.di.ipv.cri.passport.library.service.ClientFactoryService;
-import uk.gov.di.ipv.cri.passport.library.service.PassportConfigurationService;
+import uk.gov.di.ipv.cri.passport.library.service.ParameterStoreService;
 import uk.gov.di.ipv.cri.passport.library.service.ServiceFactory;
 
 import java.io.IOException;
@@ -84,7 +85,9 @@ class IssueCredentialHandlerTest {
 
     private static final int PORT = 5050;
 
-    @Mock private PassportConfigurationService configurationService;
+    @Mock private ParameterStoreService mockParameterStoreService;
+    @Mock private ConfigurationService mockCommonLibConfigurationService;
+
     @Mock private DataStore<SessionItem> dataStore;
     @Mock private DataStore<PersonIdentityItem> personIdentityDataStore;
     @Mock private DataStore<DocumentCheckResultItem> documentCheckResultStore;
@@ -105,33 +108,39 @@ class IssueCredentialHandlerTest {
         long todayPlusADay =
                 LocalDate.now().plusDays(2).toEpochSecond(LocalTime.now(), ZoneOffset.UTC);
 
-        when(configurationService.getVerifiableCredentialIssuer())
+        when(mockCommonLibConfigurationService.getVerifiableCredentialIssuer())
                 .thenReturn("dummyPassportComponentId");
-        when(configurationService.getSessionExpirationEpoch()).thenReturn(todayPlusADay);
-        when(configurationService.getAuthorizationCodeExpirationEpoch()).thenReturn(todayPlusADay);
-        when(configurationService.getMaxJwtTtl()).thenReturn(1000L);
-        when(configurationService.getStackParameterValue(MAX_JWT_TTL_UNIT)).thenReturn("HOURS");
-        when(configurationService.getVerifiableCredentialIssuer())
+        when(mockCommonLibConfigurationService.getSessionExpirationEpoch())
+                .thenReturn(todayPlusADay);
+        when(mockCommonLibConfigurationService.getAuthorizationCodeExpirationEpoch())
+                .thenReturn(todayPlusADay);
+        when(mockCommonLibConfigurationService.getMaxJwtTtl()).thenReturn(1000L);
+        when(mockParameterStoreService.getStackParameterValue(MAX_JWT_TTL_UNIT))
+                .thenReturn("HOURS");
+        when(mockCommonLibConfigurationService.getVerifiableCredentialIssuer())
                 .thenReturn("dummyPassportComponentId");
-        when(configurationService.getParameterValueByAbsoluteName(
+        when(mockCommonLibConfigurationService.getParameterValueByAbsoluteName(
                         "/release-flags/vc-expiry-removed"))
                 .thenReturn("true");
 
         sessionService =
                 new SessionService(
-                        dataStore, configurationService, Clock.systemUTC(), new ListUtil());
+                        dataStore,
+                        mockCommonLibConfigurationService,
+                        Clock.systemUTC(),
+                        new ListUtil());
 
         ServiceFactory serviceFactory =
                 new ServiceFactory(
                         new ObjectMapper(),
                         eventProbe,
                         new ClientFactoryService(Region.EU_WEST_2),
-                        configurationService,
+                        mockParameterStoreService,
                         sessionService,
                         auditService,
                         new PersonIdentityService(
                                 new PersonIdentityMapper(),
-                                configurationService,
+                                mockCommonLibConfigurationService,
                                 personIdentityDataStore),
                         documentCheckResultStore);
 

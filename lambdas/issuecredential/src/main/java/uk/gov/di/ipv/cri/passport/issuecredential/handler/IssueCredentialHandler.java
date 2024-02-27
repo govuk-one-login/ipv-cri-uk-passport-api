@@ -27,6 +27,7 @@ import uk.gov.di.ipv.cri.common.library.exception.SessionNotFoundException;
 import uk.gov.di.ipv.cri.common.library.exception.SqsException;
 import uk.gov.di.ipv.cri.common.library.persistence.DataStore;
 import uk.gov.di.ipv.cri.common.library.service.AuditService;
+import uk.gov.di.ipv.cri.common.library.service.ConfigurationService;
 import uk.gov.di.ipv.cri.common.library.service.PersonIdentityService;
 import uk.gov.di.ipv.cri.common.library.service.SessionService;
 import uk.gov.di.ipv.cri.common.library.util.ApiGatewayResponseGenerator;
@@ -38,7 +39,6 @@ import uk.gov.di.ipv.cri.passport.issuecredential.util.IssueCredentialPassportAu
 import uk.gov.di.ipv.cri.passport.library.error.CommonExpressOAuthError;
 import uk.gov.di.ipv.cri.passport.library.helpers.PersonIdentityDetailedHelperMapper;
 import uk.gov.di.ipv.cri.passport.library.persistence.DocumentCheckResultItem;
-import uk.gov.di.ipv.cri.passport.library.service.PassportConfigurationService;
 import uk.gov.di.ipv.cri.passport.library.service.ServiceFactory;
 
 import java.util.List;
@@ -59,7 +59,7 @@ public class IssueCredentialHandler
     public static final String AUTHORIZATION_HEADER_KEY = "Authorization";
     private static final String LAMBDA_EXCEPTION_ERROR_MESSAGE =
             "Exception while handling lambda {} exception {}";
-    private PassportConfigurationService passportConfigurationService;
+    private ConfigurationService commonLibConfigurationService;
 
     // CommonLib
     private EventProbe eventProbe;
@@ -80,7 +80,7 @@ public class IssueCredentialHandler
         KMSSigner kmsSigner =
                 new KMSSigner(
                         serviceFactory
-                                .getPassportConfigurationService()
+                                .getCommonLibConfigurationService()
                                 .getVerifiableCredentialKmsSigningKeyId(),
                         serviceFactory.getClientFactoryService().getKMSClient());
 
@@ -100,7 +100,7 @@ public class IssueCredentialHandler
     private void initializeLambdaServices(
             ServiceFactory serviceFactory,
             VerifiableCredentialService verifiableCredentialService) {
-        this.passportConfigurationService = serviceFactory.getPassportConfigurationService();
+        this.commonLibConfigurationService = serviceFactory.getCommonLibConfigurationService();
 
         this.eventProbe = serviceFactory.getEventProbe();
         this.sessionService = serviceFactory.getSessionService();
@@ -152,7 +152,7 @@ public class IssueCredentialHandler
             LOGGER.info("Credential generated");
 
             String verifiableCredentialIssuer =
-                    passportConfigurationService.getVerifiableCredentialIssuer();
+                    commonLibConfigurationService.getVerifiableCredentialIssuer();
 
             // Needed as personIdentityService.savePersonIdentity creates personIdentityDetailed via
             // shared claims
@@ -279,10 +279,6 @@ public class IssueCredentialHandler
     }
 
     private void recordCIMetrics(String ciRequestPrefix, List<String> contraIndications) {
-        if (contraIndications == null) {
-            return;
-        }
-
         for (String ci : contraIndications) {
             eventProbe.counterMetric(ciRequestPrefix + ci);
         }

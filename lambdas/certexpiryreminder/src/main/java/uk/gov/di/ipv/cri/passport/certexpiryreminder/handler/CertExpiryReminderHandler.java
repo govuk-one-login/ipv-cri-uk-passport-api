@@ -9,13 +9,12 @@ import software.amazon.lambda.powertools.logging.Logging;
 import software.amazon.lambda.powertools.metrics.Metrics;
 import uk.gov.di.ipv.cri.common.library.annotations.ExcludeFromGeneratedCoverageReport;
 import uk.gov.di.ipv.cri.common.library.util.EventProbe;
+import uk.gov.di.ipv.cri.passport.certexpiryreminder.handler.config.CertExpiryReminderConfig;
 import uk.gov.di.ipv.cri.passport.library.service.ClientFactoryService;
-import uk.gov.di.ipv.cri.passport.library.service.PassportConfigurationService;
+import uk.gov.di.ipv.cri.passport.library.service.ParameterStoreService;
 
-import java.security.NoSuchAlgorithmException;
 import java.security.cert.CertificateException;
 import java.security.cert.X509Certificate;
-import java.security.spec.InvalidKeySpecException;
 import java.time.LocalDate;
 import java.time.ZoneId;
 import java.util.Date;
@@ -29,23 +28,30 @@ public class CertExpiryReminderHandler implements RequestHandler<Object, Object>
 
     private static final Logger LOGGER = LogManager.getLogger();
 
-    private final PassportConfigurationService passportConfigurationService;
+    private final ParameterStoreService parameterStoreService;
+
+    private final CertExpiryReminderConfig certExpiryReminderConfig;
+
     private final EventProbe eventProbe;
 
     @ExcludeFromGeneratedCoverageReport
-    public CertExpiryReminderHandler()
-            throws CertificateException, NoSuchAlgorithmException, InvalidKeySpecException {
+    public CertExpiryReminderHandler() {
         ClientFactoryService clientFactoryService = new ClientFactoryService();
 
-        this.passportConfigurationService = new PassportConfigurationService(clientFactoryService);
+        this.parameterStoreService = new ParameterStoreService(clientFactoryService);
+
+        this.certExpiryReminderConfig = new CertExpiryReminderConfig(parameterStoreService);
 
         this.eventProbe = new EventProbe();
     }
 
     public CertExpiryReminderHandler(
-            PassportConfigurationService passportConfigurationService, EventProbe eventProbe) {
+            ParameterStoreService parameterStoreService,
+            CertExpiryReminderConfig certExpiryReminderConfig,
+            EventProbe eventProbe) {
         LOGGER.info("CONSTRUCTING...");
-        this.passportConfigurationService = passportConfigurationService;
+        this.parameterStoreService = parameterStoreService;
+        this.certExpiryReminderConfig = certExpiryReminderConfig;
         this.eventProbe = eventProbe;
     }
 
@@ -60,7 +66,7 @@ public class CertExpiryReminderHandler implements RequestHandler<Object, Object>
         LOGGER.info("Loading Certificates...");
         try {
             for (Map.Entry<String, X509Certificate> certificate :
-                    passportConfigurationService.getHMPOCertificates().entrySet()) {
+                    certExpiryReminderConfig.getHMPOCertificates().entrySet()) {
                 Date date = certificate.getValue().getNotAfter();
                 certificates.put(certificate.getKey(), convertToLocalDate(date));
             }
