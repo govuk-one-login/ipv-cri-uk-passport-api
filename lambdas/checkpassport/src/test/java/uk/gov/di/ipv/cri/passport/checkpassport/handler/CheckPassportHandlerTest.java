@@ -8,7 +8,6 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import com.nimbusds.oauth2.sdk.OAuth2Error;
-import org.apache.http.impl.client.CloseableHttpClient;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -19,8 +18,6 @@ import org.mockito.InOrder;
 import org.mockito.Mock;
 import org.mockito.Mockito;
 import org.mockito.junit.jupiter.MockitoExtension;
-import org.mockito.junit.jupiter.MockitoSettings;
-import org.mockito.quality.Strictness;
 import software.amazon.awssdk.http.HttpStatusCode;
 import uk.gov.di.ipv.cri.common.library.exception.SessionExpiredException;
 import uk.gov.di.ipv.cri.common.library.exception.SessionNotFoundException;
@@ -31,11 +28,9 @@ import uk.gov.di.ipv.cri.common.library.service.SessionService;
 import uk.gov.di.ipv.cri.common.library.util.EventProbe;
 import uk.gov.di.ipv.cri.passport.checkpassport.domain.result.DocumentDataVerificationResult;
 import uk.gov.di.ipv.cri.passport.checkpassport.services.DocumentDataVerificationService;
-import uk.gov.di.ipv.cri.passport.checkpassport.services.dcs.DcsThirdPartyAPIService;
 import uk.gov.di.ipv.cri.passport.checkpassport.util.DocumentDataVerificationServiceResultDataGenerator;
 import uk.gov.di.ipv.cri.passport.library.PassportFormTestDataGenerator;
 import uk.gov.di.ipv.cri.passport.library.domain.PassportFormData;
-import uk.gov.di.ipv.cri.passport.library.dvad.services.DvadThirdPartyAPIService;
 import uk.gov.di.ipv.cri.passport.library.error.CommonExpressOAuthError;
 import uk.gov.di.ipv.cri.passport.library.exceptions.OAuthErrorResponseException;
 import uk.gov.di.ipv.cri.passport.library.persistence.DocumentCheckResultItem;
@@ -47,8 +42,6 @@ import uk.org.webcompere.systemstubs.environment.EnvironmentVariables;
 import uk.org.webcompere.systemstubs.jupiter.SystemStub;
 import uk.org.webcompere.systemstubs.jupiter.SystemStubsExtension;
 
-import java.lang.reflect.InvocationTargetException;
-import java.lang.reflect.Method;
 import java.net.URI;
 import java.util.ArrayList;
 import java.util.List;
@@ -59,7 +52,6 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.mockito.ArgumentMatchers.*;
 import static org.mockito.Mockito.inOrder;
-import static org.mockito.Mockito.spy;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoMoreInteractions;
 import static org.mockito.Mockito.when;
@@ -68,10 +60,6 @@ import static uk.gov.di.ipv.cri.common.library.error.ErrorResponse.SESSION_NOT_F
 import static uk.gov.di.ipv.cri.passport.checkpassport.handler.CheckPassportHandler.RESULT;
 import static uk.gov.di.ipv.cri.passport.checkpassport.handler.CheckPassportHandler.RESULT_RETRY;
 import static uk.gov.di.ipv.cri.passport.library.config.ParameterStoreParameters.DOCUMENT_CHECK_RESULT_TTL_PARAMETER;
-import static uk.gov.di.ipv.cri.passport.library.config.ParameterStoreParameters.DVA_DIGITAL_ENABLED;
-import static uk.gov.di.ipv.cri.passport.library.config.ParameterStoreParameters.IS_DCS_PERFORMANCE_STUB;
-import static uk.gov.di.ipv.cri.passport.library.config.ParameterStoreParameters.IS_DVAD_PERFORMANCE_STUB;
-import static uk.gov.di.ipv.cri.passport.library.config.ParameterStoreParameters.MAXIMUM_ATTEMPT_COUNT;
 import static uk.gov.di.ipv.cri.passport.library.metrics.Definitions.FORM_DATA_PARSE_FAIL;
 import static uk.gov.di.ipv.cri.passport.library.metrics.Definitions.FORM_DATA_PARSE_PASS;
 import static uk.gov.di.ipv.cri.passport.library.metrics.Definitions.LAMBDA_CHECK_PASSPORT_ATTEMPT_STATUS_RETRY;
@@ -79,11 +67,11 @@ import static uk.gov.di.ipv.cri.passport.library.metrics.Definitions.LAMBDA_CHEC
 import static uk.gov.di.ipv.cri.passport.library.metrics.Definitions.LAMBDA_CHECK_PASSPORT_ATTEMPT_STATUS_VERIFIED_PREFIX;
 import static uk.gov.di.ipv.cri.passport.library.metrics.Definitions.LAMBDA_CHECK_PASSPORT_COMPLETED_ERROR;
 import static uk.gov.di.ipv.cri.passport.library.metrics.Definitions.LAMBDA_CHECK_PASSPORT_COMPLETED_OK;
+import static uk.gov.di.ipv.cri.passport.library.metrics.Definitions.LAMBDA_CHECK_PASSPORT_FUNCTION_INIT_DURATION;
 import static uk.gov.di.ipv.cri.passport.library.metrics.Definitions.LAMBDA_CHECK_PASSPORT_USER_REDIRECTED_ATTEMPTS_OVER_MAX;
 
 @ExtendWith(MockitoExtension.class)
 @ExtendWith(SystemStubsExtension.class)
-@MockitoSettings(strictness = Strictness.WARN)
 class CheckPassportHandlerTest {
 
     private final ObjectMapper realObjectMapper =
@@ -103,10 +91,6 @@ class CheckPassportHandlerTest {
     // Created in check passport
     @Mock private ServiceFactory mockServiceFactory;
     @Mock private DocumentDataVerificationService mockDocumentDataVerificationService;
-    @Mock private ThirdPartyAPIService mockThirdPartyAPIService;
-
-    // For Test shouldDetermineCorrectThirdPartyAPIServiceForEachValueOfDVADigitalEnabled
-    @Mock private CloseableHttpClient mockCloseableHttpClient;
 
     private CheckPassportHandler checkPassportHandler;
 
@@ -114,15 +98,12 @@ class CheckPassportHandlerTest {
     void setup() {
         environmentVariables.set("AWS_REGION", "eu-west-2");
         environmentVariables.set("AWS_STACK_NAME", "TEST_STACK");
+        environmentVariables.set("DVAD_PERFORMANCE_STUB_IN_USE", "false");
+        environmentVariables.set("DEV_ENVIRONMENT_ONLY_ENHANCED_DEBUG", "false");
 
         mockServiceFactoryBehaviour();
 
-        when(mockParameterStoreService.getParameterValue(IS_DVAD_PERFORMANCE_STUB))
-                .thenReturn("false");
-        when(mockParameterStoreService.getParameterValue(IS_DCS_PERFORMANCE_STUB))
-                .thenReturn("false");
-
-        this.checkPassportHandler =
+        checkPassportHandler =
                 new CheckPassportHandler(mockServiceFactory, mockDocumentDataVerificationService);
     }
 
@@ -168,21 +149,17 @@ class CheckPassportHandlerTest {
                         eq(requestHeaders)))
                 .thenReturn(testDocumentDataVerificationResult);
 
-        when(mockParameterStoreService.getStackParameterValue(MAXIMUM_ATTEMPT_COUNT))
-                .thenReturn("2");
-
-        when(mockParameterStoreService.getStackParameterValue(DVA_DIGITAL_ENABLED))
-                .thenReturn("true");
-
         when(mockParameterStoreService.getCommonParameterValue(DOCUMENT_CHECK_RESULT_TTL_PARAMETER))
                 .thenReturn("7200");
 
-        when(mockLambdaContext.getFunctionName()).thenReturn("functionName");
-        when(mockLambdaContext.getFunctionVersion()).thenReturn("1.0");
+        mockLambdaContext();
+
         APIGatewayProxyResponseEvent responseEvent =
                 checkPassportHandler.handleRequest(mockRequestEvent, mockLambdaContext);
 
         InOrder inOrder = inOrder(mockEventProbe);
+        inOrder.verify(mockEventProbe)
+                .counterMetric(eq(LAMBDA_CHECK_PASSPORT_FUNCTION_INIT_DURATION), anyDouble());
         inOrder.verify(mockEventProbe).counterMetric(FORM_DATA_PARSE_PASS);
         inOrder.verify(mockEventProbe)
                 .counterMetric(LAMBDA_CHECK_PASSPORT_ATTEMPT_STATUS_VERIFIED_PREFIX + 1);
@@ -190,7 +167,7 @@ class CheckPassportHandlerTest {
         verifyNoMoreInteractions(mockEventProbe);
         verify(mockDocumentDataVerificationService)
                 .verifyData(
-                        any(DvadThirdPartyAPIService.class),
+                        any(ThirdPartyAPIService.class),
                         eq(passportFormData),
                         any(SessionItem.class),
                         eq(requestHeaders));
@@ -260,31 +237,28 @@ class CheckPassportHandlerTest {
             // parsePassportFormRequest
             when(mockRequestEvent.getBody()).thenReturn(testRequestBody);
             when(mockDocumentDataVerificationService.verifyData(
-                            any(DvadThirdPartyAPIService.class),
+                            any(ThirdPartyAPIService.class),
                             any(PassportFormData.class),
                             any(SessionItem.class),
                             eq(requestHeaders)))
                     .thenReturn(testDocumentDataVerificationResult);
-
-            when(mockParameterStoreService.getStackParameterValue(DVA_DIGITAL_ENABLED))
-                    .thenReturn("true");
 
             when(mockParameterStoreService.getCommonParameterValue(
                             DOCUMENT_CHECK_RESULT_TTL_PARAMETER))
                     .thenReturn("7200");
         }
 
-        when(mockParameterStoreService.getStackParameterValue(MAXIMUM_ATTEMPT_COUNT))
-                .thenReturn(String.valueOf(MAX_ATTEMPTS));
+        mockLambdaContext();
 
-        when(mockLambdaContext.getFunctionName()).thenReturn("functionName");
-        when(mockLambdaContext.getFunctionVersion()).thenReturn("1.0");
         APIGatewayProxyResponseEvent responseEvent =
                 checkPassportHandler.handleRequest(mockRequestEvent, mockLambdaContext);
 
         JsonNode responseTreeRootNode = realObjectMapper.readTree(responseEvent.getBody());
 
         InOrder inOrder = inOrder(mockEventProbe);
+        inOrder.verify(mockEventProbe)
+                .counterMetric(eq(LAMBDA_CHECK_PASSPORT_FUNCTION_INIT_DURATION), anyDouble());
+
         assertNotNull(responseEvent);
         assertEquals(200, responseEvent.getStatusCode());
 
@@ -306,7 +280,7 @@ class CheckPassportHandlerTest {
             verify(mockDocumentCheckResultStore).create(documentCheckResultItem);
             verify(mockDocumentDataVerificationService)
                     .verifyData(
-                            any(DvadThirdPartyAPIService.class),
+                            any(ThirdPartyAPIService.class),
                             eq(passportFormData),
                             any(SessionItem.class),
                             eq(requestHeaders));
@@ -319,7 +293,7 @@ class CheckPassportHandlerTest {
                     .counterMetric(LAMBDA_CHECK_PASSPORT_ATTEMPT_STATUS_RETRY);
             verify(mockDocumentDataVerificationService)
                     .verifyData(
-                            any(DvadThirdPartyAPIService.class),
+                            any(ThirdPartyAPIService.class),
                             eq(passportFormData),
                             any(SessionItem.class),
                             eq(requestHeaders));
@@ -342,7 +316,7 @@ class CheckPassportHandlerTest {
             verify(mockDocumentCheckResultStore).create(documentCheckResultItem);
             verify(mockDocumentDataVerificationService)
                     .verifyData(
-                            any(DvadThirdPartyAPIService.class),
+                            any(ThirdPartyAPIService.class),
                             eq(passportFormData),
                             any(SessionItem.class),
                             eq(requestHeaders));
@@ -393,12 +367,14 @@ class CheckPassportHandlerTest {
                     .thenThrow(new SessionExpiredException("session expired"));
         }
 
-        when(mockLambdaContext.getFunctionName()).thenReturn("functionName");
-        when(mockLambdaContext.getFunctionVersion()).thenReturn("1.0");
+        mockLambdaContext();
+
         APIGatewayProxyResponseEvent responseEvent =
                 checkPassportHandler.handleRequest(mockRequestEvent, mockLambdaContext);
 
         InOrder inOrder = inOrder(mockEventProbe);
+        inOrder.verify(mockEventProbe)
+                .counterMetric(eq(LAMBDA_CHECK_PASSPORT_FUNCTION_INIT_DURATION), anyDouble());
         inOrder.verify(mockEventProbe).counterMetric(LAMBDA_CHECK_PASSPORT_COMPLETED_ERROR);
         verifyNoMoreInteractions(mockEventProbe);
 
@@ -469,16 +445,14 @@ class CheckPassportHandlerTest {
         // parsePassportFormRequest
         when(mockRequestEvent.getBody()).thenReturn(testRequestBody);
 
-        when(mockParameterStoreService.getStackParameterValue(MAXIMUM_ATTEMPT_COUNT))
-                .thenReturn(String.valueOf(MAX_ATTEMPTS));
-
-        when(mockLambdaContext.getFunctionName()).thenReturn("functionName");
-        when(mockLambdaContext.getFunctionVersion()).thenReturn("1.0");
+        mockLambdaContext();
 
         APIGatewayProxyResponseEvent responseEvent =
                 checkPassportHandler.handleRequest(mockRequestEvent, mockLambdaContext);
 
         InOrder inOrder = inOrder(mockEventProbe);
+        inOrder.verify(mockEventProbe)
+                .counterMetric(eq(LAMBDA_CHECK_PASSPORT_FUNCTION_INIT_DURATION), anyDouble());
         inOrder.verify(mockEventProbe).counterMetric(FORM_DATA_PARSE_FAIL);
         inOrder.verify(mockEventProbe).counterMetric(LAMBDA_CHECK_PASSPORT_COMPLETED_ERROR);
         verifyNoMoreInteractions(mockEventProbe);
@@ -539,17 +513,14 @@ class CheckPassportHandlerTest {
                         eq(requestHeaders)))
                 .thenThrow(new RuntimeException("An Unhandled exception that has occurred"));
 
-        when(mockParameterStoreService.getStackParameterValue(MAXIMUM_ATTEMPT_COUNT))
-                .thenReturn("2");
+        mockLambdaContext();
 
-        when(mockLambdaContext.getFunctionName()).thenReturn("functionName");
-        when(mockLambdaContext.getFunctionVersion()).thenReturn("1.0");
         APIGatewayProxyResponseEvent responseEvent =
                 checkPassportHandler.handleRequest(mockRequestEvent, mockLambdaContext);
 
         verify(mockDocumentDataVerificationService)
                 .verifyData(
-                        any(DcsThirdPartyAPIService.class),
+                        any(ThirdPartyAPIService.class),
                         eq(passportFormData),
                         any(SessionItem.class),
                         eq(requestHeaders));
@@ -576,55 +547,6 @@ class CheckPassportHandlerTest {
         assertEquals(
                 expectedObject.getError().get("error_description"),
                 oauthErrorNode.get("error_description").textValue()); // error description
-    }
-
-    @ParameterizedTest
-    @CsvSource({
-        // DVA_DIGITAL_ENABLED, Header Present
-        "true, true", // (Release + Header) = DVAD
-        "true, false", // (Release + NoHeader) = DCS
-        "false, true", // (No Release + Header) = DCS
-        "false, false", // (No Release + NoHeader) = DCS
-    })
-    void shouldDetermineCorrectThirdPartyAPIServiceForEachValueOfDVADigitalEnabled(
-            boolean dvaDigitalEnabled, boolean newThirdPartyAPI)
-            throws NoSuchMethodException, InvocationTargetException, IllegalAccessException {
-
-        if (dvaDigitalEnabled) {
-            when(mockClientFactoryService.getCloseableHttpClient(
-                            any(boolean.class), eq(mockParameterStoreService)))
-                    .thenReturn(mockCloseableHttpClient);
-        } else {
-            when(mockClientFactoryService.getLegacyCloseableHttpClient(
-                            any(boolean.class), eq(mockParameterStoreService)))
-                    .thenReturn(mockCloseableHttpClient);
-        }
-
-        CheckPassportHandler spyHandler;
-
-        // "selectThirdPartyAPIService" is a private helper method  used to configure the
-        // CRI with the chosen ThirdPartyAPIService.
-        // The following uses reflection to unlock the method and confirm its behaviour
-        CheckPassportHandler spyTarget =
-                new CheckPassportHandler(mockServiceFactory, mockDocumentDataVerificationService);
-        spyHandler = spy(spyTarget);
-
-        Method privateDetermineThirdPartyAPIServiceMethod =
-                CheckPassportHandler.class.getDeclaredMethod(
-                        "selectThirdPartyAPIService", boolean.class);
-        privateDetermineThirdPartyAPIServiceMethod.setAccessible(true);
-
-        // Call the private method and capture result
-        ThirdPartyAPIService thirdPartyAPIService =
-                (ThirdPartyAPIService)
-                        privateDetermineThirdPartyAPIServiceMethod.invoke(
-                                spyHandler, dvaDigitalEnabled);
-
-        if (dvaDigitalEnabled) {
-            assertEquals(thirdPartyAPIService.getClass(), DvadThirdPartyAPIService.class);
-        } else {
-            assertEquals(thirdPartyAPIService.getClass(), DcsThirdPartyAPIService.class);
-        }
     }
 
     private void mockServiceFactoryBehaviour() {
@@ -668,5 +590,10 @@ class CheckPassportHandlerTest {
                 documentDataVerificationResult.getChecksFailed());
         documentCheckResultItem.setCiReasons(new ArrayList<>());
         return documentCheckResultItem;
+    }
+
+    private void mockLambdaContext() {
+        when(mockLambdaContext.getFunctionName()).thenReturn("functionName");
+        when(mockLambdaContext.getFunctionVersion()).thenReturn("1.0");
     }
 }

@@ -252,18 +252,13 @@ public class PassportAPIPage extends PassportPageObject {
 
     public void validityScoreAndStrengthScoreInVC(String validityScore, String strengthScore)
             throws IOException, InterruptedException, ParseException {
-        String passportCriVc = VC;
-        if (null == VC) {
-            passportCriVc = postRequestToPassportVCEndpoint();
-        }
-        scoreIs(validityScore, strengthScore, passportCriVc);
+        scoreIs(validityScore, strengthScore, VC);
     }
 
     public void assertJtiIsPresent() throws IOException, ParseException, InterruptedException {
-        String result = postRequestToPassportVCEndpoint();
-        LOGGER.info("result = " + result);
+        LOGGER.info("result = " + VC);
         ObjectMapper objectMapper = new ObjectMapper();
-        JsonNode jsonNode = objectMapper.readTree(result);
+        JsonNode jsonNode = objectMapper.readTree(VC);
         JsonNode jtiNode = jsonNode.get("jti");
         LOGGER.info("jti = " + jtiNode.asText());
 
@@ -379,8 +374,7 @@ public class PassportAPIPage extends PassportPageObject {
 
     public void ciInPassportCriVc(String ci)
             throws IOException, InterruptedException, ParseException {
-        String passportVc = postRequestToPassportVCEndpoint();
-        JsonNode jsonNode = objectMapper.readTree((passportVc));
+        JsonNode jsonNode = objectMapper.readTree((VC));
         JsonNode evidenceArray = jsonNode.get("vc").get("evidence");
         JsonNode ciInEvidenceArray = evidenceArray.get(0);
         LOGGER.info("ciInEvidenceArray = " + ciInEvidenceArray);

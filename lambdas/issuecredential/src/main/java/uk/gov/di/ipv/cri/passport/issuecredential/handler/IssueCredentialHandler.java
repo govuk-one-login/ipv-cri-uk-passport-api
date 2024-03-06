@@ -41,6 +41,8 @@ import uk.gov.di.ipv.cri.passport.library.helpers.PersonIdentityDetailedHelperMa
 import uk.gov.di.ipv.cri.passport.library.persistence.DocumentCheckResultItem;
 import uk.gov.di.ipv.cri.passport.library.service.ServiceFactory;
 
+import java.time.Duration;
+import java.time.temporal.ChronoUnit;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -50,10 +52,14 @@ import static uk.gov.di.ipv.cri.common.library.error.ErrorResponse.SESSION_EXPIR
 import static uk.gov.di.ipv.cri.common.library.error.ErrorResponse.SESSION_NOT_FOUND;
 import static uk.gov.di.ipv.cri.passport.library.metrics.Definitions.LAMBDA_ISSUE_CREDENTIAL_COMPLETED_ERROR;
 import static uk.gov.di.ipv.cri.passport.library.metrics.Definitions.LAMBDA_ISSUE_CREDENTIAL_COMPLETED_OK;
+import static uk.gov.di.ipv.cri.passport.library.metrics.Definitions.LAMBDA_ISSUE_CREDENTIAL_FUNCTION_INIT_DURATION;
 import static uk.gov.di.ipv.cri.passport.library.metrics.Definitions.PASSPORT_CI_PREFIX;
 
 public class IssueCredentialHandler
         implements RequestHandler<APIGatewayProxyRequestEvent, APIGatewayProxyResponseEvent> {
+
+    // We need this first and static for it to be created as soon as possible during function init
+    private static final long FUNCTION_INIT_START_TIME_MILLISECONDS = System.currentTimeMillis();
 
     private static final Logger LOGGER = LogManager.getLogger();
     public static final String AUTHORIZATION_HEADER_KEY = "Authorization";
@@ -110,6 +116,15 @@ public class IssueCredentialHandler
         this.documentCheckResultStore = serviceFactory.getDocumentCheckResultStore();
 
         this.verifiableCredentialService = verifiableCredentialService;
+
+        // Runtime/SnapStart function init duration
+        long runTimeFunctionInitDuration =
+                System.currentTimeMillis() - FUNCTION_INIT_START_TIME_MILLISECONDS;
+
+        eventProbe.counterMetric(
+                LAMBDA_ISSUE_CREDENTIAL_FUNCTION_INIT_DURATION, runTimeFunctionInitDuration);
+
+        LOGGER.info("Lambda function init duration {}ms", runTimeFunctionInitDuration);
     }
 
     @Override
@@ -123,6 +138,22 @@ public class IssueCredentialHandler
                     "Initiating lambda {} version {}",
                     context.getFunctionName(),
                     context.getFunctionVersion());
+
+            long runTimeDuration =
+                    System.currentTimeMillis() - FUNCTION_INIT_START_TIME_MILLISECONDS;
+
+            Duration duration = Duration.of(runTimeDuration, ChronoUnit.MILLIS);
+
+            String formattedDuration =
+                    String.format(
+                            "%d:%02d:%02d",
+                            duration.toHours(), duration.toMinutesPart(), duration.toSecondsPart());
+
+            LOGGER.info(
+                    "Lambda {}, Lifetime duration {}, {}ms",
+                    context.getFunctionName(),
+                    formattedDuration,
+                    runTimeDuration);
 
             LOGGER.info("Validating access token...");
             var accessToken = validateInputHeaderBearerToken(input.getHeaders());
@@ -161,7 +192,7 @@ public class IssueCredentialHandler
                             .mapPersonIdentityDetailedAndPassportDataToAuditRestricted(
                                     personIdentityDetailed, documentCheckResultItem);
 
-            LOGGER.info("Sending audit event {}}...", AuditEventType.VC_ISSUED);
+            LOGGER.info("Sending audit event {}...", AuditEventType.VC_ISSUED);
             auditService.sendAuditEvent(
                     AuditEventType.VC_ISSUED,
                     new AuditEventContext(auditRestricted, input.getHeaders(), sessionItem),

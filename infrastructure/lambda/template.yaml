@@ -111,7 +111,6 @@ Globals:
       - UsePermissionsBoundary
       - !Ref PermissionsBoundary
       - !Ref AWS::NoValue
-    # A minimum 1.5GB is recommended for Java
     Timeout: 40
     MemorySize: !FindInMap [ MemorySizeMapping, Environment, !Ref 'Environment' ]
     Architectures:
@@ -162,14 +161,6 @@ Mappings:
     production:
       dynatraceSecretArn: arn:aws:secretsmanager:eu-west-2:216552277552:secret:DynatraceProductionVariables
 
-  MaximumAttemptCountMapping:
-    Environment:
-      dev: 2
-      build: 2
-      staging: 2
-      integration: 2
-      production: 2
-
   MemorySizeMapping:
     Environment:
       dev: 2048
@@ -186,14 +177,6 @@ Mappings:
       staging: "6"
       integration: "6"
       production: "6"
-
-  DvaDigitalEnabledMapping:
-    Environment:
-      dev: "true"
-      build: "true"
-      staging: "true"
-      integration: "true"
-      production: "true"
 
   ProvisionedConcurrency:
     Environment:
@@ -228,12 +211,22 @@ Mappings:
       integration: MONTHS
       production: MONTHS
 
+  # Set as EnvVar on the CheckLambda
   # devEnvironmentOnlyEnhancedDebug changes CRI behaviour
   # Do not enable outside of Dev
-  devEnvironmentOnlyEnhancedDebugMapping:
+  DevEnvironmentOnlyEnhancedDebugMapping:
     Environment:
       dev: "false"
       build: "false"
+      staging: "false"
+      integration: "false"
+      production: "false"
+
+  # Set as EnvVar on the CheckLambda
+  DVADPerformanceStubEnabledEnvVar:
+    Environment:
+      dev: "true"
+      build: "true"
       staging: "false"
       integration: "false"
       production: "false"
@@ -469,6 +462,8 @@ Resources:
         Variables:
           POWERTOOLS_SERVICE_NAME: !Sub "${CriIdentifier}-checkpassport"
           ENVIRONMENT: !Ref Environment
+          DVAD_PERFORMANCE_STUB_IN_USE: !FindInMap [DVADPerformanceStubEnabledEnvVar, Environment, !Ref 'Environment']
+          DEV_ENVIRONMENT_ONLY_ENHANCED_DEBUG: !FindInMap [ DevEnvironmentOnlyEnhancedDebugMapping, Environment, !Ref Environment ]
       Policies:
         - DynamoDBWritePolicy:
             TableName: !Sub "{{resolve:ssm:/${CommonStackName}/SessionTableName}}"
@@ -488,21 +483,8 @@ Resources:
                 - ssm:GetParameter
               Resource:
                 - !Sub "arn:aws:ssm:${AWS::Region}:${AWS::AccountId}:parameter/${AWS::StackName}/DocumentCheckResultTableName"
-                - !Sub "arn:aws:ssm:${AWS::Region}:${AWS::AccountId}:parameter/${AWS::StackName}/MaximumAttemptCount"
-                - !Sub "arn:aws:ssm:${AWS::Region}:${AWS::AccountId}:parameter/${AWS::StackName}/devEnvironmentOnlyEnhancedDebug"
-                - !Sub "arn:aws:ssm:${AWS::Region}:${AWS::AccountId}:parameter/${AWS::StackName}/DvaDigitalEnabled"
-                - !Sub "arn:aws:ssm:${AWS::Region}:${AWS::AccountId}:parameter/${AWS::StackName}/logDcsResponse"
                 - !Sub
                   - "arn:aws:ssm:${AWS::Region}:${AWS::AccountId}:parameter/${PREFIX}/ContraindicationMappings"
-                  - PREFIX: !If [UseParameterPrefix, !Ref ParameterPrefix , !Ref AWS::StackName]
-                - !Sub
-                  - "arn:aws:ssm:${AWS::Region}:${AWS::AccountId}:parameter/${PREFIX}/isDCSPerformanceStub"
-                  - PREFIX: !If [UseParameterPrefix, !Ref ParameterPrefix , !Ref AWS::StackName]
-                - !Sub
-                  - "arn:aws:ssm:${AWS::Region}:${AWS::AccountId}:parameter/${PREFIX}/DCS*"
-                  - PREFIX: !If [UseParameterPrefix, !Ref ParameterPrefix , !Ref AWS::StackName]
-                - !Sub
-                  - "arn:aws:ssm:${AWS::Region}:${AWS::AccountId}:parameter/${PREFIX}/isDVADPerformanceStub"
                   - PREFIX: !If [UseParameterPrefix, !Ref ParameterPrefix , !Ref AWS::StackName]
                 - !Sub
                   - "arn:aws:ssm:${AWS::Region}:${AWS::AccountId}:parameter/${PREFIX}/HMPODVAD*"
@@ -511,6 +493,22 @@ Resources:
                 - !Sub "arn:aws:ssm:${AWS::Region}:${AWS::AccountId}:parameter/${CommonStackName}/PersonIdentityTableName"
                 - !Sub "arn:aws:ssm:${AWS::Region}:${AWS::AccountId}:parameter/${CommonStackName}/SessionTtl"
                 - !Sub "arn:aws:ssm:${AWS::Region}:${AWS::AccountId}:parameter/${CommonStackName}/verifiable-credential/issuer"
+        - Statement:
+            - Effect: Allow
+              Action:
+                - ssm:GetParametersByPath
+              Resource:
+                - !Sub
+                  - "arn:aws:ssm:${AWS::Region}:${AWS::AccountId}:parameter/${PREFIX}/HMPODVAD/API/Header"
+                  - PREFIX: !If [UseParameterPrefix, !Ref ParameterPrefix , !Ref AWS::StackName]
+        - Statement:
+            - Effect: Allow
+              Action:
+                - ssm:GetParametersByPath
+              Resource:
+                - !Sub
+                  - "arn:aws:ssm:${AWS::Region}:${AWS::AccountId}:parameter/${PREFIX}/HMPODVAD/HttpClient"
+                  - PREFIX: !If [UseParameterPrefix, !Ref ParameterPrefix , !Ref AWS::StackName]
         - Statement:
             - Effect: Allow
               Action:
@@ -669,10 +667,10 @@ Resources:
         - Statement:
             - Effect: Allow
               Action:
-                - ssm:GetParameter
+                - ssm:GetParametersByPath
               Resource:
                 - !Sub
-                  - "arn:aws:ssm:${AWS::Region}:${AWS::AccountId}:parameter/${PREFIX}/HMPODVAD*"
+                  - "arn:aws:ssm:${AWS::Region}:${AWS::AccountId}:parameter/${PREFIX}/HMPODVAD/HttpClient"
                   - PREFIX: !If [UseParameterPrefix, !Ref ParameterPrefix , !Ref AWS::StackName]
         - Statement:
             Effect: Allow
@@ -819,22 +817,6 @@ Resources:
       Type: String
       Description: Document check result dynamodb table name
 
-  MaximumAttemptCountParameter:
-    Type: AWS::SSM::Parameter
-    Properties:
-      Name: !Sub "/${AWS::StackName}/MaximumAttemptCount"
-      Value: !FindInMap [MaximumAttemptCountMapping, Environment, !Ref 'Environment']
-      Type: String
-      Description: maximum passport verification attempts
-
-  DvaDigitalEnabledParameter:
-    Type: AWS::SSM::Parameter
-    Properties:
-      Name: !Sub "/${AWS::StackName}/DvaDigitalEnabled"
-      Value: !FindInMap [DvaDigitalEnabledMapping, Environment, !Ref 'Environment']
-      Type: String
-      Description: use DCS for document checks
-
   MaxJwtTtlParameter:
     Type: AWS::SSM::Parameter
     Properties:
@@ -858,38 +840,6 @@ Resources:
       Type: String
       Value: !ImportValue core-infrastructure-CriVcSigningKey1Id
       Description: Verifiable Credential Key Id
-
-  IsDCSPerformanceStubParameter:
-    Type: AWS::SSM::Parameter
-    Properties:
-      Name: !Sub "/${AWS::StackName}/isDCSPerformanceStub"
-      Type: String
-      Value: "false"
-      Description: Feature toggle to allow performance testing passed SSL (DCS)
-
-  IsDVADPerformanceStubParameter:
-    Type: AWS::SSM::Parameter
-    Properties:
-      Name: !Sub "/${AWS::StackName}/isDVADPerformanceStub"
-      Type: String
-      Value: "false"
-      Description: Feature toggle to allow performance testing passed SSL (DVAD)
-
-  logDcsResponseParameter:
-    Type: AWS::SSM::Parameter
-    Properties:
-      Name: !Sub "/${AWS::StackName}/logDcsResponse"
-      Type: String
-      Value: "false"
-      Description: Feature toggle to allow logging of DCS responses
-
-  devEnvironmentOnlyEnhancedDebugParameter:
-    Type: AWS::SSM::Parameter
-    Properties:
-      Name: !Sub "/${AWS::StackName}/devEnvironmentOnlyEnhancedDebug"
-      Type: String
-      Value: !FindInMap [ devEnvironmentOnlyEnhancedDebugMapping, Environment, !Ref Environment ]
-      Description: Enable enhanced debug - this is achieved via modifying CRI oauth behaviour to include debug messages
 
   LoggingKmsKey:
     Type: AWS::KMS::Key

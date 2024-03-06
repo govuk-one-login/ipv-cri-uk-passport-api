@@ -56,6 +56,12 @@ public class Definitions {
     public static final String PASSPORT_VERIFICATION_FALLBACK_DEVIATION =
             "passport_verification_fallback_deviation";
 
+    // Runtime Capture of colds starts as custom metric for monitoring
+    public static final String LAMBDA_CHECK_PASSPORT_FUNCTION_INIT_DURATION =
+            "lambda_check_passport_function_init_duration";
+    public static final String LAMBDA_ISSUE_CREDENTIAL_FUNCTION_INIT_DURATION =
+            "lambda_issue_credential_function_init_duration";
+
     // ThirdPartyAPIService metrics in Passport are recorded per API (DCS/DVAD)
     // For DVAD they are also recorded Per API Endpoint individually
     // See ThirdPartyAPIEndpointMetric

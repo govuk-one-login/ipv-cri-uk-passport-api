@@ -1,7 +1,9 @@
 package uk.gov.di.ipv.cri.passport.library.domain.result.fields;
 
+import uk.gov.di.ipv.cri.common.library.annotations.ExcludeFromGeneratedCoverageReport;
+
+@ExcludeFromGeneratedCoverageReport
 public enum APIResultSource {
-    DCS("dcs"),
     DVAD("dvad");
 
     private final String name;

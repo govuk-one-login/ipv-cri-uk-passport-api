@@ -6,9 +6,9 @@ import java.io.ByteArrayInputStream;
 import java.security.KeyFactory;
 import java.security.NoSuchAlgorithmException;
 import java.security.PrivateKey;
-import java.security.cert.Certificate;
 import java.security.cert.CertificateException;
 import java.security.cert.CertificateFactory;
+import java.security.cert.X509Certificate;
 import java.security.spec.InvalidKeySpecException;
 import java.security.spec.PKCS8EncodedKeySpec;
 import java.util.Base64;
@@ -20,11 +20,12 @@ public class KeyCertHelper {
         throw new IllegalStateException("Instantiation is not valid for this class.");
     }
 
-    public static Certificate getDecodedX509Certificate(String base64String)
+    public static X509Certificate getDecodedX509Certificate(String base64String)
             throws CertificateException {
         byte[] binaryCertificate = Base64.getDecoder().decode(base64String);
         CertificateFactory factory = CertificateFactory.getInstance("X.509");
-        return factory.generateCertificate(new ByteArrayInputStream(binaryCertificate));
+        return (X509Certificate)
+                factory.generateCertificate(new ByteArrayInputStream(binaryCertificate));
     }
 
     public static PrivateKey getDecodedPrivateRSAKey(String base64String)

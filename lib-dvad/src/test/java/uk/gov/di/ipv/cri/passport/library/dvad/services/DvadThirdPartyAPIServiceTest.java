@@ -556,23 +556,24 @@ class DvadThirdPartyAPIServiceTest {
     }
 
     private void mockDvadAPIHeaderValues() {
-        when(mockParameterStoreService.getEncryptedParameterValue(
-                        ParameterStoreParameters.HMPO_API_HEADER_API_KEY))
-                .thenReturn("TEST_KEY");
-        when(mockParameterStoreService.getParameterValue(
-                        ParameterStoreParameters.HMPO_API_HEADER_USER_AGENT))
-                .thenReturn("TEST_USER_AGENT");
-        when(mockParameterStoreService.getParameterValue(
-                        ParameterStoreParameters.HMPO_API_HEADER_NETWORK_TYPE))
-                .thenReturn("TEST_NETWORK_TYPE");
-        when(mockParameterStoreService.getParameterValue(
-                        ParameterStoreParameters.HMPO_API_HEADER_CLIENT_ID))
-                .thenReturn("TEST_CLIENT_ID");
-        when(mockParameterStoreService.getParameterValue(
-                        ParameterStoreParameters.HMPO_API_HEADER_SECRET))
-                .thenReturn("TEST_SECRET");
-        when(mockParameterStoreService.getParameterValue(
-                        ParameterStoreParameters.HMPO_API_HEADER_GRANT_TYPE))
-                .thenReturn("TEST_GRANT_TYPE");
+        // Mock Parameter store fetches in DvadAPIHeaderValues
+        Map<String, String> testParameterMap =
+                Map.of(
+                        DvadAPIHeaderValues.MAP_KEY_APIKEY,
+                        "TEST_KEY",
+                        DvadAPIHeaderValues.MAP_KEY_USERAGENT,
+                        "TEST_USER_AGENT",
+                        DvadAPIHeaderValues.MAP_KEY_NETWORKTYPE,
+                        "TEST_NETWORK_TYPE",
+                        DvadAPIHeaderValues.MAP_KEY_CLIENTID,
+                        "TEST_CLIENT_ID",
+                        DvadAPIHeaderValues.MAP_KEY_SECRET,
+                        "TEST_SECRET",
+                        DvadAPIHeaderValues.MAP_KEY_GRANTTYPE,
+                        "TEST_GRANT_TYPE");
+
+        when(mockParameterStoreService.getAllParametersFromPathWithDecryption(
+                        ParameterStoreParameters.HMPO_API_HEADER_PARAMETER_PATH))
+                .thenReturn(testParameterMap);
     }
 }
