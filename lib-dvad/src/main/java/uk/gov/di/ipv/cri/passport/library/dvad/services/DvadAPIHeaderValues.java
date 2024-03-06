@@ -2,14 +2,19 @@ package uk.gov.di.ipv.cri.passport.library.dvad.services;
 
 import uk.gov.di.ipv.cri.passport.library.service.ParameterStoreService;
 
-import static uk.gov.di.ipv.cri.passport.library.config.ParameterStoreParameters.HMPO_API_HEADER_API_KEY;
-import static uk.gov.di.ipv.cri.passport.library.config.ParameterStoreParameters.HMPO_API_HEADER_CLIENT_ID;
-import static uk.gov.di.ipv.cri.passport.library.config.ParameterStoreParameters.HMPO_API_HEADER_GRANT_TYPE;
-import static uk.gov.di.ipv.cri.passport.library.config.ParameterStoreParameters.HMPO_API_HEADER_NETWORK_TYPE;
-import static uk.gov.di.ipv.cri.passport.library.config.ParameterStoreParameters.HMPO_API_HEADER_SECRET;
-import static uk.gov.di.ipv.cri.passport.library.config.ParameterStoreParameters.HMPO_API_HEADER_USER_AGENT;
+import java.util.Map;
 
 public class DvadAPIHeaderValues {
+
+    public static final String DVAD_HEADER_PARAMETER_PATH = "HMPODVAD/API/Header";
+
+    public static final String MAP_KEY_APIKEY = "ApiKey";
+    public static final String MAP_KEY_USERAGENT = "UserAgent";
+    public static final String MAP_KEY_NETWORKTYPE = "NetworkType";
+    public static final String MAP_KEY_CLIENTID = "ClientId";
+    public static final String MAP_KEY_SECRET = "Secret";
+    public static final String MAP_KEY_GRANTTYPE = "GrantType";
+
     public final String apiKey;
     public final String userAgent;
     public final String networkType;
@@ -20,13 +25,15 @@ public class DvadAPIHeaderValues {
     public final String grantType;
 
     public DvadAPIHeaderValues(ParameterStoreService parameterStoreService) {
-        apiKey = parameterStoreService.getEncryptedParameterValue(HMPO_API_HEADER_API_KEY);
-        userAgent = parameterStoreService.getParameterValue(HMPO_API_HEADER_USER_AGENT);
-        networkType = parameterStoreService.getParameterValue(HMPO_API_HEADER_NETWORK_TYPE);
+        Map<String, String> dvadHeaderParameterMap =
+                parameterStoreService.getAllParametersFromPathWithDecryption(
+                        DVAD_HEADER_PARAMETER_PATH);
 
-        clientId = parameterStoreService.getParameterValue(HMPO_API_HEADER_CLIENT_ID);
-        secret = parameterStoreService.getParameterValue(HMPO_API_HEADER_SECRET);
-
-        grantType = parameterStoreService.getParameterValue(HMPO_API_HEADER_GRANT_TYPE);
+        apiKey = dvadHeaderParameterMap.get(MAP_KEY_APIKEY);
+        userAgent = dvadHeaderParameterMap.get(MAP_KEY_USERAGENT);
+        networkType = dvadHeaderParameterMap.get(MAP_KEY_NETWORKTYPE);
+        clientId = dvadHeaderParameterMap.get(MAP_KEY_CLIENTID);
+        secret = dvadHeaderParameterMap.get(MAP_KEY_SECRET);
+        grantType = dvadHeaderParameterMap.get(MAP_KEY_GRANTTYPE);
     }
 }

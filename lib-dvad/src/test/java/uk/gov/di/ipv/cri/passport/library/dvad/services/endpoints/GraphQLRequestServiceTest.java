@@ -19,6 +19,7 @@ import org.mockito.Mockito;
 import org.mockito.junit.jupiter.MockitoExtension;
 import uk.gov.di.ipv.cri.common.library.util.EventProbe;
 import uk.gov.di.ipv.cri.passport.library.PassportFormTestDataGenerator;
+import uk.gov.di.ipv.cri.passport.library.config.ParameterStoreParameters;
 import uk.gov.di.ipv.cri.passport.library.domain.PassportFormData;
 import uk.gov.di.ipv.cri.passport.library.dvad.domain.request.GraphQLRequest;
 import uk.gov.di.ipv.cri.passport.library.dvad.domain.response.AccessTokenResponse;
@@ -45,12 +46,6 @@ import static org.mockito.Mockito.inOrder;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verifyNoMoreInteractions;
 import static org.mockito.Mockito.when;
-import static uk.gov.di.ipv.cri.passport.library.config.ParameterStoreParameters.HMPO_API_HEADER_API_KEY;
-import static uk.gov.di.ipv.cri.passport.library.config.ParameterStoreParameters.HMPO_API_HEADER_CLIENT_ID;
-import static uk.gov.di.ipv.cri.passport.library.config.ParameterStoreParameters.HMPO_API_HEADER_GRANT_TYPE;
-import static uk.gov.di.ipv.cri.passport.library.config.ParameterStoreParameters.HMPO_API_HEADER_NETWORK_TYPE;
-import static uk.gov.di.ipv.cri.passport.library.config.ParameterStoreParameters.HMPO_API_HEADER_SECRET;
-import static uk.gov.di.ipv.cri.passport.library.config.ParameterStoreParameters.HMPO_API_HEADER_USER_AGENT;
 import static uk.gov.di.ipv.cri.passport.library.metrics.ThirdPartyAPIEndpointMetric.DVAD_GRAPHQL_REQUEST_CREATED;
 import static uk.gov.di.ipv.cri.passport.library.metrics.ThirdPartyAPIEndpointMetric.DVAD_GRAPHQL_REQUEST_SEND_ERROR;
 import static uk.gov.di.ipv.cri.passport.library.metrics.ThirdPartyAPIEndpointMetric.DVAD_GRAPHQL_REQUEST_SEND_OK;
@@ -88,18 +83,24 @@ class GraphQLRequestServiceTest {
                         mockEventProbe);
 
         // Mock Parameter store fetches in DvadAPIHeaderValues
-        when(mockParameterStoreService.getEncryptedParameterValue(HMPO_API_HEADER_API_KEY))
-                .thenReturn("TEST_KEY");
-        when(mockParameterStoreService.getParameterValue(HMPO_API_HEADER_USER_AGENT))
-                .thenReturn("TEST_USER_AGENT");
-        when(mockParameterStoreService.getParameterValue(HMPO_API_HEADER_NETWORK_TYPE))
-                .thenReturn("TEST_NETWORK_TYPE");
-        when(mockParameterStoreService.getParameterValue(HMPO_API_HEADER_CLIENT_ID))
-                .thenReturn("TEST_CLIENT_ID");
-        when(mockParameterStoreService.getParameterValue(HMPO_API_HEADER_SECRET))
-                .thenReturn("TEST_SECRET");
-        when(mockParameterStoreService.getParameterValue(HMPO_API_HEADER_GRANT_TYPE))
-                .thenReturn("TEST_GRANT_TYPE");
+        Map<String, String> testParameterMap =
+                Map.of(
+                        DvadAPIHeaderValues.MAP_KEY_APIKEY,
+                        "TEST_KEY",
+                        DvadAPIHeaderValues.MAP_KEY_USERAGENT,
+                        "TEST_USER_AGENT",
+                        DvadAPIHeaderValues.MAP_KEY_NETWORKTYPE,
+                        "TEST_NETWORK_TYPE",
+                        DvadAPIHeaderValues.MAP_KEY_CLIENTID,
+                        "TEST_CLIENT_ID",
+                        DvadAPIHeaderValues.MAP_KEY_SECRET,
+                        "TEST_SECRET",
+                        DvadAPIHeaderValues.MAP_KEY_GRANTTYPE,
+                        "TEST_GRANT_TYPE");
+
+        when(mockParameterStoreService.getAllParametersFromPathWithDecryption(
+                        ParameterStoreParameters.HMPO_API_HEADER_PARAMETER_PATH))
+                .thenReturn(testParameterMap);
 
         realDvadAPIHeaderValues = new DvadAPIHeaderValues(mockParameterStoreService);
     }

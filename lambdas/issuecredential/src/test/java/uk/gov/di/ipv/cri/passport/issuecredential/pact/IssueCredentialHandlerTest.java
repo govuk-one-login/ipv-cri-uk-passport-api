@@ -22,8 +22,6 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.ArgumentCaptor;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
-import org.mockito.junit.jupiter.MockitoSettings;
-import org.mockito.quality.Strictness;
 import software.amazon.awssdk.regions.Region;
 import uk.gov.di.ipv.cri.common.library.domain.SessionRequest;
 import uk.gov.di.ipv.cri.common.library.persistence.DataStore;
@@ -80,7 +78,6 @@ import static uk.gov.di.ipv.cri.passport.library.config.ParameterStoreParameters
 @Disabled
 @Provider("PassportVcProvider")
 @ExtendWith(MockitoExtension.class)
-@MockitoSettings(strictness = Strictness.LENIENT)
 class IssueCredentialHandlerTest {
 
     private static final int PORT = 5050;

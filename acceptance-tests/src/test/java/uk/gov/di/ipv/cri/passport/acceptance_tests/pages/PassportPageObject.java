@@ -40,6 +40,8 @@ public class PassportPageObject extends UniversalSteps {
     private final ConfigurationService configurationService;
     private static final Logger LOGGER = LogManager.getLogger();
 
+    private static final String STUB_VC_PAGE_TITLE = "IPV Core Stub Credential Result - GOV.UK";
+
     // Should be separate stub page
 
     @FindBy(xpath = "//*[@id=\"main-content\"]/p/a/button")
@@ -308,10 +310,13 @@ public class PassportPageObject extends UniversalSteps {
     }
 
     public void navigateToPassportResponse(String validOrInvalid) {
+        assertPageTitle(STUB_VC_PAGE_TITLE, false);
         assertURLContains("callback");
         if ("Invalid".equalsIgnoreCase(validOrInvalid)) {
+            BrowserUtils.waitForVisibility(errorResponse, 5);
             errorResponse.click();
         } else {
+            BrowserUtils.waitForVisibility(viewResponse, 5);
             viewResponse.click();
         }
     }
@@ -427,6 +432,7 @@ public class PassportPageObject extends UniversalSteps {
     }
 
     public void userNotFoundInThirdPartyErrorIsDisplayed() {
+        BrowserUtils.waitForVisibility(userNotFoundInThirdPartyBanner, 10);
         Assert.assertTrue(userNotFoundInThirdPartyBanner.isDisplayed());
         LOGGER.info(userNotFoundInThirdPartyBanner.getText());
     }

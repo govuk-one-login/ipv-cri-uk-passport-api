@@ -11,29 +11,11 @@ import static uk.gov.di.ipv.cri.passport.library.metrics.ThirdPartyAPIEndpointMe
 import static uk.gov.di.ipv.cri.passport.library.metrics.ThirdPartyAPIEndpointMetricType.REQUEST_CREATED;
 import static uk.gov.di.ipv.cri.passport.library.metrics.ThirdPartyAPIEndpointMetricType.REQUEST_SEND_ERROR;
 import static uk.gov.di.ipv.cri.passport.library.metrics.ThirdPartyAPIEndpointMetricType.REQUEST_SEND_OK;
-import static uk.gov.di.ipv.cri.passport.library.metrics.ThirdPartyAPIMetricEndpointPrefix.DCS_THIRD_PARTY_API_DCS_ENDPOINT;
 import static uk.gov.di.ipv.cri.passport.library.metrics.ThirdPartyAPIMetricEndpointPrefix.DVAD_THIRD_PARTY_API_GRAPHQL_ENDPOINT;
 import static uk.gov.di.ipv.cri.passport.library.metrics.ThirdPartyAPIMetricEndpointPrefix.DVAD_THIRD_PARTY_API_HEALTH_ENDPOINT;
 import static uk.gov.di.ipv.cri.passport.library.metrics.ThirdPartyAPIMetricEndpointPrefix.DVAD_THIRD_PARTY_API_TOKEN_ENDPOINT;
 
 public enum ThirdPartyAPIEndpointMetric {
-
-    ///////////////////////////////////////////////////////////////////////////////////////////////
-    // DCS End Point Metrics                                                                     //
-    ///////////////////////////////////////////////////////////////////////////////////////////////
-    DCS_REQUEST_CREATED(DCS_THIRD_PARTY_API_DCS_ENDPOINT, REQUEST_CREATED),
-    DCS_REQUEST_SEND_OK(DCS_THIRD_PARTY_API_DCS_ENDPOINT, REQUEST_SEND_OK),
-    DCS_REQUEST_SEND_ERROR(DCS_THIRD_PARTY_API_DCS_ENDPOINT, REQUEST_SEND_ERROR),
-
-    DCS_RESPONSE_TYPE_VALID(DCS_THIRD_PARTY_API_DCS_ENDPOINT, API_RESPONSE_TYPE_VALID),
-    DCS_RESPONSE_TYPE_INVALID(DCS_THIRD_PARTY_API_DCS_ENDPOINT, API_RESPONSE_TYPE_INVALID),
-
-    DCS_RESPONSE_TYPE_ERROR(DCS_THIRD_PARTY_API_DCS_ENDPOINT, API_RESPONSE_TYPE_ERROR),
-
-    DCS_RESPONSE_TYPE_EXPECTED_HTTP_STATUS(
-            DCS_THIRD_PARTY_API_DCS_ENDPOINT, API_RESPONSE_TYPE_EXPECTED_HTTP_STATUS),
-    DCS_RESPONSE_TYPE_UNEXPECTED_HTTP_STATUS(
-            DCS_THIRD_PARTY_API_DCS_ENDPOINT, API_RESPONSE_TYPE_UNEXPECTED_HTTP_STATUS),
 
     ///////////////////////////////////////////////////////////////////////////////////////////////
     // DVAD Health End Point Metrics                                                             //
