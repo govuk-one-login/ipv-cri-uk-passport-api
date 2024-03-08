@@ -12,7 +12,6 @@ import software.amazon.awssdk.regions.Region;
 import software.amazon.awssdk.services.kms.KmsClient;
 import software.amazon.awssdk.services.sqs.SqsClient;
 import software.amazon.lambda.powertools.parameters.SSMProvider;
-import uk.gov.di.ipv.cri.passport.library.exceptions.HttpClientException;
 import uk.org.webcompere.systemstubs.environment.EnvironmentVariables;
 import uk.org.webcompere.systemstubs.jupiter.SystemStub;
 import uk.org.webcompere.systemstubs.jupiter.SystemStubsExtension;
@@ -21,21 +20,13 @@ import java.security.cert.CertificateException;
 import java.security.spec.InvalidKeySpecException;
 import java.util.Base64;
 
+import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
-import static org.mockito.Mockito.when;
 import static uk.gov.di.ipv.cri.passport.library.CertAndKeyTestFixtures.TEST_ROOT_CRT;
 import static uk.gov.di.ipv.cri.passport.library.CertAndKeyTestFixtures.TEST_TLS_CRT;
 import static uk.gov.di.ipv.cri.passport.library.CertAndKeyTestFixtures.TEST_TLS_KEY;
-import static uk.gov.di.ipv.cri.passport.library.config.ParameterStoreParameters.DCS_HTTPCLIENT_TLS_CERT;
-import static uk.gov.di.ipv.cri.passport.library.config.ParameterStoreParameters.DCS_HTTPCLIENT_TLS_INTER_CERT;
-import static uk.gov.di.ipv.cri.passport.library.config.ParameterStoreParameters.DCS_HTTPCLIENT_TLS_KEY;
-import static uk.gov.di.ipv.cri.passport.library.config.ParameterStoreParameters.DCS_HTTPCLIENT_TLS_ROOT_CERT;
-import static uk.gov.di.ipv.cri.passport.library.config.ParameterStoreParameters.HMPO_HTTPCLIENT_TLS_CERT;
-import static uk.gov.di.ipv.cri.passport.library.config.ParameterStoreParameters.HMPO_HTTPCLIENT_TLS_INTER_CERT;
-import static uk.gov.di.ipv.cri.passport.library.config.ParameterStoreParameters.HMPO_HTTPCLIENT_TLS_KEY;
-import static uk.gov.di.ipv.cri.passport.library.config.ParameterStoreParameters.HMPO_HTTPCLIENT_TLS_ROOT_CERT;
 
 @ExtendWith(MockitoExtension.class)
 @ExtendWith(SystemStubsExtension.class)
@@ -79,19 +70,9 @@ class ClientFactoryServiceTest {
     }
 
     @Test
-    void shouldReturnLegacyHTTPClientWithNoSSL() {
-
-        CloseableHttpClient closeableHttpClient =
-                clientFactoryService.getLegacyCloseableHttpClient(false, mockParameterStoreService);
-
-        assertNotNull(closeableHttpClient);
-    }
-
-    @Test
     void shouldReturnHttpClientWithNoSSL() {
 
-        CloseableHttpClient closeableHttpClient =
-                clientFactoryService.getCloseableHttpClient(false, mockParameterStoreService);
+        CloseableHttpClient closeableHttpClient = clientFactoryService.generatePublicHttpClient();
 
         assertNotNull(closeableHttpClient);
     }
@@ -104,24 +85,6 @@ class ClientFactoryServiceTest {
         assertNotNull(clientFactoryServiceManual);
     }
 
-    @Test
-    void shouldReturnLegacyHTTPClientWithSSL() {
-
-        when(mockParameterStoreService.getEncryptedParameterValue(DCS_HTTPCLIENT_TLS_CERT))
-                .thenReturn(TEST_TLS_CRT);
-        when(mockParameterStoreService.getEncryptedParameterValue(DCS_HTTPCLIENT_TLS_KEY))
-                .thenReturn(TEST_TLS_KEY);
-        when(mockParameterStoreService.getEncryptedParameterValue(DCS_HTTPCLIENT_TLS_ROOT_CERT))
-                .thenReturn(TEST_ROOT_CRT);
-        when(mockParameterStoreService.getEncryptedParameterValue(DCS_HTTPCLIENT_TLS_INTER_CERT))
-                .thenReturn(TEST_TLS_CRT);
-
-        CloseableHttpClient closeableHttpClient =
-                clientFactoryService.getLegacyCloseableHttpClient(true, mockParameterStoreService);
-
-        assertNotNull(closeableHttpClient);
-    }
-
     @ParameterizedTest
     @CsvSource({
         "CertificateException, true",
@@ -130,86 +93,59 @@ class ClientFactoryServiceTest {
         "InvalidKeySpecException, false"
     })
     void shouldCatchExceptionAndThrowHttpClientExceptionForExceptionsGettingHttpClient(
-            String exceptionName, boolean legaccy) {
+            String exceptionName) {
+
+        String base64TLSCertString = TEST_TLS_CRT;
+        String base64TLSKeyString = TEST_TLS_KEY;
+        String base64TLSRootCertString = TEST_ROOT_CRT;
+        String base64TLSIntCertString = TEST_TLS_CRT;
 
         String badData = new String(Base64.getEncoder().encode("TEST1234".getBytes()));
 
-        HttpClientException expectedReturnedException = null;
+        Class expectedExceptionClass = null;
 
         switch (exceptionName) {
             case "CertificateException":
-                expectedReturnedException = new HttpClientException(new CertificateException());
+                expectedExceptionClass = CertificateException.class;
 
-                if (legaccy) {
-                    when(mockParameterStoreService.getEncryptedParameterValue(
-                                    DCS_HTTPCLIENT_TLS_CERT))
-                            .thenReturn(badData);
-                } else {
-                    when(mockParameterStoreService.getEncryptedParameterValue(
-                                    HMPO_HTTPCLIENT_TLS_CERT))
-                            .thenReturn(badData);
-                }
+                // Invalidate the TLSCert value
+                base64TLSCertString = badData;
 
                 break;
             case "InvalidKeySpecException":
-                if (legaccy) {
-                    when(mockParameterStoreService.getEncryptedParameterValue(
-                                    DCS_HTTPCLIENT_TLS_CERT))
-                            .thenReturn(TEST_TLS_CRT);
-                    when(mockParameterStoreService.getEncryptedParameterValue(
-                                    DCS_HTTPCLIENT_TLS_KEY))
-                            .thenReturn(badData);
-                } else {
-                    when(mockParameterStoreService.getEncryptedParameterValue(
-                                    HMPO_HTTPCLIENT_TLS_CERT))
-                            .thenReturn(TEST_TLS_CRT);
-                    when(mockParameterStoreService.getEncryptedParameterValue(
-                                    HMPO_HTTPCLIENT_TLS_KEY))
-                            .thenReturn(badData);
-                }
 
-                expectedReturnedException = new HttpClientException(new InvalidKeySpecException());
+                // Invalidate the TLSKey value
+                base64TLSKeyString = badData;
+
+                expectedExceptionClass = InvalidKeySpecException.class;
                 break;
         }
 
-        HttpClientException thrownException;
-        if (legaccy) {
+        String finalBase64TLSCertString = base64TLSCertString;
+        String finalBase64TLSKeyString = base64TLSKeyString;
+        Throwable thrownException =
+                assertThrows(
+                        expectedExceptionClass,
+                        () ->
+                                clientFactoryService.generateHTTPClientFromExternalApacheHttpClient(
+                                        finalBase64TLSCertString,
+                                        finalBase64TLSKeyString,
+                                        base64TLSRootCertString,
+                                        base64TLSIntCertString),
+                        "An Error Message");
 
-            thrownException =
-                    assertThrows(
-                            HttpClientException.class,
-                            () ->
-                                    clientFactoryService.getLegacyCloseableHttpClient(
-                                            true, mockParameterStoreService),
-                            "An Error Message");
-        } else {
-            thrownException =
-                    assertThrows(
-                            HttpClientException.class,
-                            () ->
-                                    clientFactoryService.getCloseableHttpClient(
-                                            true, mockParameterStoreService),
-                            "An Error Message");
-        }
-
-        assert expectedReturnedException != null;
-        assertEquals(expectedReturnedException.getClass(), thrownException.getClass());
+        assert expectedExceptionClass != null;
+        assertEquals(expectedExceptionClass, thrownException.getClass());
     }
 
     @Test
     void shouldReturnHTTPClientWithSSL() {
 
-        when(mockParameterStoreService.getEncryptedParameterValue(HMPO_HTTPCLIENT_TLS_CERT))
-                .thenReturn(TEST_TLS_CRT);
-        when(mockParameterStoreService.getEncryptedParameterValue(HMPO_HTTPCLIENT_TLS_KEY))
-                .thenReturn(TEST_TLS_KEY);
-        when(mockParameterStoreService.getEncryptedParameterValue(HMPO_HTTPCLIENT_TLS_ROOT_CERT))
-                .thenReturn(TEST_ROOT_CRT);
-        when(mockParameterStoreService.getEncryptedParameterValue(HMPO_HTTPCLIENT_TLS_INTER_CERT))
-                .thenReturn(TEST_TLS_CRT);
-
         CloseableHttpClient closeableHttpClient =
-                clientFactoryService.getCloseableHttpClient(true, mockParameterStoreService);
+                assertDoesNotThrow(
+                        () ->
+                                clientFactoryService.generateHTTPClientFromExternalApacheHttpClient(
+                                        TEST_TLS_CRT, TEST_TLS_KEY, TEST_ROOT_CRT, TEST_TLS_CRT));
 
         assertNotNull(closeableHttpClient);
     }

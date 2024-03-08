@@ -4,6 +4,7 @@ import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import software.amazon.lambda.powertools.parameters.SSMProvider;
 
+import java.util.Map;
 import java.util.Optional;
 
 public class ParameterStoreService {
@@ -39,8 +40,7 @@ public class ParameterStoreService {
 
         LOGGER.debug(LOG_MESSAGE_FORMAT, "getParameterValue", parameterPath);
 
-        return ssmProvider.get(
-                String.format(PARAMETER_NAME_FORMAT, parameterPrefix, parameterName));
+        return ssmProvider.get(parameterPath);
     }
 
     public String getEncryptedParameterValue(String parameterName) {
@@ -50,9 +50,7 @@ public class ParameterStoreService {
 
         LOGGER.debug(LOG_MESSAGE_FORMAT, "getEncryptedParameterValue", encryptedParameterPath);
 
-        return ssmProvider
-                .withDecryption()
-                .get(String.format(PARAMETER_NAME_FORMAT, parameterPrefix, parameterName));
+        return ssmProvider.withDecryption().get(encryptedParameterPath);
     }
 
     public String getStackParameterValue(String parameterName) {
@@ -62,8 +60,7 @@ public class ParameterStoreService {
 
         LOGGER.debug(LOG_MESSAGE_FORMAT, "getStackParameterValue", stackParameterPath);
 
-        return ssmProvider.get(
-                String.format(PARAMETER_NAME_FORMAT, stackParameterPrefix, parameterName));
+        return ssmProvider.get(stackParameterPath);
     }
 
     public String getCommonParameterValue(String parameterName) {
@@ -73,7 +70,28 @@ public class ParameterStoreService {
 
         LOGGER.debug(LOG_MESSAGE_FORMAT, "getCommonParameterValue", commonParameterPath);
 
-        return ssmProvider.get(
-                String.format(PARAMETER_NAME_FORMAT, commonParameterPrefix, parameterName));
+        return ssmProvider.get(commonParameterPath);
+    }
+
+    public Map<String, String> getAllParametersFromPath(String path) {
+
+        String parametersPath = String.format(PARAMETER_NAME_FORMAT, parameterPrefix, path);
+
+        LOGGER.debug(LOG_MESSAGE_FORMAT, "getAllParametersFromPath", parametersPath);
+
+        return ssmProvider.getMultiple(parametersPath);
+    }
+
+    public Map<String, String> getAllParametersFromPathWithDecryption(String path) {
+
+        String encryptedParametersPath =
+                String.format(PARAMETER_NAME_FORMAT, parameterPrefix, path);
+
+        LOGGER.debug(
+                LOG_MESSAGE_FORMAT,
+                "getAllParametersFromPathWithDecryption",
+                encryptedParametersPath);
+
+        return ssmProvider.withDecryption().getMultiple(encryptedParametersPath);
     }
 }

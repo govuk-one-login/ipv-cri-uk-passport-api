@@ -130,6 +130,7 @@ public class ServiceFactory {
     public ConfigurationService getCommonLibConfigurationService() {
 
         if (commonLibConfigurationService == null) {
+            // Note SSM parameter gets via this service use a 5min cache time
             commonLibConfigurationService =
                     new uk.gov.di.ipv.cri.common.library.service.ConfigurationService();
         }

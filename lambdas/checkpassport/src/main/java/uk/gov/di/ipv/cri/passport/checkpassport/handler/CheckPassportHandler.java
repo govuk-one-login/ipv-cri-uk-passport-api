@@ -39,22 +39,29 @@ import uk.gov.di.ipv.cri.passport.library.service.ServiceFactory;
 import uk.gov.di.ipv.cri.passport.library.service.ThirdPartyAPIService;
 
 import java.time.Clock;
+import java.time.Duration;
 import java.time.temporal.ChronoUnit;
 import java.util.List;
 import java.util.Map;
 
 import static uk.gov.di.ipv.cri.common.library.error.ErrorResponse.SESSION_EXPIRED;
 import static uk.gov.di.ipv.cri.common.library.error.ErrorResponse.SESSION_NOT_FOUND;
-import static uk.gov.di.ipv.cri.passport.library.config.ParameterStoreParameters.DEV_ENVIRONMENT_ONLY_ENHANCED_DEBUG;
 import static uk.gov.di.ipv.cri.passport.library.config.ParameterStoreParameters.DOCUMENT_CHECK_RESULT_TTL_PARAMETER;
-import static uk.gov.di.ipv.cri.passport.library.config.ParameterStoreParameters.DVA_DIGITAL_ENABLED;
-import static uk.gov.di.ipv.cri.passport.library.config.ParameterStoreParameters.MAXIMUM_ATTEMPT_COUNT;
 import static uk.gov.di.ipv.cri.passport.library.metrics.Definitions.*;
 
 public class CheckPassportHandler
         implements RequestHandler<APIGatewayProxyRequestEvent, APIGatewayProxyResponseEvent> {
 
+    // We need this first and static for it to be created as soon as possible during function init
+    private static final long FUNCTION_INIT_START_TIME_MILLISECONDS = System.currentTimeMillis();
+
     private static final Logger LOGGER = LogManager.getLogger();
+
+    private static final boolean DEV_ENVIRONMENT_ONLY_ENHANCED_DEBUG =
+            Boolean.parseBoolean(System.getenv("DEV_ENVIRONMENT_ONLY_ENHANCED_DEBUG"));
+
+    // Maximum submissions from the front end form
+    private static final int MAX_ATTEMPTS = 2;
 
     // Return values for retry scenario
     public static final String RESULT = "result";
@@ -114,6 +121,15 @@ public class CheckPassportHandler
         this.documentCheckResultStore = serviceFactory.getDocumentCheckResultStore();
 
         this.thirdPartyAPIServiceFactory = new ThirdPartyAPIServiceFactory(serviceFactory);
+
+        // Runtime/SnapStart function init duration
+        long runTimeFunctionInitDuration =
+                System.currentTimeMillis() - FUNCTION_INIT_START_TIME_MILLISECONDS;
+
+        eventProbe.counterMetric(
+                LAMBDA_CHECK_PASSPORT_FUNCTION_INIT_DURATION, runTimeFunctionInitDuration);
+
+        LOGGER.info("Lambda function init duration {}ms", runTimeFunctionInitDuration);
     }
 
     @Override
@@ -127,16 +143,28 @@ public class CheckPassportHandler
                     context.getFunctionName(),
                     context.getFunctionVersion());
 
+            long runTimeDuration =
+                    System.currentTimeMillis() - FUNCTION_INIT_START_TIME_MILLISECONDS;
+
+            Duration duration = Duration.of(runTimeDuration, ChronoUnit.MILLIS);
+
+            String formattedDuration =
+                    String.format(
+                            "%d:%02d:%02d",
+                            duration.toHours(), duration.toMinutesPart(), duration.toSecondsPart());
+
+            LOGGER.info(
+                    "Lambda {}, Lifetime duration {}, {}ms",
+                    context.getFunctionName(),
+                    formattedDuration,
+                    runTimeDuration);
+
             Map<String, String> requestHeaders = input.getHeaders();
             String sessionId = requestHeaders.get("session_id");
             LOGGER.info("Extracting session from header ID {}", sessionId);
             var sessionItem = sessionService.validateSessionId(sessionId);
 
-            // Attempt Start
-            final int MAX_ATTEMPTS =
-                    Integer.parseInt(
-                            parameterStoreService.getStackParameterValue(MAXIMUM_ATTEMPT_COUNT));
-
+            // Attempt start
             sessionItem.setAttemptCount(sessionItem.getAttemptCount() + 1);
             LOGGER.info("Attempt Number {}", sessionItem.getAttemptCount());
 
@@ -162,13 +190,8 @@ public class CheckPassportHandler
             PassportFormData passportFormData = parsePassportFormRequest(input.getBody());
             eventProbe.counterMetric(FORM_DATA_PARSE_PASS);
 
-            // Dynamic Third party API selection based on feature toggle
-            boolean dvaDigitalEnabled =
-                    Boolean.parseBoolean(
-                            parameterStoreService.getStackParameterValue(DVA_DIGITAL_ENABLED));
-
             ThirdPartyAPIService thirdPartyAPIService =
-                    selectThirdPartyAPIService(dvaDigitalEnabled);
+                    thirdPartyAPIServiceFactory.getDvadThirdPartyAPIService();
 
             LOGGER.info("Thirdparty API service is {}", thirdPartyAPIService.getServiceName());
 
@@ -228,9 +251,7 @@ public class CheckPassportHandler
             // This will output the specific error message
             // Note Unit tests expect server error (correctly)
             // and will fail if this is set (during unit tests)
-            if (Boolean.parseBoolean(
-                    parameterStoreService.getStackParameterValue(
-                            DEV_ENVIRONMENT_ONLY_ENHANCED_DEBUG))) {
+            if (DEV_ENVIRONMENT_ONLY_ENHANCED_DEBUG) {
                 String customOAuth2ErrorDescription = e.getErrorReason();
                 return ApiGatewayResponseGenerator.proxyJsonResponse(
                         e.getStatusCode(), // Status Code determined by throw location
@@ -374,16 +395,6 @@ public class CheckPassportHandler
         LOGGER.info("Generating authorization code...");
         sessionService.createAuthorizationCode(sessionItem);
         LOGGER.info("Authorization code saved.");
-    }
-
-    private ThirdPartyAPIService selectThirdPartyAPIService(boolean dvaDigitalEnabled) {
-        if (dvaDigitalEnabled) {
-            // DVAD
-            return thirdPartyAPIServiceFactory.getDvadThirdPartyAPIService();
-        } else {
-            // Legacy DCS
-            return thirdPartyAPIServiceFactory.getDcsThirdPartyAPIService();
-        }
     }
 
     private DocumentCheckResultItem mapDocumentDataVerificationResultToDocumentCheckResultItem(

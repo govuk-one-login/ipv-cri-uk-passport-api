@@ -10,6 +10,8 @@ import uk.org.webcompere.systemstubs.environment.EnvironmentVariables;
 import uk.org.webcompere.systemstubs.jupiter.SystemStub;
 import uk.org.webcompere.systemstubs.jupiter.SystemStubsExtension;
 
+import java.util.Map;
+
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -73,12 +75,46 @@ class ParameterStoreServiceTest {
     }
 
     @Test
-    void shouldCetCommonParameterValueValueByParameterName() {
+    void shouldGetCommonParameterValueValueByParameterName() {
         String fullParamName =
                 String.format("/%s/%s", COMMON_PARAMETER_NAME_PREFIX, TEST_PARAM_NAME);
         when(mockSSMProvider.get(fullParamName)).thenReturn(TEST_PARAM_VALUE);
         assertEquals(
                 TEST_PARAM_VALUE, parameterStoreService.getCommonParameterValue(TEST_PARAM_NAME));
         verify(mockSSMProvider).get(fullParamName);
+    }
+
+    @Test
+    void shouldGetAllParametersFromPath() {
+
+        Map<String, String> testParameterMap = Map.of("KEY1", "TEST_VALUE1", "KEY2", "TEST_VALUE2");
+
+        String testPath = "TESTPATH/SUBPATH";
+        String fullPath = String.format("/%s/%s", PARAMETER_PREFIX, testPath);
+
+        when(mockSSMProvider.getMultiple(fullPath)).thenReturn(testParameterMap);
+
+        assertEquals(testParameterMap, parameterStoreService.getAllParametersFromPath(testPath));
+
+        verify(mockSSMProvider).getMultiple(fullPath);
+    }
+
+    @Test
+    void shouldGetAllParametersFromPathWithDecryption() {
+
+        Map<String, String> testParameterMap = Map.of("KEY1", "TEST_VALUE1", "KEY2", "TEST_VALUE2");
+
+        String testPath = "TESTPATH/SUBPATH";
+        String fullPath = String.format("/%s/%s", PARAMETER_PREFIX, testPath);
+
+        when(mockSSMProvider.withDecryption()).thenReturn(mockSSMProvider);
+        when(mockSSMProvider.getMultiple(fullPath)).thenReturn(testParameterMap);
+
+        assertEquals(
+                testParameterMap,
+                parameterStoreService.getAllParametersFromPathWithDecryption(testPath));
+
+        verify(mockSSMProvider).withDecryption();
+        verify(mockSSMProvider).getMultiple(fullPath);
     }
 }
