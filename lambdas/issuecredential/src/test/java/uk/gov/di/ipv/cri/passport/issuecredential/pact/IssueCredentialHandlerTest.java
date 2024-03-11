@@ -5,7 +5,8 @@ import au.com.dius.pact.provider.junit5.PactVerificationContext;
 import au.com.dius.pact.provider.junit5.PactVerificationInvocationContextProvider;
 import au.com.dius.pact.provider.junitsupport.Provider;
 import au.com.dius.pact.provider.junitsupport.State;
-import au.com.dius.pact.provider.junitsupport.loader.PactFolder;
+import au.com.dius.pact.provider.junitsupport.loader.PactBroker;
+import au.com.dius.pact.provider.junitsupport.loader.PactBrokerAuth;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.nimbusds.jose.JOSEException;
 import com.nimbusds.jose.JWSSigner;
@@ -16,13 +17,12 @@ import com.nimbusds.oauth2.sdk.token.AccessTokenType;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.Disabled;
+import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.TestTemplate;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.ArgumentCaptor;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
-import software.amazon.awssdk.regions.Region;
 import uk.gov.di.ipv.cri.common.library.domain.SessionRequest;
 import uk.gov.di.ipv.cri.common.library.persistence.DataStore;
 import uk.gov.di.ipv.cri.common.library.persistence.item.CanonicalAddress;
@@ -43,7 +43,6 @@ import uk.gov.di.ipv.cri.passport.issuecredential.pact.utils.Injector;
 import uk.gov.di.ipv.cri.passport.issuecredential.pact.utils.MockHttpServer;
 import uk.gov.di.ipv.cri.passport.issuecredential.service.VerifiableCredentialService;
 import uk.gov.di.ipv.cri.passport.library.persistence.DocumentCheckResultItem;
-import uk.gov.di.ipv.cri.passport.library.service.ClientFactoryService;
 import uk.gov.di.ipv.cri.passport.library.service.ParameterStoreService;
 import uk.gov.di.ipv.cri.passport.library.service.ServiceFactory;
 
@@ -71,26 +70,29 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 import static uk.gov.di.ipv.cri.passport.library.config.ParameterStoreParameters.MAX_JWT_TTL_UNIT;
 
-// For static tests against potential new contracts
-@PactFolder("pacts")
-// For local tests the pact details will need set as environment variables
-// @Tag("Pact")
-@Disabled
+@Tag("Pact")
 @Provider("PassportVcProvider")
+@PactBroker(
+        url = "https://${PACT_BROKER_HOST}",
+        authentication =
+                @PactBrokerAuth(
+                        username = "${PACT_BROKER_USERNAME}",
+                        password = "${PACT_BROKER_PASSWORD}"))
 @ExtendWith(MockitoExtension.class)
 class IssueCredentialHandlerTest {
 
     private static final int PORT = 5050;
 
-    @Mock private ParameterStoreService mockParameterStoreService;
+    @Mock private ServiceFactory mockServiceFactory;
+    @Mock private EventProbe mockEventProbe;
     @Mock private ConfigurationService mockCommonLibConfigurationService;
-
-    @Mock private DataStore<SessionItem> dataStore;
-    @Mock private DataStore<PersonIdentityItem> personIdentityDataStore;
-    @Mock private DataStore<DocumentCheckResultItem> documentCheckResultStore;
-    @Mock private EventProbe eventProbe;
-    @Mock private AuditService auditService;
     private SessionService sessionService;
+    @Mock private AuditService mockAuditService;
+    @Mock private DataStore<DocumentCheckResultItem> mockDocumentCheckResultStore;
+    @Mock private ParameterStoreService mockParameterStoreService;
+
+    @Mock private DataStore<SessionItem> sessionItemDataStore;
+    @Mock private DataStore<PersonIdentityItem> personIdentityDataStore;
 
     @BeforeAll
     static void setupServer() {
@@ -102,44 +104,7 @@ class IssueCredentialHandlerTest {
     void pactSetup(PactVerificationContext context)
             throws IOException, NoSuchAlgorithmException, InvalidKeySpecException, JOSEException {
 
-        long todayPlusADay =
-                LocalDate.now().plusDays(2).toEpochSecond(LocalTime.now(), ZoneOffset.UTC);
-
-        when(mockCommonLibConfigurationService.getVerifiableCredentialIssuer())
-                .thenReturn("dummyPassportComponentId");
-        when(mockCommonLibConfigurationService.getSessionExpirationEpoch())
-                .thenReturn(todayPlusADay);
-        when(mockCommonLibConfigurationService.getAuthorizationCodeExpirationEpoch())
-                .thenReturn(todayPlusADay);
-        when(mockCommonLibConfigurationService.getMaxJwtTtl()).thenReturn(1000L);
-        when(mockParameterStoreService.getStackParameterValue(MAX_JWT_TTL_UNIT))
-                .thenReturn("HOURS");
-        when(mockCommonLibConfigurationService.getVerifiableCredentialIssuer())
-                .thenReturn("dummyPassportComponentId");
-        when(mockCommonLibConfigurationService.getParameterValueByAbsoluteName(
-                        "/release-flags/vc-expiry-removed"))
-                .thenReturn("true");
-
-        sessionService =
-                new SessionService(
-                        dataStore,
-                        mockCommonLibConfigurationService,
-                        Clock.systemUTC(),
-                        new ListUtil());
-
-        ServiceFactory serviceFactory =
-                new ServiceFactory(
-                        new ObjectMapper(),
-                        eventProbe,
-                        new ClientFactoryService(Region.EU_WEST_2),
-                        mockParameterStoreService,
-                        sessionService,
-                        auditService,
-                        new PersonIdentityService(
-                                new PersonIdentityMapper(),
-                                mockCommonLibConfigurationService,
-                                personIdentityDataStore),
-                        documentCheckResultStore);
+        mockServiceFactoryBehaviour();
 
         KeyFactory kf = KeyFactory.getInstance("EC");
         EncodedKeySpec privateKeySpec =
@@ -153,8 +118,8 @@ class IssueCredentialHandlerTest {
         Injector tokenHandlerInjector =
                 new Injector(
                         new IssueCredentialHandler(
-                                serviceFactory,
-                                new VerifiableCredentialService(serviceFactory, signer)),
+                                mockServiceFactory,
+                                new VerifiableCredentialService(mockServiceFactory, signer)),
                         "/issue/credential",
                         "/");
         MockHttpServer.startServer(new ArrayList<>(List.of(tokenHandlerInjector)), PORT, signer);
@@ -172,6 +137,8 @@ class IssueCredentialHandlerTest {
 
     @State("dummyAccessToken is a valid access token")
     void accessTokenIsValid() {
+        mockHappyPathVcParameters();
+
         long todayPlusADay =
                 LocalDate.now().plusDays(2).toEpochSecond(LocalTime.now(), ZoneOffset.UTC);
 
@@ -219,7 +186,8 @@ class IssueCredentialHandlerTest {
         SessionItem session = performAccessTokenSet(sessionService, sessionId);
         // ACCESS TOKEN GENERATION AND SETTING
 
-        when(dataStore.getItemByIndex(SessionItem.ACCESS_TOKEN_INDEX, "Bearer dummyAccessToken"))
+        when(sessionItemDataStore.getItemByIndex(
+                        SessionItem.ACCESS_TOKEN_INDEX, "Bearer dummyAccessToken"))
                 .thenReturn(List.of(session));
     }
 
@@ -254,7 +222,7 @@ class IssueCredentialHandlerTest {
         documentCheckResultItem.setValidityScore(0);
         documentCheckResultItem.setContraIndicators(List.of("CI01"));
         documentCheckResultItem.setCiReasons(List.of("CI01,Scenario2"));
-        when(documentCheckResultStore.getItem(sessionId.toString()))
+        when(mockDocumentCheckResultStore.getItem(sessionId.toString()))
                 .thenReturn(documentCheckResultItem);
     }
 
@@ -281,7 +249,7 @@ class IssueCredentialHandlerTest {
         documentCheckResultItem.setValidityScore(2);
         documentCheckResultItem.setContraIndicators(new ArrayList<>());
         documentCheckResultItem.setCiReasons(new ArrayList<>());
-        when(documentCheckResultStore.getItem(sessionId.toString()))
+        when(mockDocumentCheckResultStore.getItem(sessionId.toString()))
                 .thenReturn(documentCheckResultItem);
     }
 
@@ -302,7 +270,7 @@ class IssueCredentialHandlerTest {
         documentCheckResultItem.setValidityScore(0);
         documentCheckResultItem.setContraIndicators(List.of("D02"));
         documentCheckResultItem.setCiReasons(List.of("D02,NoMatchingRecord"));
-        when(documentCheckResultStore.getItem(sessionId.toString()))
+        when(mockDocumentCheckResultStore.getItem(sessionId.toString()))
                 .thenReturn(documentCheckResultItem);
     }
 
@@ -339,11 +307,11 @@ class IssueCredentialHandlerTest {
         ArgumentCaptor<SessionItem> sessionItemArgumentCaptor =
                 ArgumentCaptor.forClass(SessionItem.class);
 
-        verify(dataStore).create(sessionItemArgumentCaptor.capture());
+        verify(sessionItemDataStore).create(sessionItemArgumentCaptor.capture());
 
         SessionItem savedSessionitem = sessionItemArgumentCaptor.getValue();
 
-        when(dataStore.getItem(sessionId.toString())).thenReturn(savedSessionitem);
+        when(sessionItemDataStore.getItem(sessionId.toString())).thenReturn(savedSessionitem);
     }
 
     private UUID performInitialSessionRequest(SessionService sessionService, long todayPlusADay) {
@@ -357,7 +325,7 @@ class IssueCredentialHandlerTest {
         sessionRequest.setClientId("ipv-core");
         sessionRequest.setSubject("test-subject");
 
-        doNothing().when(dataStore).create(any(SessionItem.class));
+        doNothing().when(sessionItemDataStore).create(any(SessionItem.class));
 
         return sessionService.saveSession(sessionRequest);
     }
@@ -370,5 +338,54 @@ class IssueCredentialHandlerTest {
         documentCheckResultItem.setExpiryDate(LocalDate.of(2030, 1, 1).toString());
         documentCheckResultItem.setSessionId(sessionUUID);
         return documentCheckResultItem;
+    }
+
+    private void mockServiceFactoryBehaviour() {
+
+        when(mockServiceFactory.getObjectMapper()).thenReturn(new ObjectMapper());
+        when(mockServiceFactory.getEventProbe()).thenReturn(mockEventProbe);
+        when(mockServiceFactory.getParameterStoreService()).thenReturn(mockParameterStoreService);
+        when(mockServiceFactory.getParameterStoreService()).thenReturn(mockParameterStoreService);
+        when(mockServiceFactory.getCommonLibConfigurationService())
+                .thenReturn(mockCommonLibConfigurationService);
+        sessionService =
+                new SessionService(
+                        sessionItemDataStore,
+                        mockCommonLibConfigurationService,
+                        Clock.systemUTC(),
+                        new ListUtil());
+        when(mockServiceFactory.getSessionService()).thenReturn(sessionService);
+        when(mockServiceFactory.getAuditService()).thenReturn(mockAuditService);
+        when(mockServiceFactory.getPersonIdentityService())
+                .thenReturn(
+                        new PersonIdentityService(
+                                new PersonIdentityMapper(),
+                                mockCommonLibConfigurationService,
+                                personIdentityDataStore));
+        when(mockServiceFactory.getDocumentCheckResultStore())
+                .thenReturn(mockDocumentCheckResultStore);
+    }
+
+    private void mockHappyPathVcParameters() {
+        long todayPlusADay =
+                LocalDate.now().plusDays(2).toEpochSecond(LocalTime.now(), ZoneOffset.UTC);
+
+        when(mockCommonLibConfigurationService.getVerifiableCredentialIssuer())
+                .thenReturn("dummyPassportComponentId");
+        when(mockCommonLibConfigurationService.getSessionExpirationEpoch())
+                .thenReturn(todayPlusADay);
+        when(mockCommonLibConfigurationService.getAuthorizationCodeExpirationEpoch())
+                .thenReturn(todayPlusADay);
+        when(mockCommonLibConfigurationService.getMaxJwtTtl()).thenReturn(1000L);
+        when(mockParameterStoreService.getStackParameterValue(MAX_JWT_TTL_UNIT))
+                .thenReturn("HOURS");
+        when(mockCommonLibConfigurationService.getVerifiableCredentialIssuer())
+                .thenReturn("dummyPassportComponentId");
+        when(mockCommonLibConfigurationService.getParameterValueByAbsoluteName(
+                        "/release-flags/vc-expiry-removed"))
+                .thenReturn("true");
+        when(mockCommonLibConfigurationService.getParameterValue(
+                        "release-flags/vc-contains-unique-id"))
+                .thenReturn("true");
     }
 }
