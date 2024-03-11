@@ -164,6 +164,8 @@ class PreLambdaHandler implements HttpHandler {
             try {
                 JWT jwt = JWTParser.parse(body);
 
+                String jtiId = "urn:uuid:b07cc7e3-a2dc-4b17-9826-6907fcf4059a";
+
                 LocalDate futureDate = LocalDate.of(2099, 1, 1);
                 Date nbf = Date.valueOf(futureDate);
 
@@ -180,7 +182,7 @@ class PreLambdaHandler implements HttpHandler {
                 vc.put("credentialSubject", sortedCredentialSubject);
                 vc.put("evidence", sortedEvidence);
 
-                SignedJWT signedJWT = amendClaimSet(jwt, nbf, vc, claimsSet);
+                SignedJWT signedJWT = amendClaimSet(jwt, nbf, jtiId, vc, claimsSet);
 
                 body = signedJWT.serialize();
             } catch (ParseException e) {
@@ -196,11 +198,15 @@ class PreLambdaHandler implements HttpHandler {
     }
 
     private SignedJWT amendClaimSet(
-            JWT jwt, Date nbf, Map<String, Object> vc, JWTClaimsSet claimsSet)
+            JWT jwt, Date nbf, String jtiId, Map<String, Object> vc, JWTClaimsSet claimsSet)
             throws JOSEException, ParseException, JsonProcessingException {
 
         JWTClaimsSet modifiedClaimsSet =
-                new JWTClaimsSet.Builder(claimsSet).notBeforeTime(nbf).claim("vc", vc).build();
+                new JWTClaimsSet.Builder(claimsSet)
+                        .notBeforeTime(nbf)
+                        .jwtID(jtiId)
+                        .claim("vc", vc)
+                        .build();
         SignedJWT signedJWT = new SignedJWT((JWSHeader) jwt.getHeader(), modifiedClaimsSet);
         signedJWT.sign(signer);
 
