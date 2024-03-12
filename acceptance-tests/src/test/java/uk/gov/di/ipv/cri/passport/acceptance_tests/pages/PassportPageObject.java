@@ -42,6 +42,8 @@ public class PassportPageObject extends UniversalSteps {
 
     private static final String STUB_VC_PAGE_TITLE = "IPV Core Stub Credential Result - GOV.UK";
 
+    private static final String STUB_ERROR_PAGE_TITLE = "IPV Core Stub - GOV.UK";
+
     // Should be separate stub page
 
     @FindBy(xpath = "//*[@id=\"main-content\"]/p/a/button")
@@ -127,7 +129,7 @@ public class PassportPageObject extends UniversalSteps {
     @FindBy(xpath = "/html/head/link[1]")
     public WebElement cookiePreference;
 
-    @FindBy(id = "error-summary-title")
+    @FindBy(className = "govuk-error-summary__title")
     public WebElement errorSummaryTitle;
 
     @FindBy(id = "passportNumber")
@@ -310,13 +312,15 @@ public class PassportPageObject extends UniversalSteps {
     }
 
     public void navigateToPassportResponse(String validOrInvalid) {
-        assertPageTitle(STUB_VC_PAGE_TITLE, false);
-        assertURLContains("callback");
         if ("Invalid".equalsIgnoreCase(validOrInvalid)) {
-            BrowserUtils.waitForVisibility(errorResponse, 5);
+            assertPageTitle(STUB_ERROR_PAGE_TITLE, false);
+            assertURLContains("callback");
+            BrowserUtils.waitForVisibility(errorResponse, 10);
             errorResponse.click();
         } else {
-            BrowserUtils.waitForVisibility(viewResponse, 5);
+            assertPageTitle(STUB_VC_PAGE_TITLE, false);
+            assertURLContains("callback");
+            BrowserUtils.waitForVisibility(viewResponse, 10);
             viewResponse.click();
         }
     }
