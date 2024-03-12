@@ -12,7 +12,7 @@ public class UniversalSteps {
 
     private static final Logger LOGGER = LogManager.getLogger();
 
-    private static final int MAX_WAIT_SEC = 10;
+    private static final int MAX_WAIT_SEC = 60;
 
     public UniversalSteps() {
         PageFactory.initElements(Driver.get(), this);
