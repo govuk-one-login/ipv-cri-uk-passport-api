@@ -164,7 +164,6 @@ Feature: Passport Test
   @Passport_test @smoke
   Scenario: Passport User cancels before first attempt via prove your identity another way route
     Given User click on ‘prove your identity another way' Link
-    Then User selects prove another way radio button
     Then I navigate to the passport verifiable issuer to check for a Invalid response
     And JSON response should contain error description Authorization permission denied and status code as 302
     And The test is complete and I close the driver
