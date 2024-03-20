@@ -18,6 +18,11 @@ public class PassportStepDefs extends PassportPageObject {
         userEntersData(passportSubjectScenario);
     }
 
+    @And("User re-enters last name as (.*)$")
+    public void userEntersLastName(String InvalidLasName) {
+        userReEntersLastName(InvalidLasName);
+    }
+
     @Given("I navigate to the IPV Core Stub")
     public void navigateToStub() {
         navigateToIPVCoreStub();
