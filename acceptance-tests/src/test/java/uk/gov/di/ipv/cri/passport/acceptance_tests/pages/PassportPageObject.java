@@ -13,7 +13,6 @@ import org.openqa.selenium.By;
 import org.openqa.selenium.WebElement;
 import org.openqa.selenium.support.FindBy;
 import org.openqa.selenium.support.PageFactory;
-import software.amazon.awssdk.services.kms.endpoints.internal.Value;
 import uk.gov.di.ipv.cri.passport.acceptance_tests.service.ConfigurationService;
 import uk.gov.di.ipv.cri.passport.acceptance_tests.utilities.BrowserUtils;
 import uk.gov.di.ipv.cri.passport.acceptance_tests.utilities.Driver;
@@ -487,9 +486,6 @@ public class PassportPageObject extends UniversalSteps {
         validToYear.clear();
         validToYear.sendKeys(invalidValidToYear);
     }
-
-
-
 
     public void userEntersData(String passportSubjectScenario) {
         TestInput passportSubject =
