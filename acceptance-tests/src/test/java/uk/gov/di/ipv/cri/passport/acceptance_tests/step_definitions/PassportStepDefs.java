@@ -19,8 +19,53 @@ public class PassportStepDefs extends PassportPageObject {
     }
 
     @And("User re-enters last name as (.*)$")
-    public void userEntersLastName(String InvalidLasName) {
-        userReEntersLastName(InvalidLasName);
+    public void userEntersLastName(String InvalidLastName) {
+        userReEntersLastName(InvalidLastName);
+    }
+
+    @And("User re-enters first name as (.*)$")
+    public void userEntersFirstName(String InvalidFirstName) {
+        userReEntersFirstName(InvalidFirstName);
+    }
+
+    @And("User re-enters middle names as (.*)$")
+    public void userEntersMiddleNames(String InvalidMiddleNames) {
+        userReEntersMiddleNames(InvalidMiddleNames);
+    }
+
+    @And("User re-enters passport number as (.*)$")
+    public void userEntersPassportNumber(String InvalidPassportNumber) {
+        userReEntersPassportNumber(InvalidPassportNumber);
+    }
+
+    @And("User re-enters birth day as (.*)$")
+    public void userEntersBirthDay(String InvalidBirthDay) {
+        userReEntersBirthDay(InvalidBirthDay);
+    }
+
+    @And("User re-enters birth month as (.*)$")
+    public void userEntersBirthMonth(String InvalidBirthMonth) {
+        userReEntersBirthMonth(InvalidBirthMonth);
+    }
+
+    @And("User re-enters birth year as (.*)$")
+    public void userEntersBirthYear(String InvalidBirthYear) {
+        userReEntersBirthYear(InvalidBirthYear);
+    }
+
+    @And("User re-enters valid to day as (.*)$")
+    public void userEntersValidToDay(String InvalidValidToDay) {
+        userReEntersValidToDay(InvalidValidToDay);
+    }
+
+    @And("User re-enters valid to month as (.*)$")
+    public void userEntersValidToMonth(String InvalidValidToMonth) {
+        userReEntersValidToMonth(InvalidValidToMonth);
+    }
+
+    @And("User re-enters valid to year as (.*)$")
+    public void userEntersValidToYear(String InvalidValidToYear) {
+        userReEntersValidToYear(InvalidValidToYear);
     }
 
     @Given("I navigate to the IPV Core Stub")
