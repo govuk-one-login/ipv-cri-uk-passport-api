@@ -24,7 +24,7 @@ Feature: Passport Test
       |PassportSubjectHappyKenneth |
 
 
-  @Passport_test @build @staging @integration @smoke @cat
+  @Passport_test @build @staging @integration @smoke
   Scenario Outline: Passport test
     Given User enters data as a <PassportSubject>
     And User re-enters last name as <InvalidLastName>
