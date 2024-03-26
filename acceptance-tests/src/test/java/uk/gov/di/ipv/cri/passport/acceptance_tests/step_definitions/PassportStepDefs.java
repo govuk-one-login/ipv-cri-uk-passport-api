@@ -74,9 +74,9 @@ public class PassportStepDefs extends PassportPageObject {
         navigateToPassportCRI();
     }
 
-    @Then("^I can see the heading Sorry, we cannot prove your identity, there is a error$")
-    public void i_can_see_the_heading_page() {
-        validateErrorPageHeading();
+    @Then("^I can see the heading (.*)$")
+    public void i_can_see_the_heading_page(String expectedText) {
+        validateErrorPageHeading(expectedText);
     }
 
     @Given("^I delete the (.*) cookie to get the unexpected error$")
