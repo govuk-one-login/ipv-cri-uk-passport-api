@@ -4,7 +4,9 @@ Feature: E2E
   Scenario Outline: Passport cri back button recovery page staging - <PassportSubject>
 #   Auth
     Given I am on Orchestrator Stub
+    And The user chooses the environment STAGING from dropdown
     And I click on Full journey route and Continue
+    And I click on `Continue to prove your identity this way` radio button
     And clicks continue on the signed into your GOV.UK One Login page
 ##   Passport CRI
     When User enters data as a <PassportSubject>
