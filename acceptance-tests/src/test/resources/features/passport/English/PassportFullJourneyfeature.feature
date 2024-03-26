@@ -101,7 +101,7 @@ Feature: E2E
       | PassportSubject             | userName                   |
       | PassportSubjectHappyKenneth |   KennethDecerqueira       |
 
-  @passportProveYourIdentity
+  @E2E
   Scenario Outline: Prove Your Identity Full Journey Route (STUB) happy Path
     When User enters data as a <PassportSubject>
     And User clicks on continue
@@ -123,14 +123,14 @@ Feature: E2E
         | PassportSubject           |
         | PassportSubjectHappyKenneth |
 
-  @passportProveYourIdentityFullJourney
+  @E2E
   Scenario: Prove Your Identity Full Journey Route (STUB) unhappy Path
     When User enters invalid passport details
     And User clicks on continue
     Then Proper error message for Could not find your details is displayed
     And The test is complete and I close the driver
 
-  @passportProveYourIdentityFullJourney
+  @E2E
   Scenario Outline: Prove Your Identity Full Journey Route (STUB) Passport User failed second attempt
     When User enters invalid passport details
     And User clicks on continue
