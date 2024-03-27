@@ -1,11 +1,16 @@
+@E2E
 Feature: E2E
+
+  Background:
+#   Auth
+    Given I am on Orchestrator Stub
+    And The user chooses the environment STAGING from dropdown
+    And I click on Full journey route and Continue
+    And I click on `Continue to prove your identity this way` radio button
+    And clicks continue on the signed into your GOV.UK One Login page
 
   @E2E
   Scenario Outline: Passport cri back button recovery page staging - <PassportSubject>
-#   Auth
-    Given I am on Orchestrator Stub
-    And I click on Full journey route and Continue
-    And clicks continue on the signed into your GOV.UK One Login page
 ##   Passport CRI
     When User enters data as a <PassportSubject>
     And User clicks on continue
@@ -29,10 +34,6 @@ Feature: E2E
 
   @E2E
   Scenario Outline: address cri back button recovery page staging  - <userName>
-#   Auth
-    Given I am on Orchestrator Stub
-    And I click on Full journey route and Continue
-    And clicks continue on the signed into your GOV.UK One Login page
 #   Passport CRI
     When User enters data as a <PassportSubject>
     And User clicks on continue
@@ -55,10 +56,6 @@ Feature: E2E
 
   @E2E
   Scenario Outline: fraud cri back button recovery page staging  - <userName>
-#   Auth
-    Given I am on Orchestrator Stub
-    And I click on Full journey route and Continue
-    And clicks continue on the signed into your GOV.UK One Login page
 #   Passport CRI
     When User enters data as a <PassportSubject>
     And User clicks on continue
@@ -82,10 +79,6 @@ Feature: E2E
 
   @E2E
   Scenario Outline: Passport cri back button recovery page through hyperlink staging - <userName>
-#   Auth
-    Given I am on Orchestrator Stub
-    And I click on Full journey route and Continue
-    And clicks continue on the signed into your GOV.UK One Login page
 #   Passport CRI
     When User enters data as a <PassportSubject>
     And User clicks on continue
@@ -93,7 +86,6 @@ Feature: E2E
     And user clicks on browser back button
     And User should be navigated to Passport CRI page with text Enter your details exactly as they appear on your UK passport
     And User click on ‘prove your identity another way' Link
-    And User selects prove another way radio button
     And User should be on error recovery page with heading as Sorry, you cannot go back
     And the user "<userName>" "Successfully" adds their Address Details
 #   Fraud CRI
@@ -109,11 +101,8 @@ Feature: E2E
       | PassportSubject             | userName                   |
       | PassportSubjectHappyKenneth |   KennethDecerqueira       |
 
-  @passportProveYourIdentity
+  @E2E
   Scenario Outline: Prove Your Identity Full Journey Route (STUB) happy Path
-    Given I am on Orchestrator Stub
-    And I click on Full journey route and Continue
-    And clicks continue on the signed into your GOV.UK One Login page
     When User enters data as a <PassportSubject>
     And User clicks on continue
     And I enter BA2 5AA in the Postcode field and find address
@@ -134,27 +123,22 @@ Feature: E2E
         | PassportSubject           |
         | PassportSubjectHappyKenneth |
 
-  @passportProveYourIdentityFullJourney
-  Scenario: Prove Your Identity Full Journey Route (STUB) un happy Path
-    Given I am on Orchestrator Stub
-    And I click on Full journey route and Continue
-    And clicks continue on the signed into your GOV.UK One Login page
+  @E2E
+  Scenario: Prove Your Identity Full Journey Route (STUB) unhappy Path
     When User enters invalid passport details
     And User clicks on continue
     Then Proper error message for Could not find your details is displayed
+    And The test is complete and I close the driver
 
-  @passportProveYourIdentityFullJourney
+  @E2E
   Scenario Outline: Prove Your Identity Full Journey Route (STUB) Passport User failed second attempt
-    Given I am on Orchestrator Stub
-    And I click on Full journey route and Continue
-    And clicks continue on the signed into your GOV.UK One Login page
     When User enters invalid passport details
     And User clicks on continue
     Then Proper error message for Could not find your details is displayed
     When User Re-enters data as a <PassportSubject>
     And User clicks on continue
-    Then I check the page title is Sorry, we cannot prove your identity – GOV.UK
-    And I can see the heading Sorry, we cannot prove your identity, there is a error
+    Then I check the page title is Sorry, we could not confirm your details – GOV.UK
+    And I can see the heading Sorry, we cannot confirm your identity
     And The test is complete and I close the driver
     Examples:
       |PassportSubject |

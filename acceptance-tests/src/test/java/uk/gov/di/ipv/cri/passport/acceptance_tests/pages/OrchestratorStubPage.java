@@ -121,6 +121,12 @@ public class OrchestratorStubPage extends UniversalSteps {
     @FindBy(xpath = "//label[@id='Q00020-NONEOFTHEABOVEDOESNOTAPPLY-label']")
     public WebElement dobNONEOFTHEABOVEDOESNOTAPPLY;
 
+    @FindBy(id = "targetEnvironment")
+    public WebElement ChooseYourEnvironmentFromTheList;
+
+    @FindBy(id = "journey")
+    public WebElement proveYourIdRadioBtn;
+
     public void clickOnFullJourneyRouteButton() {
         fullJourneyRouteButton.click();
     }
@@ -418,5 +424,15 @@ public class OrchestratorStubPage extends UniversalSteps {
             vcMap.put(key, vc);
         }
         return vcMap;
+    }
+
+    public void selectTargetEnvironmentFromDropdown(String environment) {
+        Select select = new Select(ChooseYourEnvironmentFromTheList);
+        select.selectByValue(environment);
+    }
+
+    public void clickContinueToProveYourIdRadioBtn() {
+        proveYourIdRadioBtn.click();
+        continueSubmitButton.click();
     }
 }

@@ -84,4 +84,14 @@ public class E2E_PassportStepDefs {
     public void credentials_are_verified_against_input_fraud() throws Exception {
         orchestratorStubPage.validateFraudVc();
     }
+
+    @And("The user chooses the environment (.*) from dropdown$")
+    public void chooseTargetEnvironment(String environment) {
+        orchestratorStubPage.selectTargetEnvironmentFromDropdown(environment);
+    }
+
+    @And("^I click on `Continue to prove your identity this way` radio button$")
+    public void clickContinueToProveYourIdentityRadioButton() {
+        orchestratorStubPage.clickContinueToProveYourIdRadioBtn();
+    }
 }
