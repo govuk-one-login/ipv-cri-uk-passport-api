@@ -23,6 +23,17 @@ Feature: Passport Test
       |PassportSubject             |
       |PassportSubjectHappyKenneth |
 
+
+  @Passport_test @build @staging @integration @smoke
+  Scenario Outline: Passport test
+    Given User enters data as a <PassportSubject>
+    And User re-enters last name as <InvalidLastName>
+    When User clicks on continue
+    Examples:
+      |PassportSubject             | InvalidLastName |
+      |PassportSubjectHappyKenneth | KYLE123         |
+
+
   @Passport_test @build @staging @integration @smoke
   Scenario: Beta Banner Reject Analytics
     When I view the Beta banner

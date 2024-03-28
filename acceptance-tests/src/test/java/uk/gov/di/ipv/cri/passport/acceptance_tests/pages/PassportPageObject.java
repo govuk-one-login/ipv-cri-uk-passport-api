@@ -437,6 +437,56 @@ public class PassportPageObject extends UniversalSteps {
         LOGGER.info(userNotFoundInThirdPartyBanner.getText());
     }
 
+    public void userReEntersLastName(String invalidLastName) {
+        LastName.clear();
+        LastName.sendKeys(invalidLastName);
+    }
+
+    public void userReEntersFirstName(String invalidFirstName) {
+        FirstName.clear();
+        FirstName.sendKeys(invalidFirstName);
+    }
+
+    public void userReEntersMiddleNames(String invalidMiddleNames) {
+        MiddleNames.clear();
+        MiddleNames.sendKeys(invalidMiddleNames);
+    }
+
+    public void userReEntersPassportNumber(String invalidPassportNumber) {
+        passportNumber.clear();
+        passportNumber.sendKeys(invalidPassportNumber);
+    }
+
+    public void userReEntersBirthDay(String invalidBirthDay) {
+        birthDay.clear();
+        birthDay.sendKeys(invalidBirthDay);
+    }
+
+    public void userReEntersBirthMonth(String invalidBirthMonth) {
+        birthMonth.clear();
+        birthMonth.sendKeys(invalidBirthMonth);
+    }
+
+    public void userReEntersBirthYear(String invalidBirthYear) {
+        birthYear.clear();
+        birthYear.sendKeys(invalidBirthYear);
+    }
+
+    public void userReEntersValidToDay(String invalidValidToDate) {
+        validToDay.clear();
+        validToDay.sendKeys(invalidValidToDate);
+    }
+
+    public void userReEntersValidToMonth(String invalidValidToMonth) {
+        validToMonth.clear();
+        validToMonth.sendKeys(invalidValidToMonth);
+    }
+
+    public void userReEntersValidToYear(String invalidValidToYear) {
+        validToYear.clear();
+        validToYear.sendKeys(invalidValidToYear);
+    }
+
     public void userEntersData(String passportSubjectScenario) {
         TestInput passportSubject =
                 TestDataCreator.getPassportTestUserFromMap(passportSubjectScenario);
