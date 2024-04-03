@@ -670,14 +670,8 @@ public class PassportPageObject extends UniversalSteps {
         assertEquals(documentNumber, passportNumber);
     }
 
-    public void validateErrorPageHeading() {
-        String expectedHeading = "Sorry, we cannot prove your identity";
-        String actualHeading = pageHeader.getText();
-        if (expectedHeading.equals(actualHeading)) {
-            LOGGER.info("Pass : Sorry, there is a problem page is displayed");
-        } else {
-            fail("Fail: Error page not displayed");
-        }
+    public void validateErrorPageHeading(String expectedText) {
+        Assert.assertEquals(expectedText, pageHeader.getText());
     }
 
     public void assertPageHeading(String expectedText) {
