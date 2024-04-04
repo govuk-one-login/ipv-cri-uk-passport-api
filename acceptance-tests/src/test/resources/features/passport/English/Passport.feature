@@ -9,7 +9,7 @@ Feature: Passport Test
     And I assert the url path contains details
     And I set the document checking route
 
-  @Passport_test @build @staging @integration @smoke
+  @build @staging @integration @smoke @stub @uat
   Scenario Outline: Passport details page happy path
     Given User enters data as a <PassportSubject>
     When User clicks on continue
@@ -24,7 +24,7 @@ Feature: Passport Test
       |PassportSubjectHappyKenneth |
 
 
-  @Passport_test @build @staging @integration @smoke
+  @build @staging @integration @smoke @stub @uat
   Scenario Outline: Passport test
     Given User enters data as a <PassportSubject>
     And User re-enters last name as <InvalidLastName>
@@ -34,7 +34,7 @@ Feature: Passport Test
       |PassportSubjectHappyKenneth | KYLE123         |
 
 
-  @Passport_test @build @staging @integration @smoke
+  @build @staging @integration @smoke @stub @uat
   Scenario: Beta Banner Reject Analytics
     When I view the Beta banner
     When the beta banner reads This is a new service – your feedback (opens in new tab) will help us to improve it.
@@ -56,7 +56,7 @@ Feature: Passport Test
 #      |PassportSubject      |
 #      |PassportSubjectUnhappySelina |
 
-  @Passport_test @build @staging @integration
+  @build @staging @integration @stub @uat
   Scenario Outline: Passport details page unhappy path with IncorrectPassportNumber
     Given User enters data as a <PassportSubject>
     When User clicks on continue
@@ -70,7 +70,7 @@ Feature: Passport Test
       |PassportSubject      |
       |IncorrectPassportNumber |
 
-  @Passport_test @build @staging @integration
+  @build @staging @integration @stub @uat
   Scenario Outline: Passport details page unhappy path with IncorrectDateOfBirth
     Given User enters data as a <PassportSubject>
     When User clicks on continue
@@ -83,7 +83,7 @@ Feature: Passport Test
       |PassportSubject |
       |IncorrectDateOfBirth |
 
-  @Passport_test @build @staging @integration
+  @build @staging @integration @stub @uat
   Scenario Outline: Passport details page unhappy path with IncorrectFirstName
     Given User enters data as a <PassportSubject>
     When User clicks on continue
@@ -96,7 +96,7 @@ Feature: Passport Test
       |PassportSubject |
       |IncorrectFirstName|
 
-  @Passport_test @build @staging @integration
+  @build @staging @integration @stub @uat
   Scenario Outline: Passport details page unhappy path with IncorrectLastName
     Given User enters data as a <PassportSubject>
     When User clicks on continue
@@ -123,7 +123,7 @@ Feature: Passport Test
 #      |PassportSubject |
 #      |IncorrectValidToDate|
 
-  @Passport_test @build @staging @integration @smoke
+  @build @staging @integration @smoke @stub @uat
   Scenario Outline: Passport Retry Test Happy Path
     Given User enters invalid passport details
     When User clicks on continue
@@ -137,7 +137,7 @@ Feature: Passport Test
       |PassportSubject |
       |PassportSubjectHappyKenneth |
 
-  @Passport_test @build @staging @integration @smoke
+  @build @staging @integration @smoke @stub @uat
   Scenario Outline: Passport User failed second attempt
     Given User enters invalid passport details
     When User clicks on continue
@@ -151,7 +151,7 @@ Feature: Passport Test
       |PassportSubject |
       |IncorrectPassportNumber |
 
-  @Passport_test @build @staging @integration @smoke
+  @build @staging @integration @smoke @stub @uat
   Scenario: Passport User cancels after failed first attempt
     Given User enters invalid passport details
     When User clicks on continue
@@ -161,7 +161,7 @@ Feature: Passport Test
     And JSON payload should contain ci D02, validity score 0 and strength score 4
     And The test is complete and I close the driver
 
-  @Passport_test @smoke
+  @smoke
   Scenario: Passport User cancels before first attempt via prove your identity another way route
     Given User click on ‘prove your identity another way' Link
     Then I navigate to the passport verifiable issuer to check for a Invalid response
@@ -169,7 +169,7 @@ Feature: Passport Test
     And The test is complete and I close the driver
 
 ###########   Field Validations ##########
-  @Passport_test @build @staging @integration @smoke
+  @build @staging @integration @smoke @stub @uat
   Scenario Outline: Passport Generate VC with invalid Passport number and prove in another way unhappy path
     Given User enters data as a <PassportSubject>
     When User clicks on continue
@@ -181,7 +181,7 @@ Feature: Passport Test
       |PassportSubject           |
       | IncorrectPassportNumber     |
 
-  @Passport_test @build @staging @integration @smoke
+  @build @staging @integration @smoke @stub @uat
   Scenario Outline: Passport expiry date valid
     Given User enters data as a <PassportSubject>
     Then User enters expiry date as current date minus <months> months and minus <daysToSubtract> days
@@ -195,7 +195,7 @@ Feature: Passport Test
       | PassportSubject             | months | daysToSubtract |
       | PassportSubjectHappyKenneth | 18     | 0 |
 
-  @Passport_test @build @staging @integration @smoke
+  @build @staging @integration @smoke @stub @uat
   Scenario Outline: Passport expiry date invalid
     Given User enters data as a <PassportSubject>
     Then User enters expiry date as current date minus <months> months and minus <daysToSubtract> days
@@ -209,13 +209,13 @@ Feature: Passport Test
       | PassportSubjectHappyKenneth | 18     | 1 |
       | PassportSubjectHappyKenneth | 18     | 2 |
 
-  @Passport_test @build @staging @integration
+  @build @staging @integration @stub @uat
   Scenario: Check the Unrecoverable error/ Unknown error in Passport CRI
     Given I delete the service_session cookie to get the unexpected error
     When I check the page title is Sorry, there is a problem – Prove your identity – GOV.UK
     And The test is complete and I close the driver
 
-  @Passport_test @build
+  @build @stub
   Scenario Outline: Error tab title validation
     And I check the page title is Enter your details exactly as they appear on your UK passport – Prove your identity – GOV.UK
     Then User enters data as a <PassportSubject>
