@@ -18,6 +18,7 @@ import uk.gov.di.ipv.cri.common.library.util.EventProbe;
 import uk.gov.di.ipv.cri.passport.library.PassportFormTestDataGenerator;
 import uk.gov.di.ipv.cri.passport.library.config.ParameterStoreParameters;
 import uk.gov.di.ipv.cri.passport.library.domain.PassportFormData;
+import uk.gov.di.ipv.cri.passport.library.domain.Strategy;
 import uk.gov.di.ipv.cri.passport.library.domain.result.ThirdPartyAPIResult;
 import uk.gov.di.ipv.cri.passport.library.dvad.domain.response.AccessTokenResponse;
 import uk.gov.di.ipv.cri.passport.library.dvad.domain.response.GraphQLAPIResponse;
@@ -77,26 +78,6 @@ class DvadThirdPartyAPIServiceTest {
 
         // Mocks out the creation of all endpoints to allow mocking the endpoint responses without
         // calling them for real
-        when(mockDvadAPIEndpointFactory.createHealthCheckService(
-                        eq(mockCloseableHttpClient),
-                        any(RequestConfig.class),
-                        eq(realObjectMapper),
-                        eq(mockEventProbe)))
-                .thenReturn(mockHealthCheckService);
-
-        when(mockDvadAPIEndpointFactory.createTokenRequestService(
-                        eq(mockCloseableHttpClient),
-                        any(RequestConfig.class),
-                        eq(realObjectMapper),
-                        eq(mockEventProbe)))
-                .thenReturn(mockTokenRequestService);
-
-        when(mockDvadAPIEndpointFactory.createGraphQLRequestService(
-                        eq(mockCloseableHttpClient),
-                        any(RequestConfig.class),
-                        eq(realObjectMapper),
-                        eq(mockEventProbe)))
-                .thenReturn(mockGraphQLRequestService);
 
         dvadThirdPartyAPIServiceTest =
                 new DvadThirdPartyAPIService(
@@ -119,6 +100,30 @@ class DvadThirdPartyAPIServiceTest {
     })
     void shouldReturnIsValidTrueGivenValidDataAndAllThirdPartyEndpointsRespond(
             boolean validationResult) throws OAuthErrorResponseException {
+
+        when(mockDvadAPIEndpointFactory.createHealthCheckService(
+                        eq(mockCloseableHttpClient),
+                        any(RequestConfig.class),
+                        eq(realObjectMapper),
+                        eq(mockEventProbe),
+                        eq(Strategy.NO_CHANGE)))
+                .thenReturn(mockHealthCheckService);
+
+        when(mockDvadAPIEndpointFactory.createTokenRequestService(
+                        eq(mockCloseableHttpClient),
+                        any(RequestConfig.class),
+                        eq(realObjectMapper),
+                        eq(mockEventProbe),
+                        eq(Strategy.NO_CHANGE)))
+                .thenReturn(mockTokenRequestService);
+
+        when(mockDvadAPIEndpointFactory.createGraphQLRequestService(
+                        eq(mockCloseableHttpClient),
+                        any(RequestConfig.class),
+                        eq(realObjectMapper),
+                        eq(mockEventProbe),
+                        eq(Strategy.NO_CHANGE)))
+                .thenReturn(mockGraphQLRequestService);
 
         boolean expectedIsValid = validationResult;
 
@@ -176,7 +181,8 @@ class DvadThirdPartyAPIServiceTest {
                         eq(passportFormData)))
                 .thenReturn(testGraphQLServiceResult);
 
-        ThirdPartyAPIResult result = dvadThirdPartyAPIServiceTest.performCheck(passportFormData);
+        ThirdPartyAPIResult result =
+                dvadThirdPartyAPIServiceTest.performCheck(passportFormData, Strategy.NO_CHANGE);
 
         // Using the correct third party API?
         Assertions.assertEquals(
@@ -204,6 +210,30 @@ class DvadThirdPartyAPIServiceTest {
     })
     void shouldThrowOAuthErrorResponseExceptionWhenAPIResponseContainsErrorsOrIsEmpty(
             boolean errors) throws OAuthErrorResponseException {
+
+        when(mockDvadAPIEndpointFactory.createHealthCheckService(
+                        eq(mockCloseableHttpClient),
+                        any(RequestConfig.class),
+                        eq(realObjectMapper),
+                        eq(mockEventProbe),
+                        eq(Strategy.NO_CHANGE)))
+                .thenReturn(mockHealthCheckService);
+
+        when(mockDvadAPIEndpointFactory.createTokenRequestService(
+                        eq(mockCloseableHttpClient),
+                        any(RequestConfig.class),
+                        eq(realObjectMapper),
+                        eq(mockEventProbe),
+                        eq(Strategy.NO_CHANGE)))
+                .thenReturn(mockTokenRequestService);
+
+        when(mockDvadAPIEndpointFactory.createGraphQLRequestService(
+                        eq(mockCloseableHttpClient),
+                        any(RequestConfig.class),
+                        eq(realObjectMapper),
+                        eq(mockEventProbe),
+                        eq(Strategy.NO_CHANGE)))
+                .thenReturn(mockGraphQLRequestService);
 
         PassportFormData passportFormData = PassportFormTestDataGenerator.generate();
 
@@ -269,7 +299,9 @@ class DvadThirdPartyAPIServiceTest {
         OAuthErrorResponseException thrownException =
                 Assertions.assertThrows(
                         OAuthErrorResponseException.class,
-                        () -> dvadThirdPartyAPIServiceTest.performCheck(passportFormData),
+                        () ->
+                                dvadThirdPartyAPIServiceTest.performCheck(
+                                        passportFormData, Strategy.NO_CHANGE),
                         "Expected OAuthErrorResponseException");
 
         Assertions.assertEquals(
@@ -300,6 +332,30 @@ class DvadThirdPartyAPIServiceTest {
     void shouldReturnOAuthErrorResponseExceptionWhenHealthEndpointIsDown()
             throws OAuthErrorResponseException {
 
+        when(mockDvadAPIEndpointFactory.createHealthCheckService(
+                        eq(mockCloseableHttpClient),
+                        any(RequestConfig.class),
+                        eq(realObjectMapper),
+                        eq(mockEventProbe),
+                        eq(Strategy.NO_CHANGE)))
+                .thenReturn(mockHealthCheckService);
+
+        when(mockDvadAPIEndpointFactory.createTokenRequestService(
+                        eq(mockCloseableHttpClient),
+                        any(RequestConfig.class),
+                        eq(realObjectMapper),
+                        eq(mockEventProbe),
+                        eq(Strategy.NO_CHANGE)))
+                .thenReturn(mockTokenRequestService);
+
+        when(mockDvadAPIEndpointFactory.createGraphQLRequestService(
+                        eq(mockCloseableHttpClient),
+                        any(RequestConfig.class),
+                        eq(realObjectMapper),
+                        eq(mockEventProbe),
+                        eq(Strategy.NO_CHANGE)))
+                .thenReturn(mockGraphQLRequestService);
+
         PassportFormData passportFormData = PassportFormTestDataGenerator.generate();
 
         boolean testHealthCheckStatusUp = false;
@@ -317,7 +373,9 @@ class DvadThirdPartyAPIServiceTest {
         OAuthErrorResponseException thrownException =
                 Assertions.assertThrows(
                         OAuthErrorResponseException.class,
-                        () -> dvadThirdPartyAPIServiceTest.performCheck(passportFormData),
+                        () ->
+                                dvadThirdPartyAPIServiceTest.performCheck(
+                                        passportFormData, Strategy.NO_CHANGE),
                         "Expected OAuthErrorResponseException");
 
         Assertions.assertEquals(
@@ -335,6 +393,30 @@ class DvadThirdPartyAPIServiceTest {
     })
     void shouldReturnOAuthErrorResponseExceptionWhenGraphQLResponseFailsValidation(
             String forcedFailure) throws OAuthErrorResponseException {
+
+        when(mockDvadAPIEndpointFactory.createHealthCheckService(
+                        eq(mockCloseableHttpClient),
+                        any(RequestConfig.class),
+                        eq(realObjectMapper),
+                        eq(mockEventProbe),
+                        eq(Strategy.NO_CHANGE)))
+                .thenReturn(mockHealthCheckService);
+
+        when(mockDvadAPIEndpointFactory.createTokenRequestService(
+                        eq(mockCloseableHttpClient),
+                        any(RequestConfig.class),
+                        eq(realObjectMapper),
+                        eq(mockEventProbe),
+                        eq(Strategy.NO_CHANGE)))
+                .thenReturn(mockTokenRequestService);
+
+        when(mockDvadAPIEndpointFactory.createGraphQLRequestService(
+                        eq(mockCloseableHttpClient),
+                        any(RequestConfig.class),
+                        eq(realObjectMapper),
+                        eq(mockEventProbe),
+                        eq(Strategy.NO_CHANGE)))
+                .thenReturn(mockGraphQLRequestService);
 
         PassportFormData passportFormData = PassportFormTestDataGenerator.generate();
 
@@ -420,7 +502,9 @@ class DvadThirdPartyAPIServiceTest {
         OAuthErrorResponseException thrownException =
                 Assertions.assertThrows(
                         OAuthErrorResponseException.class,
-                        () -> dvadThirdPartyAPIServiceTest.performCheck(passportFormData),
+                        () ->
+                                dvadThirdPartyAPIServiceTest.performCheck(
+                                        passportFormData, Strategy.NO_CHANGE),
                         "Expected OAuthErrorResponseException");
 
         InOrder inOrder = inOrder(mockEventProbe);
@@ -517,6 +601,116 @@ class DvadThirdPartyAPIServiceTest {
                 assertMinimalTestErrorMessageParts(messagePartMap);
                 break;
         }
+    }
+
+    @ParameterizedTest
+    @CsvSource({
+        "true", // API response ValidationResult true
+        "false" // API response ValidationResult false
+    })
+    void shouldReturnIsValidTrueGivenValidDataAndStrategyEqualsStubAndAllThirdPartyEndpointsRespond(
+            boolean validationResult) throws OAuthErrorResponseException {
+
+        when(mockDvadAPIEndpointFactory.createHealthCheckService(
+                        eq(mockCloseableHttpClient),
+                        any(RequestConfig.class),
+                        eq(realObjectMapper),
+                        eq(mockEventProbe),
+                        eq(Strategy.STUB)))
+                .thenReturn(mockHealthCheckService);
+
+        when(mockDvadAPIEndpointFactory.createTokenRequestService(
+                        eq(mockCloseableHttpClient),
+                        any(RequestConfig.class),
+                        eq(realObjectMapper),
+                        eq(mockEventProbe),
+                        eq(Strategy.STUB)))
+                .thenReturn(mockTokenRequestService);
+
+        when(mockDvadAPIEndpointFactory.createGraphQLRequestService(
+                        eq(mockCloseableHttpClient),
+                        any(RequestConfig.class),
+                        eq(realObjectMapper),
+                        eq(mockEventProbe),
+                        eq(Strategy.STUB)))
+                .thenReturn(mockGraphQLRequestService);
+
+        boolean expectedIsValid = validationResult;
+
+        PassportFormData passportFormData = PassportFormTestDataGenerator.generate();
+
+        // Health service Response
+        boolean testHealthCheckStatusUp = true;
+
+        // Token service Response
+        AccessTokenResponse testValidAccessTokenResponse =
+                AccessTokenResponse.builder()
+                        .accessToken("A_TOKEN_VALUE")
+                        .tokenType("Bearer")
+                        .expiresIn(1800)
+                        .build();
+
+        // Generated a valid api response object to create the api response for this test
+        GraphQLServiceResult testGraphQLServiceResult;
+        GraphQLAPIResponse testGraphQLAPIResponseObject;
+
+        if (expectedIsValid) {
+            testGraphQLAPIResponseObject =
+                    GraphQLAPIResponse.builder()
+                            .data(ResponseDataGenerator.createValidationResultTrueResponseData())
+                            .build();
+        } else {
+            testGraphQLAPIResponseObject =
+                    GraphQLAPIResponse.builder()
+                            .data(ResponseDataGenerator.createValidationResultFalseResponseData())
+                            .build();
+        }
+        testGraphQLServiceResult =
+                GraphQLServiceResult.builder()
+                        .graphQLAPIResponse(testGraphQLAPIResponseObject)
+                        .requestId(UUID.randomUUID().toString())
+                        .build();
+
+        mockDvadAPIHeaderValues();
+
+        when(mockHealthCheckService.checkRemoteApiIsUp(any(DvadAPIHeaderValues.class)))
+                .thenReturn(testHealthCheckStatusUp);
+
+        when(mockTokenRequestService.requestAccessToken(any(DvadAPIHeaderValues.class), eq(true)))
+                .thenReturn(testValidAccessTokenResponse);
+
+        final String TEST_QUERY_STRING = "TEST_QUERY_STRING";
+        when(mockParameterStoreService.getEncryptedParameterValue(
+                        ParameterStoreParameters.HMPO_GRAPHQL_QUERY_STRING))
+                .thenReturn(TEST_QUERY_STRING);
+
+        when(mockGraphQLRequestService.performGraphQLQuery(
+                        eq(testValidAccessTokenResponse),
+                        any(DvadAPIHeaderValues.class),
+                        eq(TEST_QUERY_STRING),
+                        eq(passportFormData)))
+                .thenReturn(testGraphQLServiceResult);
+
+        ThirdPartyAPIResult result =
+                dvadThirdPartyAPIServiceTest.performCheck(passportFormData, Strategy.STUB);
+
+        // Using the correct third party API?
+        Assertions.assertEquals(
+                dvadThirdPartyAPIServiceTest.getServiceName(),
+                DvadThirdPartyAPIService.class.getSimpleName());
+
+        InOrder inOrder = inOrder(mockEventProbe);
+        inOrder.verify(mockEventProbe)
+                .counterMetric(
+                        ThirdPartyAPIEndpointMetric.DVAD_GRAPHQL_RESPONSE_TYPE_VALID
+                                .withEndpointPrefix());
+        verifyNoMoreInteractions(mockEventProbe);
+
+        assertNotNull(result);
+        assertNotNull(result.getTransactionId());
+        assertNotNull(result.getFlags());
+
+        Assertions.assertEquals(expectedIsValid, result.isValid());
     }
 
     private void assertClassificationIsStringMessageParts(Map<String, String> messagePartMap) {

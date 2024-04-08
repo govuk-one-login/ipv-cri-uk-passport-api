@@ -21,6 +21,7 @@ import uk.gov.di.ipv.cri.passport.checkpassport.domain.result.fields.ContraIndic
 import uk.gov.di.ipv.cri.passport.checkpassport.validation.ValidationResult;
 import uk.gov.di.ipv.cri.passport.library.PassportFormTestDataGenerator;
 import uk.gov.di.ipv.cri.passport.library.domain.PassportFormData;
+import uk.gov.di.ipv.cri.passport.library.domain.Strategy;
 import uk.gov.di.ipv.cri.passport.library.domain.result.ThirdPartyAPIResult;
 import uk.gov.di.ipv.cri.passport.library.domain.result.fields.APIResultSource;
 import uk.gov.di.ipv.cri.passport.library.error.ErrorResponse;
@@ -114,12 +115,16 @@ class DocumentDataVerificationServiceTest {
         when(mockFormDataValidator.validate(passportFormData))
                 .thenReturn(new ValidationResult<>(true, null));
 
-        when(mocThirdPartyAPIService.performCheck(passportFormData))
+        when(mocThirdPartyAPIService.performCheck(passportFormData, Strategy.NO_CHANGE))
                 .thenReturn(thirdPartyAPIResult);
 
         DocumentDataVerificationResult documentDataVerificationResult =
                 documentDataVerificationService.verifyData(
-                        mocThirdPartyAPIService, passportFormData, sessionItem, null);
+                        mocThirdPartyAPIService,
+                        passportFormData,
+                        sessionItem,
+                        null,
+                        Strategy.NO_CHANGE);
 
         InOrder inOrder = inOrder(mockEventProbe);
         inOrder.verify(mockEventProbe).counterMetric(FORM_DATA_VALIDATION_PASS);
@@ -127,7 +132,7 @@ class DocumentDataVerificationServiceTest {
         verifyNoMoreInteractions(mockEventProbe);
 
         verify(mockFormDataValidator).validate(passportFormData);
-        verify(mocThirdPartyAPIService).performCheck(passportFormData);
+        verify(mocThirdPartyAPIService).performCheck(passportFormData, Strategy.NO_CHANGE);
 
         verify(mockAuditService)
                 .sendAuditEvent(eq(AuditEventType.REQUEST_SENT), any(AuditEventContext.class));
@@ -199,7 +204,11 @@ class DocumentDataVerificationServiceTest {
                         OAuthErrorResponseException.class,
                         () -> {
                             documentDataVerificationService.verifyData(
-                                    mocThirdPartyAPIService, passportFormData, sessionItem, null);
+                                    mocThirdPartyAPIService,
+                                    passportFormData,
+                                    sessionItem,
+                                    null,
+                                    Strategy.NO_CHANGE);
                         });
 
         assertEquals(expectedReturnedException.getStatusCode(), thrownException.getStatusCode());
@@ -228,14 +237,18 @@ class DocumentDataVerificationServiceTest {
 
         doThrow(expectedReturnedException)
                 .when(mocThirdPartyAPIService)
-                .performCheck(passportFormData);
+                .performCheck(passportFormData, Strategy.NO_CHANGE);
 
         OAuthErrorResponseException thrownException =
                 assertThrows(
                         OAuthErrorResponseException.class,
                         () -> {
                             documentDataVerificationService.verifyData(
-                                    mocThirdPartyAPIService, passportFormData, sessionItem, null);
+                                    mocThirdPartyAPIService,
+                                    passportFormData,
+                                    sessionItem,
+                                    null,
+                                    Strategy.NO_CHANGE);
                         });
 
         assertEquals(expectedReturnedException.getStatusCode(), thrownException.getStatusCode());
@@ -277,7 +290,11 @@ class DocumentDataVerificationServiceTest {
                         OAuthErrorResponseException.class,
                         () -> {
                             documentDataVerificationService.verifyData(
-                                    mocThirdPartyAPIService, passportFormData, sessionItem, null);
+                                    mocThirdPartyAPIService,
+                                    passportFormData,
+                                    sessionItem,
+                                    null,
+                                    Strategy.NO_CHANGE);
                         });
 
         assertEquals(expectedReturnedException.getStatusCode(), thrownException.getStatusCode());

@@ -14,6 +14,7 @@ import uk.gov.di.ipv.cri.passport.checkpassport.domain.result.DocumentDataVerifi
 import uk.gov.di.ipv.cri.passport.checkpassport.domain.result.fields.ContraIndicatorMapperResult;
 import uk.gov.di.ipv.cri.passport.checkpassport.validation.ValidationResult;
 import uk.gov.di.ipv.cri.passport.library.domain.PassportFormData;
+import uk.gov.di.ipv.cri.passport.library.domain.Strategy;
 import uk.gov.di.ipv.cri.passport.library.domain.result.ThirdPartyAPIResult;
 import uk.gov.di.ipv.cri.passport.library.domain.result.fields.APIResultSource;
 import uk.gov.di.ipv.cri.passport.library.error.ErrorResponse;
@@ -65,7 +66,8 @@ public class DocumentDataVerificationService {
             ThirdPartyAPIService thirdPartyAPIService,
             PassportFormData passportFormData,
             SessionItem sessionItem,
-            Map<String, String> requestHeaders)
+            Map<String, String> requestHeaders,
+            Strategy strategy)
             throws OAuthErrorResponseException {
         try {
             LOGGER.info("Validating form data...");
@@ -88,7 +90,7 @@ public class DocumentDataVerificationService {
             LOGGER.info(
                     "Performing data verification using {}", thirdPartyAPIService.getServiceName());
             ThirdPartyAPIResult thirdPartyAPIResult =
-                    thirdPartyAPIService.performCheck(passportFormData);
+                    thirdPartyAPIService.performCheck(passportFormData, strategy);
 
             LOGGER.info("Sending audit event {}...", AuditEventType.REQUEST_SENT);
             auditService.sendAuditEvent(

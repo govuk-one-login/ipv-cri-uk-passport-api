@@ -79,7 +79,7 @@ public class ParameterStoreService {
 
         LOGGER.debug(LOG_MESSAGE_FORMAT, "getAllParametersFromPath", parametersPath);
 
-        return ssmProvider.getMultiple(parametersPath);
+        return ssmProvider.recursive().getMultiple(parametersPath);
     }
 
     public Map<String, String> getAllParametersFromPathWithDecryption(String path) {
