@@ -31,6 +31,7 @@ import uk.gov.di.ipv.cri.passport.checkpassport.services.DocumentDataVerificatio
 import uk.gov.di.ipv.cri.passport.checkpassport.util.DocumentDataVerificationServiceResultDataGenerator;
 import uk.gov.di.ipv.cri.passport.library.PassportFormTestDataGenerator;
 import uk.gov.di.ipv.cri.passport.library.domain.PassportFormData;
+import uk.gov.di.ipv.cri.passport.library.domain.Strategy;
 import uk.gov.di.ipv.cri.passport.library.error.CommonExpressOAuthError;
 import uk.gov.di.ipv.cri.passport.library.exceptions.OAuthErrorResponseException;
 import uk.gov.di.ipv.cri.passport.library.persistence.DocumentCheckResultItem;
@@ -76,6 +77,15 @@ class CheckPassportHandlerTest {
 
     private final ObjectMapper realObjectMapper =
             new ObjectMapper().registerModule(new JavaTimeModule());
+
+    private String testStrategyRawEndpointValue =
+            """
+            {
+                "STUB": "http://localhostStub",
+                "UAT": "http://localhostUat",
+                "LIVE": "http://localhostLive"
+            }
+            """;
     @SystemStub private EnvironmentVariables environmentVariables = new EnvironmentVariables();
 
     @Mock private Context mockLambdaContext;
@@ -95,11 +105,17 @@ class CheckPassportHandlerTest {
     private CheckPassportHandler checkPassportHandler;
 
     @BeforeEach
-    void setup() {
+    void setup() throws JsonProcessingException {
         environmentVariables.set("AWS_REGION", "eu-west-2");
         environmentVariables.set("AWS_STACK_NAME", "TEST_STACK");
         environmentVariables.set("DVAD_PERFORMANCE_STUB_IN_USE", "false");
         environmentVariables.set("DEV_ENVIRONMENT_ONLY_ENHANCED_DEBUG", "false");
+
+        when(mockParameterStoreService.getParameterValue("HMPODVAD/API/EndpointUrl"))
+                .thenReturn("http://localhost");
+
+        when(mockParameterStoreService.getParameterValue("HMPODVAD/API/TestStrategy/EndpointUrl"))
+                .thenReturn(testStrategyRawEndpointValue);
 
         mockServiceFactoryBehaviour();
 
@@ -140,13 +156,15 @@ class CheckPassportHandlerTest {
         sessionItem.setState(STATE);
         sessionItem.setRedirectUri(URI.create(REDIRECT_URI));
         sessionItem.setAttemptCount(ATTEMPT_NO);
+        sessionItem.setClientId("testNoChangeId");
         when(mockSessionService.validateSessionId(SESSION_ID)).thenReturn(sessionItem);
 
         when(mockDocumentDataVerificationService.verifyData(
                         any(ThirdPartyAPIService.class),
                         any(PassportFormData.class),
                         eq(sessionItem),
-                        eq(requestHeaders)))
+                        eq(requestHeaders),
+                        eq(Strategy.NO_CHANGE)))
                 .thenReturn(testDocumentDataVerificationResult);
 
         when(mockParameterStoreService.getCommonParameterValue(DOCUMENT_CHECK_RESULT_TTL_PARAMETER))
@@ -170,7 +188,8 @@ class CheckPassportHandlerTest {
                         any(ThirdPartyAPIService.class),
                         eq(passportFormData),
                         any(SessionItem.class),
-                        eq(requestHeaders));
+                        eq(requestHeaders),
+                        eq(Strategy.NO_CHANGE));
 
         DocumentCheckResultItem documentCheckResultItem =
                 mapDocumentDataVerificationResultToDocumentCheckResultItem(
@@ -229,6 +248,7 @@ class CheckPassportHandlerTest {
         sessionItem.setState(STATE);
         sessionItem.setRedirectUri(URI.create(REDIRECT_URI));
         sessionItem.setAttemptCount(ATTEMPT_NO);
+        sessionItem.setClientId("testNoChangeId");
         when(mockSessionService.validateSessionId(SESSION_ID)).thenReturn(sessionItem);
 
         // If max attempts is reached the user is redirected with no further attempts allowed
@@ -240,7 +260,8 @@ class CheckPassportHandlerTest {
                             any(ThirdPartyAPIService.class),
                             any(PassportFormData.class),
                             any(SessionItem.class),
-                            eq(requestHeaders)))
+                            eq(requestHeaders),
+                            eq(Strategy.NO_CHANGE)))
                     .thenReturn(testDocumentDataVerificationResult);
 
             when(mockParameterStoreService.getCommonParameterValue(
@@ -283,7 +304,8 @@ class CheckPassportHandlerTest {
                             any(ThirdPartyAPIService.class),
                             eq(passportFormData),
                             any(SessionItem.class),
-                            eq(requestHeaders));
+                            eq(requestHeaders),
+                            eq(Strategy.NO_CHANGE));
 
         } else if (sessionItem.getAttemptCount() < MAX_ATTEMPTS && !documentVerified) {
             // Any attempt below max attempts where the document is NOT verified
@@ -296,7 +318,8 @@ class CheckPassportHandlerTest {
                             any(ThirdPartyAPIService.class),
                             eq(passportFormData),
                             any(SessionItem.class),
-                            eq(requestHeaders));
+                            eq(requestHeaders),
+                            eq(Strategy.NO_CHANGE));
 
             assertEquals(RESULT_RETRY, responseTreeRootNode.get(RESULT).textValue());
         } else if (sessionItem.getAttemptCount() == MAX_ATTEMPTS && !documentVerified) {
@@ -319,7 +342,8 @@ class CheckPassportHandlerTest {
                             any(ThirdPartyAPIService.class),
                             eq(passportFormData),
                             any(SessionItem.class),
-                            eq(requestHeaders));
+                            eq(requestHeaders),
+                            eq(Strategy.NO_CHANGE));
 
         } else {
             // A form is submitted but max attempts is already reached.
@@ -358,6 +382,7 @@ class CheckPassportHandlerTest {
         sessionItem.setState(STATE);
         sessionItem.setRedirectUri(URI.create(REDIRECT_URI));
         sessionItem.setAttemptCount(0);
+        sessionItem.setClientId("testNoChangeId");
 
         if (exceptionType.equals("SessionNotFoundException")) {
             when(mockSessionService.validateSessionId(SESSION_ID))
@@ -440,6 +465,7 @@ class CheckPassportHandlerTest {
         sessionItem.setState(STATE);
         sessionItem.setRedirectUri(URI.create(REDIRECT_URI));
         sessionItem.setAttemptCount(ATTEMPT_NO);
+        sessionItem.setClientId("testNoChangeId");
         when(mockSessionService.validateSessionId(SESSION_ID)).thenReturn(sessionItem);
 
         // parsePassportFormRequest
@@ -504,13 +530,15 @@ class CheckPassportHandlerTest {
         sessionItem.setState(STATE);
         sessionItem.setRedirectUri(URI.create(REDIRECT_URI));
         sessionItem.setAttemptCount(ATTEMPT_NO);
+        sessionItem.setClientId("NoChangeClientID");
         when(mockSessionService.validateSessionId(SESSION_ID)).thenReturn(sessionItem);
 
         when(mockDocumentDataVerificationService.verifyData(
                         any(ThirdPartyAPIService.class),
                         any(PassportFormData.class),
                         eq(sessionItem),
-                        eq(requestHeaders)))
+                        eq(requestHeaders),
+                        eq(Strategy.NO_CHANGE)))
                 .thenThrow(new RuntimeException("An Unhandled exception that has occurred"));
 
         mockLambdaContext();
@@ -523,7 +551,8 @@ class CheckPassportHandlerTest {
                         any(ThirdPartyAPIService.class),
                         eq(passportFormData),
                         any(SessionItem.class),
-                        eq(requestHeaders));
+                        eq(requestHeaders),
+                        eq(Strategy.NO_CHANGE));
 
         JsonNode responseTreeRootNode = realObjectMapper.readTree(responseEvent.getBody());
         JsonNode oauthErrorNode = responseTreeRootNode.get("oauth_error");

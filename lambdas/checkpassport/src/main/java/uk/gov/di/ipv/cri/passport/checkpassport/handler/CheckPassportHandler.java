@@ -29,6 +29,7 @@ import uk.gov.di.ipv.cri.passport.checkpassport.services.DocumentDataVerificatio
 import uk.gov.di.ipv.cri.passport.checkpassport.services.FormDataValidator;
 import uk.gov.di.ipv.cri.passport.checkpassport.services.ThirdPartyAPIServiceFactory;
 import uk.gov.di.ipv.cri.passport.library.domain.PassportFormData;
+import uk.gov.di.ipv.cri.passport.library.domain.Strategy;
 import uk.gov.di.ipv.cri.passport.library.error.CommonExpressOAuthError;
 import uk.gov.di.ipv.cri.passport.library.error.ErrorResponse;
 import uk.gov.di.ipv.cri.passport.library.exceptions.OAuthErrorResponseException;
@@ -85,7 +86,7 @@ public class CheckPassportHandler
 
     private ThirdPartyAPIServiceFactory thirdPartyAPIServiceFactory;
 
-    public CheckPassportHandler() {
+    public CheckPassportHandler() throws JsonProcessingException {
         // A reference to serviceFactory is not held in this class
         ServiceFactory serviceFactory = new ServiceFactory();
 
@@ -102,13 +103,15 @@ public class CheckPassportHandler
 
     public CheckPassportHandler(
             ServiceFactory serviceFactory,
-            DocumentDataVerificationService documentDataVerificationService) {
+            DocumentDataVerificationService documentDataVerificationService)
+            throws JsonProcessingException {
         initializeLambdaServices(serviceFactory, documentDataVerificationService);
     }
 
     private void initializeLambdaServices(
             ServiceFactory serviceFactory,
-            DocumentDataVerificationService documentDataVerificationService) {
+            DocumentDataVerificationService documentDataVerificationService)
+            throws JsonProcessingException {
         this.objectMapper = serviceFactory.getObjectMapper();
         this.parameterStoreService = serviceFactory.getParameterStoreService();
 
@@ -164,6 +167,11 @@ public class CheckPassportHandler
             LOGGER.info("Extracting session from header ID {}", sessionId);
             var sessionItem = sessionService.validateSessionId(sessionId);
 
+            String clientId = sessionItem.getClientId();
+            Strategy thirdPartyRouting = Strategy.fromClientIdString(clientId);
+
+            LOGGER.info("IPV Core Client Id {}, Routing set to {}", clientId, thirdPartyRouting);
+
             // Attempt start
             sessionItem.setAttemptCount(sessionItem.getAttemptCount() + 1);
             LOGGER.info("Attempt Number {}", sessionItem.getAttemptCount());
@@ -186,18 +194,26 @@ public class CheckPassportHandler
                 // Use the completed OK exit sequence
                 return lambdaCompletedOK(responseEvent);
             }
-
+            ThirdPartyAPIService thirdPartyAPIService;
             PassportFormData passportFormData = parsePassportFormRequest(input.getBody());
             eventProbe.counterMetric(FORM_DATA_PARSE_PASS);
-
-            ThirdPartyAPIService thirdPartyAPIService =
-                    thirdPartyAPIServiceFactory.getDvadThirdPartyAPIService();
+            // ClientID dictates switch conditional, return new api service based on clientID value
+            if (thirdPartyRouting == Strategy.STUB) {
+                thirdPartyAPIService =
+                        thirdPartyAPIServiceFactory.getDvadThirdPartyAPIServiceForStub();
+            } else {
+                thirdPartyAPIService = thirdPartyAPIServiceFactory.getDvadThirdPartyAPIService();
+            }
 
             LOGGER.info("Thirdparty API service is {}", thirdPartyAPIService.getServiceName());
 
             DocumentDataVerificationResult documentDataVerificationResult =
                     documentDataVerificationService.verifyData(
-                            thirdPartyAPIService, passportFormData, sessionItem, requestHeaders);
+                            thirdPartyAPIService,
+                            passportFormData,
+                            sessionItem,
+                            requestHeaders,
+                            thirdPartyRouting);
 
             saveAttempt(sessionItem, passportFormData, documentDataVerificationResult);
 
