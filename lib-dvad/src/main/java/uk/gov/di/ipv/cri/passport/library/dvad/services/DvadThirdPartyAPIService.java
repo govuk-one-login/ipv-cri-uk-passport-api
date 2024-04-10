@@ -9,6 +9,7 @@ import software.amazon.awssdk.http.HttpStatusCode;
 import uk.gov.di.ipv.cri.common.library.util.EventProbe;
 import uk.gov.di.ipv.cri.passport.library.config.HttpRequestConfig;
 import uk.gov.di.ipv.cri.passport.library.domain.PassportFormData;
+import uk.gov.di.ipv.cri.passport.library.domain.Strategy;
 import uk.gov.di.ipv.cri.passport.library.domain.result.ThirdPartyAPIResult;
 import uk.gov.di.ipv.cri.passport.library.domain.result.fields.APIResultSource;
 import uk.gov.di.ipv.cri.passport.library.dvad.domain.response.AccessTokenResponse;
@@ -49,10 +50,9 @@ public class DvadThirdPartyAPIService implements ThirdPartyAPIService {
     private final ParameterStoreService parameterStoreService;
 
     private static final String VALIDATION_RESULT_FIELD = "validationResult";
-
-    private final HealthCheckService healthCheckService;
-    private final TokenRequestService tokenRequestService;
-    private final GraphQLRequestService graphQLRequestService;
+    private final DvadAPIEndpointFactory dvadAPIEndpointFactory;
+    private final CloseableHttpClient closeableHttpClient;
+    private final ObjectMapper objectMapper;
 
     public DvadThirdPartyAPIService(
             DvadAPIEndpointFactory dvadAPIEndpointFactory,
@@ -61,23 +61,11 @@ public class DvadThirdPartyAPIService implements ThirdPartyAPIService {
             CloseableHttpClient closeableHttpClient,
             ObjectMapper objectMapper) {
 
+        this.dvadAPIEndpointFactory = dvadAPIEndpointFactory;
         this.parameterStoreService = parameterStoreService;
         this.eventProbe = eventProbe;
-
-        // Same on all endpoints
-        final RequestConfig defaultRequestConfig =
-                new HttpRequestConfig().getDefaultRequestConfig();
-
-        // To reduce constructor load and allow services to be mocked
-        healthCheckService =
-                dvadAPIEndpointFactory.createHealthCheckService(
-                        closeableHttpClient, defaultRequestConfig, objectMapper, eventProbe);
-        tokenRequestService =
-                dvadAPIEndpointFactory.createTokenRequestService(
-                        closeableHttpClient, defaultRequestConfig, objectMapper, eventProbe);
-        graphQLRequestService =
-                dvadAPIEndpointFactory.createGraphQLRequestService(
-                        closeableHttpClient, defaultRequestConfig, objectMapper, eventProbe);
+        this.closeableHttpClient = closeableHttpClient;
+        this.objectMapper = objectMapper;
     }
 
     @Override
@@ -86,13 +74,38 @@ public class DvadThirdPartyAPIService implements ThirdPartyAPIService {
     }
 
     @Override
-    public ThirdPartyAPIResult performCheck(PassportFormData passportFormData)
+    public ThirdPartyAPIResult performCheck(PassportFormData passportFormData, Strategy strategy)
             throws OAuthErrorResponseException {
 
         LOGGER.info(() -> String.format("%s reading header parameters", SERVICE_NAME));
         final DvadAPIHeaderValues dvadAPIHeaderValues =
                 new DvadAPIHeaderValues(parameterStoreService);
         LOGGER.info(() -> String.format("%s header parameters set", SERVICE_NAME));
+
+        final RequestConfig defaultRequestConfig =
+                new HttpRequestConfig().getDefaultRequestConfig();
+
+        final HealthCheckService healthCheckService =
+                dvadAPIEndpointFactory.createHealthCheckService(
+                        closeableHttpClient,
+                        defaultRequestConfig,
+                        objectMapper,
+                        eventProbe,
+                        strategy);
+        final TokenRequestService tokenRequestService =
+                dvadAPIEndpointFactory.createTokenRequestService(
+                        closeableHttpClient,
+                        defaultRequestConfig,
+                        objectMapper,
+                        eventProbe,
+                        strategy);
+        final GraphQLRequestService graphQLRequestService =
+                dvadAPIEndpointFactory.createGraphQLRequestService(
+                        closeableHttpClient,
+                        defaultRequestConfig,
+                        objectMapper,
+                        eventProbe,
+                        strategy);
 
         // Perform API Health Check
         final boolean remoteAPIsUP = healthCheckService.checkRemoteApiIsUp(dvadAPIHeaderValues);

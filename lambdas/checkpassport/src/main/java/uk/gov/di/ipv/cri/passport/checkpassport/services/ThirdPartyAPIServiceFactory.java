@@ -1,5 +1,6 @@
 package uk.gov.di.ipv.cri.passport.checkpassport.services;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.apache.http.impl.client.CloseableHttpClient;
 import uk.gov.di.ipv.cri.common.library.util.EventProbe;
@@ -19,15 +20,17 @@ public class ThirdPartyAPIServiceFactory {
 
     public final ClientFactoryService clientFactoryService;
 
-    // Formerly DVAD(0)+DCS(1)
+    // UAT/LIVE DVAD(0) - STUB DVAD(1)
     private static final int DVAD = 0;
-    private final ThirdPartyAPIService[] thirdPartyAPIServices = new ThirdPartyAPIService[1];
+    private static final int STUB = 1;
+    private final ThirdPartyAPIService[] thirdPartyAPIServices = new ThirdPartyAPIService[2];
 
     // TLS On/Off
     private final boolean tlsOn =
             !Boolean.parseBoolean(System.getenv("DVAD_PERFORMANCE_STUB_IN_USE"));
 
-    public ThirdPartyAPIServiceFactory(ServiceFactory serviceFactory) {
+    public ThirdPartyAPIServiceFactory(ServiceFactory serviceFactory)
+            throws JsonProcessingException {
         this.parameterStoreService = serviceFactory.getParameterStoreService();
         this.eventProbe = serviceFactory.getEventProbe();
         this.objectMapper = serviceFactory.getObjectMapper();
@@ -35,9 +38,10 @@ public class ThirdPartyAPIServiceFactory {
 
         // Done this way to allow switching if needed to lazy init + singletons
         thirdPartyAPIServices[DVAD] = createDvadThirdPartyAPIService();
+        thirdPartyAPIServices[STUB] = createDvadThirdPartyAPIServiceForStub();
     }
 
-    private ThirdPartyAPIService createDvadThirdPartyAPIService() {
+    private ThirdPartyAPIService createDvadThirdPartyAPIService() throws JsonProcessingException {
 
         CloseableHttpClient closeableHttpClient =
                 new DVADCloseableHttpClientFactory()
@@ -55,7 +59,30 @@ public class ThirdPartyAPIServiceFactory {
                 objectMapper);
     }
 
+    private ThirdPartyAPIService createDvadThirdPartyAPIServiceForStub()
+            throws JsonProcessingException {
+
+        CloseableHttpClient closeableHttpClient =
+                new DVADCloseableHttpClientFactory()
+                        .getClient(false, parameterStoreService, clientFactoryService);
+
+        // Reduces constructor load in DvadThirdPartyAPIService and allow endpoints to be mocked
+        DvadAPIEndpointFactory dvadAPIEndpointFactory =
+                new DvadAPIEndpointFactory(parameterStoreService);
+
+        return new DvadThirdPartyAPIService(
+                dvadAPIEndpointFactory,
+                parameterStoreService,
+                eventProbe,
+                closeableHttpClient,
+                objectMapper);
+    }
+
     public ThirdPartyAPIService getDvadThirdPartyAPIService() {
         return thirdPartyAPIServices[DVAD];
+    }
+
+    public ThirdPartyAPIService getDvadThirdPartyAPIServiceForStub() {
+        return thirdPartyAPIServices[STUB];
     }
 }
