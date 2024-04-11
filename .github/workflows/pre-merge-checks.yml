@@ -9,6 +9,7 @@ on:
       - reopened
       - ready_for_review
       - synchronize
+  workflow_dispatch: # deploy manually
 
 jobs:
   style-checks:

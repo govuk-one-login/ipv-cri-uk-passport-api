@@ -5,6 +5,7 @@ on:
     # Every weekday between 9 - 5 every 2 hours
     - cron: '0 9-17/2 * * 1-5'
   push:
+  workflow_dispatch: # deploy manually
 
 jobs:
   smoke:
