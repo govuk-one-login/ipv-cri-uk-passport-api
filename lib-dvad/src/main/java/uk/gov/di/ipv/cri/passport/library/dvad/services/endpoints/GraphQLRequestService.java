@@ -24,6 +24,7 @@ import uk.gov.di.ipv.cri.passport.library.error.ErrorResponse;
 import uk.gov.di.ipv.cri.passport.library.exceptions.OAuthErrorResponseException;
 import uk.gov.di.ipv.cri.passport.library.util.HTTPReply;
 import uk.gov.di.ipv.cri.passport.library.util.HTTPReplyHelper;
+import uk.gov.di.ipv.cri.passport.library.util.StopWatch;
 
 import java.io.IOException;
 import java.net.URI;
@@ -38,6 +39,7 @@ import static uk.gov.di.ipv.cri.passport.library.dvad.domain.response.RequestHea
 import static uk.gov.di.ipv.cri.passport.library.metrics.ThirdPartyAPIEndpointMetric.DVAD_GRAPHQL_REQUEST_CREATED;
 import static uk.gov.di.ipv.cri.passport.library.metrics.ThirdPartyAPIEndpointMetric.DVAD_GRAPHQL_REQUEST_SEND_ERROR;
 import static uk.gov.di.ipv.cri.passport.library.metrics.ThirdPartyAPIEndpointMetric.DVAD_GRAPHQL_REQUEST_SEND_OK;
+import static uk.gov.di.ipv.cri.passport.library.metrics.ThirdPartyAPIEndpointMetric.DVAD_GRAPHQL_RESPONSE_LATENCY;
 import static uk.gov.di.ipv.cri.passport.library.metrics.ThirdPartyAPIEndpointMetric.DVAD_GRAPHQL_RESPONSE_TYPE_EXPECTED_HTTP_STATUS;
 import static uk.gov.di.ipv.cri.passport.library.metrics.ThirdPartyAPIEndpointMetric.DVAD_GRAPHQL_RESPONSE_TYPE_INVALID;
 import static uk.gov.di.ipv.cri.passport.library.metrics.ThirdPartyAPIEndpointMetric.DVAD_GRAPHQL_RESPONSE_TYPE_UNEXPECTED_HTTP_STATUS;
@@ -57,6 +59,8 @@ public class GraphQLRequestService {
 
     private final EventProbe eventProbe;
 
+    private final StopWatch stopWatch;
+
     public GraphQLRequestService(
             String endpoint,
             CloseableHttpClient closeableHttpClient,
@@ -68,6 +72,7 @@ public class GraphQLRequestService {
         this.requestConfig = requestConfig;
         this.objectMapper = objectMapper;
         this.eventProbe = eventProbe;
+        this.stopWatch = new StopWatch();
     }
 
     public GraphQLServiceResult performGraphQLQuery(
@@ -125,6 +130,7 @@ public class GraphQLRequestService {
         String requestURIString = requestURI.toString();
         LOGGER.debug("GraphQL request endpoint is {}", requestURIString);
         LOGGER.info("Submitting GraphQL request to third party...");
+        stopWatch.start();
         try (CloseableHttpResponse response = closeableHttpClient.execute(request)) {
 
             eventProbe.counterMetric(DVAD_GRAPHQL_REQUEST_SEND_OK.withEndpointPrefix());
@@ -133,6 +139,10 @@ public class GraphQLRequestService {
             httpReply =
                     HTTPReplyHelper.retrieveStatusCodeAndBodyFromResponse(response, ENDPOINT_NAME);
         } catch (IOException e) {
+            // No Response Latency
+            eventProbe.counterMetric(
+                    DVAD_GRAPHQL_RESPONSE_LATENCY.withEndpointPrefix(), stopWatch.stop());
+
             LOGGER.error("IOException executing GraphQL request - {}", e.getMessage());
 
             eventProbe.counterMetric(
@@ -142,6 +152,10 @@ public class GraphQLRequestService {
                     HttpStatusCode.INTERNAL_SERVER_ERROR,
                     ErrorResponse.ERROR_INVOKING_THIRD_PARTY_API_GRAPHQL_ENDPOINT);
         }
+
+        // Response Latency
+        eventProbe.counterMetric(
+                DVAD_GRAPHQL_RESPONSE_LATENCY.withEndpointPrefix(), stopWatch.stop());
 
         if (httpReply.statusCode == 200) {
 

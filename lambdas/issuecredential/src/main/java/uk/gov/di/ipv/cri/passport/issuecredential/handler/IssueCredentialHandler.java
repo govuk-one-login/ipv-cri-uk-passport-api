@@ -38,6 +38,7 @@ import uk.gov.di.ipv.cri.passport.issuecredential.service.VerifiableCredentialSe
 import uk.gov.di.ipv.cri.passport.issuecredential.util.IssueCredentialPassportAuditExtensionUtil;
 import uk.gov.di.ipv.cri.passport.library.error.CommonExpressOAuthError;
 import uk.gov.di.ipv.cri.passport.library.helpers.PersonIdentityDetailedHelperMapper;
+import uk.gov.di.ipv.cri.passport.library.metrics.Definitions;
 import uk.gov.di.ipv.cri.passport.library.persistence.DocumentCheckResultItem;
 import uk.gov.di.ipv.cri.passport.library.service.ServiceFactory;
 
@@ -52,7 +53,6 @@ import static uk.gov.di.ipv.cri.common.library.error.ErrorResponse.SESSION_EXPIR
 import static uk.gov.di.ipv.cri.common.library.error.ErrorResponse.SESSION_NOT_FOUND;
 import static uk.gov.di.ipv.cri.passport.library.metrics.Definitions.LAMBDA_ISSUE_CREDENTIAL_COMPLETED_ERROR;
 import static uk.gov.di.ipv.cri.passport.library.metrics.Definitions.LAMBDA_ISSUE_CREDENTIAL_COMPLETED_OK;
-import static uk.gov.di.ipv.cri.passport.library.metrics.Definitions.LAMBDA_ISSUE_CREDENTIAL_FUNCTION_INIT_DURATION;
 import static uk.gov.di.ipv.cri.passport.library.metrics.Definitions.PASSPORT_CI_PREFIX;
 
 public class IssueCredentialHandler
@@ -78,6 +78,9 @@ public class IssueCredentialHandler
 
     // Shared DataStore (Read)
     private DataStore<DocumentCheckResultItem> documentCheckResultStore;
+
+    private long functionInitMetricLatchedValue = 0;
+    private boolean functionInitMetricCaptured = false;
 
     public IssueCredentialHandler() {
         // A reference to serviceFactory is not held in this class
@@ -118,13 +121,8 @@ public class IssueCredentialHandler
         this.verifiableCredentialService = verifiableCredentialService;
 
         // Runtime/SnapStart function init duration
-        long runTimeFunctionInitDuration =
+        functionInitMetricLatchedValue =
                 System.currentTimeMillis() - FUNCTION_INIT_START_TIME_MILLISECONDS;
-
-        eventProbe.counterMetric(
-                LAMBDA_ISSUE_CREDENTIAL_FUNCTION_INIT_DURATION, runTimeFunctionInitDuration);
-
-        LOGGER.info("Lambda function init duration {}ms", runTimeFunctionInitDuration);
     }
 
     @Override
@@ -138,6 +136,16 @@ public class IssueCredentialHandler
                     "Initiating lambda {} version {}",
                     context.getFunctionName(),
                     context.getFunctionVersion());
+
+            // Recorded here as sending metrics during function init may fail depending on lambda
+            // config
+            if (!functionInitMetricCaptured) {
+                eventProbe.counterMetric(
+                        Definitions.LAMBDA_ISSUE_CREDENTIAL_FUNCTION_INIT_DURATION,
+                        functionInitMetricLatchedValue);
+                LOGGER.info("Lambda function init duration {}ms", functionInitMetricLatchedValue);
+                functionInitMetricCaptured = true;
+            }
 
             long runTimeDuration =
                     System.currentTimeMillis() - FUNCTION_INIT_START_TIME_MILLISECONDS;
