@@ -25,10 +25,6 @@ public class ThirdPartyAPIServiceFactory {
     private static final int STUB = 1;
     private final ThirdPartyAPIService[] thirdPartyAPIServices = new ThirdPartyAPIService[2];
 
-    // TLS On/Off
-    private final boolean tlsOn =
-            !Boolean.parseBoolean(System.getenv("DVAD_PERFORMANCE_STUB_IN_USE"));
-
     public ThirdPartyAPIServiceFactory(ServiceFactory serviceFactory)
             throws JsonProcessingException {
         this.parameterStoreService = serviceFactory.getParameterStoreService();
@@ -45,7 +41,7 @@ public class ThirdPartyAPIServiceFactory {
 
         CloseableHttpClient closeableHttpClient =
                 new DVADCloseableHttpClientFactory()
-                        .getClient(tlsOn, parameterStoreService, clientFactoryService);
+                        .getClient(true, parameterStoreService, clientFactoryService);
 
         // Reduces constructor load in DvadThirdPartyAPIService and allow endpoints to be mocked
         DvadAPIEndpointFactory dvadAPIEndpointFactory =

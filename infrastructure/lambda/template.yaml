@@ -222,15 +222,6 @@ Mappings:
       integration: "false"
       production: "false"
 
-  # Set as EnvVar on the CheckLambda
-  DVADPerformanceStubEnabledEnvVar:
-    Environment:
-      dev: "true"
-      build: "true"
-      staging: "false"
-      integration: "false"
-      production: "false"
-
 Resources:
 
 ####################################################################
@@ -462,7 +453,6 @@ Resources:
         Variables:
           POWERTOOLS_SERVICE_NAME: !Sub "${CriIdentifier}-checkpassport"
           ENVIRONMENT: !Ref Environment
-          DVAD_PERFORMANCE_STUB_IN_USE: !FindInMap [DVADPerformanceStubEnabledEnvVar, Environment, !Ref 'Environment']
           DEV_ENVIRONMENT_ONLY_ENHANCED_DEBUG: !FindInMap [ DevEnvironmentOnlyEnhancedDebugMapping, Environment, !Ref Environment ]
       Policies:
         - DynamoDBWritePolicy:
