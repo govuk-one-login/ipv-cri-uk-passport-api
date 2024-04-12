@@ -16,6 +16,7 @@ import uk.gov.di.ipv.cri.passport.library.error.ErrorResponse;
 import uk.gov.di.ipv.cri.passport.library.exceptions.OAuthErrorResponseException;
 import uk.gov.di.ipv.cri.passport.library.util.HTTPReply;
 import uk.gov.di.ipv.cri.passport.library.util.HTTPReplyHelper;
+import uk.gov.di.ipv.cri.passport.library.util.StopWatch;
 
 import java.io.IOException;
 import java.net.URI;
@@ -28,6 +29,7 @@ import static uk.gov.di.ipv.cri.passport.library.dvad.domain.response.RequestHea
 import static uk.gov.di.ipv.cri.passport.library.metrics.ThirdPartyAPIEndpointMetric.DVAD_HEALTH_REQUEST_CREATED;
 import static uk.gov.di.ipv.cri.passport.library.metrics.ThirdPartyAPIEndpointMetric.DVAD_HEALTH_REQUEST_SEND_ERROR;
 import static uk.gov.di.ipv.cri.passport.library.metrics.ThirdPartyAPIEndpointMetric.DVAD_HEALTH_REQUEST_SEND_OK;
+import static uk.gov.di.ipv.cri.passport.library.metrics.ThirdPartyAPIEndpointMetric.DVAD_HEALTH_RESPONSE_LATENCY;
 import static uk.gov.di.ipv.cri.passport.library.metrics.ThirdPartyAPIEndpointMetric.DVAD_HEALTH_RESPONSE_STATUS_DOWN;
 import static uk.gov.di.ipv.cri.passport.library.metrics.ThirdPartyAPIEndpointMetric.DVAD_HEALTH_RESPONSE_STATUS_UP;
 import static uk.gov.di.ipv.cri.passport.library.metrics.ThirdPartyAPIEndpointMetric.DVAD_HEALTH_RESPONSE_TYPE_EXPECTED_HTTP_STATUS;
@@ -50,6 +52,8 @@ public class HealthCheckService {
 
     private final EventProbe eventProbe;
 
+    private final StopWatch stopWatch;
+
     public HealthCheckService(
             String endpoint,
             CloseableHttpClient closeableHttpClient,
@@ -61,6 +65,7 @@ public class HealthCheckService {
         this.requestConfig = requestConfig;
         this.objectMapper = objectMapper;
         this.eventProbe = eventProbe;
+        this.stopWatch = new StopWatch();
     }
 
     public boolean checkRemoteApiIsUp(DvadAPIHeaderValues dvadAPIHeaderValues)
@@ -85,6 +90,7 @@ public class HealthCheckService {
         String requestURIString = requestURI.toString();
         LOGGER.debug("Health check endpoint is {}", requestURIString);
         LOGGER.info("Submitting health check request to third party...");
+        stopWatch.start();
         try (CloseableHttpResponse response = closeableHttpClient.execute(request)) {
 
             eventProbe.counterMetric(DVAD_HEALTH_REQUEST_SEND_OK.withEndpointPrefix());
@@ -93,6 +99,11 @@ public class HealthCheckService {
             httpReply =
                     HTTPReplyHelper.retrieveStatusCodeAndBodyFromResponse(response, ENDPOINT_NAME);
         } catch (IOException e) {
+
+            // No Response Latency
+            eventProbe.counterMetric(
+                    DVAD_HEALTH_RESPONSE_LATENCY.withEndpointPrefix(), stopWatch.stop());
+
             LOGGER.error("IOException executing health check request - {}", e.getMessage());
 
             eventProbe.counterMetric(
@@ -102,6 +113,10 @@ public class HealthCheckService {
                     HttpStatusCode.INTERNAL_SERVER_ERROR,
                     ErrorResponse.ERROR_INVOKING_THIRD_PARTY_API_HEALTH_ENDPOINT);
         }
+
+        // Response Latency
+        eventProbe.counterMetric(
+                DVAD_HEALTH_RESPONSE_LATENCY.withEndpointPrefix(), stopWatch.stop());
 
         if (httpReply.statusCode == 200) {
             LOGGER.info("HealthCheck status code {}", httpReply.statusCode);

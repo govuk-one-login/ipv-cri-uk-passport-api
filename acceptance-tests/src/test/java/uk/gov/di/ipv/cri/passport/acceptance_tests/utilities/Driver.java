@@ -64,7 +64,7 @@ public class Driver {
                     WebDriverManager.firefoxdriver().setup();
 
                     FirefoxOptions firefoxOptions = new FirefoxOptions();
-                    firefoxOptions.addArguments("--headless");
+                    firefoxOptions.addArguments("-headless");
 
                     driverPool.set(new FirefoxDriver(firefoxOptions));
                     break;
