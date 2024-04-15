@@ -20,8 +20,8 @@ Feature: Passport Test
     And exp should be absent in the JSON payload
     And The test is complete and I close the driver
     Examples:
-      |PassportSubject             |
-      |PassportSubjectHappyKenneth |
+      | PassportSubject             |
+      | PassportSubjectHappyKenneth |
 
 
   @build @staging @integration @smoke @stub @uat
@@ -30,8 +30,8 @@ Feature: Passport Test
     And User re-enters last name as <InvalidLastName>
     When User clicks on continue
     Examples:
-      |PassportSubject             | InvalidLastName |
-      |PassportSubjectHappyKenneth | KYLE123         |
+      | PassportSubject             | InvalidLastName |
+      | PassportSubjectHappyKenneth | KYLE123         |
 
 
   @build @staging @integration @smoke @stub @uat
@@ -59,6 +59,7 @@ Feature: Passport Test
   @build @staging @integration @stub @uat
   Scenario Outline: Passport details page unhappy path with IncorrectPassportNumber
     Given User enters data as a <PassportSubject>
+    And User re-enters passport number as <InvalidPassportNumber>
     When User clicks on continue
     Then Proper error message for Could not find your details is displayed
     When User clicks on continue
@@ -67,12 +68,15 @@ Feature: Passport Test
     And JSON response should contain documentNumber 887766551 same as given passport
     And The test is complete and I close the driver
     Examples:
-      |PassportSubject      |
-      |IncorrectPassportNumber |
+      | PassportSubject             | InvalidPassportNumber |
+      | PassportSubjectHappyKenneth | 887766551             |
 
   @build @staging @integration @stub @uat
   Scenario Outline: Passport details page unhappy path with IncorrectDateOfBirth
     Given User enters data as a <PassportSubject>
+    And User re-enters birth day as <InvalidBirthDay>
+    And User re-enters birth month as <InvalidBirthMonth>
+    And User re-enters birth year as <InvalidBirthYear>
     When User clicks on continue
     Then Proper error message for Could not find your details is displayed
     When User clicks on continue
@@ -80,12 +84,13 @@ Feature: Passport Test
     And JSON payload should contain ci D02, validity score 0 and strength score 4
     And The test is complete and I close the driver
     Examples:
-      |PassportSubject |
-      |IncorrectDateOfBirth |
+      | PassportSubject             | InvalidBirthDay | InvalidBirthMonth | InvalidBirthYear |
+      | PassportSubjectHappyKenneth | 12              | 08                | 1985             |
 
   @build @staging @integration @stub @uat
   Scenario Outline: Passport details page unhappy path with IncorrectFirstName
     Given User enters data as a <PassportSubject>
+    And User re-enters first name as <InvalidFirstName>
     When User clicks on continue
     Then Proper error message for Could not find your details is displayed
     When User clicks on continue
@@ -93,12 +98,13 @@ Feature: Passport Test
     And JSON payload should contain ci D02, validity score 0 and strength score 4
     And The test is complete and I close the driver
     Examples:
-      |PassportSubject |
-      |IncorrectFirstName|
+      | PassportSubject             | InvalidFirstName |
+      | PassportSubjectHappyKenneth | SELINA           |
 
   @build @staging @integration @stub @uat
   Scenario Outline: Passport details page unhappy path with IncorrectLastName
     Given User enters data as a <PassportSubject>
+    And User re-enters last name as <InvalidLastName>
     When User clicks on continue
     Then Proper error message for Could not find your details is displayed
     When User clicks on continue
@@ -106,8 +112,8 @@ Feature: Passport Test
     And JSON payload should contain ci D02, validity score 0 and strength score 4
     And The test is complete and I close the driver
     Examples:
-      |PassportSubject |
-      |IncorrectLastName|
+      | PassportSubject             | InvalidLastName |
+      | PassportSubjectHappyKenneth | KYLE            |
 
 # # Invalid test - expiry date not checked in DCS stub
 #  @Passport_test @build @staging @integration
@@ -134,8 +140,8 @@ Feature: Passport Test
     And JSON payload should contain validity score 2 and strength score 4
     And The test is complete and I close the driver
     Examples:
-      |PassportSubject |
-      |PassportSubjectHappyKenneth |
+      | PassportSubject             |
+      | PassportSubjectHappyKenneth |
 
   @build @staging @integration @smoke @stub @uat
   Scenario Outline: Passport User failed second attempt
@@ -143,13 +149,14 @@ Feature: Passport Test
     When User clicks on continue
     Then Proper error message for Could not find your details is displayed
     When User Re-enters data as a <PassportSubject>
+    And User re-enters passport number as <InvalidPassportNumber>
     And User clicks on continue
     Then I navigate to the passport verifiable issuer to check for a Valid response
     And JSON payload should contain ci D02, validity score 0 and strength score 4
     And The test is complete and I close the driver
     Examples:
-      |PassportSubject |
-      |IncorrectPassportNumber |
+      | PassportSubject             | InvalidPassportNumber |
+      | PassportSubjectHappyKenneth | 887766551             |
 
   @build @staging @integration @smoke @stub @uat
   Scenario: Passport User cancels after failed first attempt
@@ -172,14 +179,15 @@ Feature: Passport Test
   @build @staging @integration @smoke @stub @uat
   Scenario Outline: Passport Generate VC with invalid Passport number and prove in another way unhappy path
     Given User enters data as a <PassportSubject>
+    And User re-enters passport number as <InvalidPassportNumber>
     When User clicks on continue
     When User click on ‘prove your identity another way' Link
     Then I navigate to the passport verifiable issuer to check for a Valid response
     And JSON response should contain documentNumber 887766551 same as given passport
     And The test is complete and I close the driver
     Examples:
-      |PassportSubject           |
-      | IncorrectPassportNumber     |
+      | PassportSubject             | InvalidPassportNumber |
+      | PassportSubjectHappyKenneth | 887766551             |
 
   @build @staging @integration @smoke @stub @uat
   Scenario Outline: Passport expiry date valid
@@ -193,7 +201,7 @@ Feature: Passport Test
     And The test is complete and I close the driver
     Examples:
       | PassportSubject             | months | daysToSubtract |
-      | PassportSubjectHappyKenneth | 18     | 0 |
+      | PassportSubjectHappyKenneth | 18     | 0              |
 
   @build @staging @integration @smoke @stub @uat
   Scenario Outline: Passport expiry date invalid
@@ -206,8 +214,8 @@ Feature: Passport Test
 
     Examples:
       | PassportSubject             | months | daysToSubtract |
-      | PassportSubjectHappyKenneth | 18     | 1 |
-      | PassportSubjectHappyKenneth | 18     | 2 |
+      | PassportSubjectHappyKenneth | 18     | 1              |
+      | PassportSubjectHappyKenneth | 18     | 2              |
 
   @build @staging @integration @stub @uat
   Scenario: Check the Unrecoverable error/ Unknown error in Passport CRI
@@ -223,17 +231,17 @@ Feature: Passport Test
     Then I check the page title is Error: Enter your details exactly as they appear on your UK passport – Prove your identity – GOV.UK
     And The test is complete and I close the driver
     Examples:
-      |PassportSubject             |
-      |NoLastName   |
-      |NoFirstName |
-      |NoDateOfBirth   |
-      |NoValidToDate  |
-      |NoPassportNumber |
-      |InvalidFirstNameWithNumbers|
-      |InvalidFirstNameWithSpecialCharacters|
-      |DateOfBirthWithSpecialCharacters     |
-      |InvalidDateOfBirth|
-      |DateOfBirthInFuture            |
-      |ValidToDateWithSpecialCharacters|
-      |ValidToDateInPast |
-      |PassportNumberWithSpecialChar|
+      | PassportSubject                       |
+      | NoLastName                            |
+      | NoFirstName                           |
+      | NoDateOfBirth                         |
+      | NoValidToDate                         |
+      | NoPassportNumber                      |
+      | InvalidFirstNameWithNumbers           |
+      | InvalidFirstNameWithSpecialCharacters |
+      | DateOfBirthWithSpecialCharacters      |
+      | InvalidDateOfBirth                    |
+      | DateOfBirthInFuture                   |
+      | ValidToDateWithSpecialCharacters      |
+      | ValidToDateInPast                     |
+      | PassportNumberWithSpecialChar         |
