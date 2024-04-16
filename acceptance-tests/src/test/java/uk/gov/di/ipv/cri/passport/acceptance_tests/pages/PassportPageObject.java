@@ -99,6 +99,12 @@ public class PassportPageObject extends UniversalSteps {
     @FindBy(xpath = "//*[@id=\"main-content\"]/div/div/div/a")
     public WebElement proveAnotherWay;
 
+    @FindBy(xpath = "/html/body/div[2]/nav/ul/li[2]/a")
+    public WebElement languageToggle;
+
+    @FindBy(xpath = "/html/body/div[2]/nav/ul/li[1]/a")
+    public WebElement languageToggleWales;
+
     @FindBy(id = "proveAnotherWayRadio")
     public WebElement proveAnotherWayRadio;
 
