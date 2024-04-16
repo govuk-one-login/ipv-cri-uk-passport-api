@@ -426,6 +426,16 @@ public class PassportStepDefs extends PassportPageObject {
         proveAnotherWay.click();
     }
 
+    @Given("User clicks on language toggle and switches to Welsh")
+    public void userClickOnLanguageToggle() {
+        languageToggle.click();
+    }
+
+    @Given("User clicks language toggle and switches to English")
+    public void userClickOnLanguageToggleWales() {
+        languageToggleWales.click();
+    }
+
     @Given("User selects prove another way radio button")
     public void userClickOnProveYourIdentityAnotherWayRadio() {
         proveAnotherWayRadio.click();

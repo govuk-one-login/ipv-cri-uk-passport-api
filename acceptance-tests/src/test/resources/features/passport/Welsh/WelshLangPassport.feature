@@ -211,3 +211,19 @@ Feature: Passport Language Test
     Examples:
       |PassportSubject |
       |InvalidDateOfBirth |
+
+  @Language-regression
+  Scenario Outline: Language Title validation
+    Given User clicks language toggle and switches to English
+    Then I check the page title is Enter your details exactly as they appear on your UK passport – Prove your identity – GOV.UK
+    Then User enters data as a <PassportSubject>
+    When User clicks on continue
+    Then I navigate to the passport verifiable issuer to check for a Valid response
+    And JSON payload should contain validity score 2 and strength score 4
+    And JSON response should contain documentNumber 321654987 same as given passport
+    And Passport VC should contain JTI field
+    And exp should be absent in the JSON payload
+    And The test is complete and I close the driver
+    Examples:
+      | PassportSubject             |
+      | PassportSubjectHappyKenneth |
