@@ -36,6 +36,8 @@ import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyDouble;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.inOrder;
 import static org.mockito.Mockito.times;
@@ -44,6 +46,7 @@ import static org.mockito.Mockito.when;
 import static uk.gov.di.ipv.cri.passport.library.metrics.ThirdPartyAPIEndpointMetric.DVAD_HEALTH_REQUEST_CREATED;
 import static uk.gov.di.ipv.cri.passport.library.metrics.ThirdPartyAPIEndpointMetric.DVAD_HEALTH_REQUEST_SEND_ERROR;
 import static uk.gov.di.ipv.cri.passport.library.metrics.ThirdPartyAPIEndpointMetric.DVAD_HEALTH_REQUEST_SEND_OK;
+import static uk.gov.di.ipv.cri.passport.library.metrics.ThirdPartyAPIEndpointMetric.DVAD_HEALTH_RESPONSE_LATENCY;
 import static uk.gov.di.ipv.cri.passport.library.metrics.ThirdPartyAPIEndpointMetric.DVAD_HEALTH_RESPONSE_STATUS_DOWN;
 import static uk.gov.di.ipv.cri.passport.library.metrics.ThirdPartyAPIEndpointMetric.DVAD_HEALTH_RESPONSE_STATUS_UP;
 import static uk.gov.di.ipv.cri.passport.library.metrics.ThirdPartyAPIEndpointMetric.DVAD_HEALTH_RESPONSE_TYPE_EXPECTED_HTTP_STATUS;
@@ -137,6 +140,9 @@ class HealthCheckServiceTest {
                 .counterMetric(DVAD_HEALTH_REQUEST_SEND_OK.withEndpointPrefix());
         inOrderMockEventProbeSequence
                 .verify(mockEventProbe)
+                .counterMetric(eq(DVAD_HEALTH_RESPONSE_LATENCY.withEndpointPrefix()), anyDouble());
+        inOrderMockEventProbeSequence
+                .verify(mockEventProbe)
                 .counterMetric(DVAD_HEALTH_RESPONSE_TYPE_EXPECTED_HTTP_STATUS.withEndpointPrefix());
         inOrderMockEventProbeSequence
                 .verify(mockEventProbe)
@@ -192,6 +198,9 @@ class HealthCheckServiceTest {
                 .counterMetric(DVAD_HEALTH_REQUEST_SEND_OK.withEndpointPrefix());
         inOrderMockEventProbeSequence
                 .verify(mockEventProbe)
+                .counterMetric(eq(DVAD_HEALTH_RESPONSE_LATENCY.withEndpointPrefix()), anyDouble());
+        inOrderMockEventProbeSequence
+                .verify(mockEventProbe)
                 .counterMetric(
                         DVAD_HEALTH_RESPONSE_TYPE_UNEXPECTED_HTTP_STATUS.withEndpointPrefix());
         verifyNoMoreInteractions(mockEventProbe);
@@ -242,6 +251,9 @@ class HealthCheckServiceTest {
                 .counterMetric(DVAD_HEALTH_REQUEST_SEND_OK.withEndpointPrefix());
         inOrderMockEventProbeSequence
                 .verify(mockEventProbe)
+                .counterMetric(eq(DVAD_HEALTH_RESPONSE_LATENCY.withEndpointPrefix()), anyDouble());
+        inOrderMockEventProbeSequence
+                .verify(mockEventProbe)
                 .counterMetric(DVAD_HEALTH_RESPONSE_TYPE_EXPECTED_HTTP_STATUS.withEndpointPrefix());
         inOrderMockEventProbeSequence
                 .verify(mockEventProbe)
@@ -283,6 +295,9 @@ class HealthCheckServiceTest {
         inOrderMockEventProbeSequence
                 .verify(mockEventProbe)
                 .counterMetric(DVAD_HEALTH_REQUEST_CREATED.withEndpointPrefix());
+        inOrderMockEventProbeSequence
+                .verify(mockEventProbe)
+                .counterMetric(eq(DVAD_HEALTH_RESPONSE_LATENCY.withEndpointPrefix()), anyDouble());
         inOrderMockEventProbeSequence
                 .verify(mockEventProbe)
                 .counterMetric(

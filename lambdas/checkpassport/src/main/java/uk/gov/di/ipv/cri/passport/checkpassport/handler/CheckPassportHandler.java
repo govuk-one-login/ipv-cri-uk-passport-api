@@ -34,6 +34,7 @@ import uk.gov.di.ipv.cri.passport.library.error.CommonExpressOAuthError;
 import uk.gov.di.ipv.cri.passport.library.error.ErrorResponse;
 import uk.gov.di.ipv.cri.passport.library.exceptions.OAuthErrorResponseException;
 import uk.gov.di.ipv.cri.passport.library.helpers.PersonIdentityDetailedHelperMapper;
+import uk.gov.di.ipv.cri.passport.library.metrics.Definitions;
 import uk.gov.di.ipv.cri.passport.library.persistence.DocumentCheckResultItem;
 import uk.gov.di.ipv.cri.passport.library.service.ParameterStoreService;
 import uk.gov.di.ipv.cri.passport.library.service.ServiceFactory;
@@ -86,6 +87,9 @@ public class CheckPassportHandler
 
     private ThirdPartyAPIServiceFactory thirdPartyAPIServiceFactory;
 
+    private long functionInitMetricLatchedValue = 0;
+    private boolean functionInitMetricCaptured = false;
+
     public CheckPassportHandler() throws JsonProcessingException {
         // A reference to serviceFactory is not held in this class
         ServiceFactory serviceFactory = new ServiceFactory();
@@ -126,13 +130,8 @@ public class CheckPassportHandler
         this.thirdPartyAPIServiceFactory = new ThirdPartyAPIServiceFactory(serviceFactory);
 
         // Runtime/SnapStart function init duration
-        long runTimeFunctionInitDuration =
+        functionInitMetricLatchedValue =
                 System.currentTimeMillis() - FUNCTION_INIT_START_TIME_MILLISECONDS;
-
-        eventProbe.counterMetric(
-                LAMBDA_CHECK_PASSPORT_FUNCTION_INIT_DURATION, runTimeFunctionInitDuration);
-
-        LOGGER.info("Lambda function init duration {}ms", runTimeFunctionInitDuration);
     }
 
     @Override
@@ -145,6 +144,16 @@ public class CheckPassportHandler
                     "Initiating lambda {} version {}",
                     context.getFunctionName(),
                     context.getFunctionVersion());
+
+            // Recorded here as sending metrics during function init may fail depending on lambda
+            // config
+            if (!functionInitMetricCaptured) {
+                eventProbe.counterMetric(
+                        Definitions.LAMBDA_CHECK_PASSPORT_FUNCTION_INIT_DURATION,
+                        functionInitMetricLatchedValue);
+                LOGGER.info("Lambda function init duration {}ms", functionInitMetricLatchedValue);
+                functionInitMetricCaptured = true;
+            }
 
             long runTimeDuration =
                     System.currentTimeMillis() - FUNCTION_INIT_START_TIME_MILLISECONDS;

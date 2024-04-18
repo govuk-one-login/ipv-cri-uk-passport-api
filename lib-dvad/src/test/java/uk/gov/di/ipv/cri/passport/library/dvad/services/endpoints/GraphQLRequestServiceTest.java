@@ -41,6 +41,8 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyDouble;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.inOrder;
 import static org.mockito.Mockito.times;
@@ -49,6 +51,7 @@ import static org.mockito.Mockito.when;
 import static uk.gov.di.ipv.cri.passport.library.metrics.ThirdPartyAPIEndpointMetric.DVAD_GRAPHQL_REQUEST_CREATED;
 import static uk.gov.di.ipv.cri.passport.library.metrics.ThirdPartyAPIEndpointMetric.DVAD_GRAPHQL_REQUEST_SEND_ERROR;
 import static uk.gov.di.ipv.cri.passport.library.metrics.ThirdPartyAPIEndpointMetric.DVAD_GRAPHQL_REQUEST_SEND_OK;
+import static uk.gov.di.ipv.cri.passport.library.metrics.ThirdPartyAPIEndpointMetric.DVAD_GRAPHQL_RESPONSE_LATENCY;
 import static uk.gov.di.ipv.cri.passport.library.metrics.ThirdPartyAPIEndpointMetric.DVAD_GRAPHQL_RESPONSE_TYPE_EXPECTED_HTTP_STATUS;
 import static uk.gov.di.ipv.cri.passport.library.metrics.ThirdPartyAPIEndpointMetric.DVAD_GRAPHQL_RESPONSE_TYPE_INVALID;
 import static uk.gov.di.ipv.cri.passport.library.metrics.ThirdPartyAPIEndpointMetric.DVAD_GRAPHQL_RESPONSE_TYPE_UNEXPECTED_HTTP_STATUS;
@@ -151,6 +154,9 @@ class GraphQLRequestServiceTest {
         inOrderMockEventProbe
                 .verify(mockEventProbe)
                 .counterMetric(DVAD_GRAPHQL_REQUEST_SEND_OK.withEndpointPrefix());
+        inOrderMockEventProbe
+                .verify(mockEventProbe)
+                .counterMetric(eq(DVAD_GRAPHQL_RESPONSE_LATENCY.withEndpointPrefix()), anyDouble());
         inOrderMockEventProbe
                 .verify(mockEventProbe)
                 .counterMetric(
@@ -264,6 +270,9 @@ class GraphQLRequestServiceTest {
                 .counterMetric(DVAD_GRAPHQL_REQUEST_CREATED.withEndpointPrefix());
         inOrderMockEventProbeSequence
                 .verify(mockEventProbe)
+                .counterMetric(eq(DVAD_GRAPHQL_RESPONSE_LATENCY.withEndpointPrefix()), anyDouble());
+        inOrderMockEventProbeSequence
+                .verify(mockEventProbe)
                 .counterMetric(
                         DVAD_GRAPHQL_REQUEST_SEND_ERROR.withEndpointPrefixAndExceptionName(
                                 exceptionCaught));
@@ -330,6 +339,9 @@ class GraphQLRequestServiceTest {
                 .counterMetric(DVAD_GRAPHQL_REQUEST_SEND_OK.withEndpointPrefix());
         inOrderMockEventProbeSequence
                 .verify(mockEventProbe)
+                .counterMetric(eq(DVAD_GRAPHQL_RESPONSE_LATENCY.withEndpointPrefix()), anyDouble());
+        inOrderMockEventProbeSequence
+                .verify(mockEventProbe)
                 .counterMetric(
                         DVAD_GRAPHQL_RESPONSE_TYPE_UNEXPECTED_HTTP_STATUS.withEndpointPrefix());
         verifyNoMoreInteractions(mockEventProbe);
@@ -393,6 +405,9 @@ class GraphQLRequestServiceTest {
         inOrderMockEventProbeSequence
                 .verify(mockEventProbe)
                 .counterMetric(DVAD_GRAPHQL_REQUEST_SEND_OK.withEndpointPrefix());
+        inOrderMockEventProbeSequence
+                .verify(mockEventProbe)
+                .counterMetric(eq(DVAD_GRAPHQL_RESPONSE_LATENCY.withEndpointPrefix()), anyDouble());
         inOrderMockEventProbeSequence
                 .verify(mockEventProbe)
                 .counterMetric(

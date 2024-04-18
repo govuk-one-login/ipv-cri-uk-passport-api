@@ -3,6 +3,7 @@ package uk.gov.di.ipv.cri.passport.library.metrics;
 import uk.gov.di.ipv.cri.passport.library.exceptions.MetricException;
 import uk.gov.di.ipv.cri.passport.library.exceptions.OAuthErrorResponseException;
 
+import static uk.gov.di.ipv.cri.passport.library.metrics.ThirdPartyAPIEndpointMetricType.API_RESPONSE_LATENCY;
 import static uk.gov.di.ipv.cri.passport.library.metrics.ThirdPartyAPIEndpointMetricType.API_RESPONSE_TYPE_ERROR;
 import static uk.gov.di.ipv.cri.passport.library.metrics.ThirdPartyAPIEndpointMetricType.API_RESPONSE_TYPE_EXPECTED_HTTP_STATUS;
 import static uk.gov.di.ipv.cri.passport.library.metrics.ThirdPartyAPIEndpointMetricType.API_RESPONSE_TYPE_INVALID;
@@ -36,6 +37,8 @@ public enum ThirdPartyAPIEndpointMetric {
     DVAD_HEALTH_RESPONSE_TYPE_UNEXPECTED_HTTP_STATUS(
             DVAD_THIRD_PARTY_API_HEALTH_ENDPOINT, API_RESPONSE_TYPE_UNEXPECTED_HTTP_STATUS),
 
+    DVAD_HEALTH_RESPONSE_LATENCY(DVAD_THIRD_PARTY_API_HEALTH_ENDPOINT, API_RESPONSE_LATENCY),
+
     ///////////////////////////////////////////////////////////////////////////////////////////////
     // DVAD Token End Point Metrics                                                              //
     ///////////////////////////////////////////////////////////////////////////////////////////////
@@ -56,6 +59,8 @@ public enum ThirdPartyAPIEndpointMetric {
     DVAD_TOKEN_RESPONSE_TYPE_UNEXPECTED_HTTP_STATUS(
             DVAD_THIRD_PARTY_API_TOKEN_ENDPOINT, API_RESPONSE_TYPE_UNEXPECTED_HTTP_STATUS),
 
+    DVAD_TOKEN_RESPONSE_LATENCY(DVAD_THIRD_PARTY_API_TOKEN_ENDPOINT, API_RESPONSE_LATENCY),
+
     ///////////////////////////////////////////////////////////////////////////////////////////////
     // DVAD GraphQL End Point Metrics                                                            //
     ///////////////////////////////////////////////////////////////////////////////////////////////
@@ -74,6 +79,8 @@ public enum ThirdPartyAPIEndpointMetric {
             DVAD_THIRD_PARTY_API_GRAPHQL_ENDPOINT, API_RESPONSE_TYPE_EXPECTED_HTTP_STATUS),
     DVAD_GRAPHQL_RESPONSE_TYPE_UNEXPECTED_HTTP_STATUS(
             DVAD_THIRD_PARTY_API_GRAPHQL_ENDPOINT, API_RESPONSE_TYPE_UNEXPECTED_HTTP_STATUS),
+
+    DVAD_GRAPHQL_RESPONSE_LATENCY(DVAD_THIRD_PARTY_API_GRAPHQL_ENDPOINT, API_RESPONSE_LATENCY),
     ;
 
     private static final String METRIC_FORMAT = "%s_%s";

@@ -221,7 +221,6 @@ public class PassportAPIPage extends PassportPageObject {
                         .uri(URI.create(publicApiGatewayUrl + "/token"))
                         .setHeader("Accept", "application/json")
                         .setHeader("Content-Type", "application/json")
-                        .setHeader("x-api-key", configurationService.getPublicApiGatewayKey())
                         .POST(HttpRequest.BodyPublishers.ofString(accessTokenRequestBody))
                         .build();
         String accessTokenPostCallResponse = sendHttpRequest(request).body();
@@ -240,7 +239,6 @@ public class PassportAPIPage extends PassportPageObject {
                         .setHeader("Accept", "application/json")
                         .setHeader("Content-Type", "application/json")
                         .setHeader("Authorization", "Bearer " + ACCESS_TOKEN)
-                        .setHeader("x-api-key", configurationService.getPublicApiGatewayKey())
                         .POST(HttpRequest.BodyPublishers.ofString(""))
                         .build();
         String requestPassportVCResponse = sendHttpRequest(request).body();

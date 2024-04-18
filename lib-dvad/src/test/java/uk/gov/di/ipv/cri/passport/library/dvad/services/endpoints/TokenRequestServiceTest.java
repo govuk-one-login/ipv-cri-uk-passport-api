@@ -38,6 +38,8 @@ import static org.junit.jupiter.api.Assertions.assertNotEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyDouble;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.inOrder;
 import static org.mockito.Mockito.times;
@@ -48,6 +50,7 @@ import static uk.gov.di.ipv.cri.passport.library.metrics.ThirdPartyAPIEndpointMe
 import static uk.gov.di.ipv.cri.passport.library.metrics.ThirdPartyAPIEndpointMetric.DVAD_TOKEN_REQUEST_REUSING_CACHED_TOKEN;
 import static uk.gov.di.ipv.cri.passport.library.metrics.ThirdPartyAPIEndpointMetric.DVAD_TOKEN_REQUEST_SEND_ERROR;
 import static uk.gov.di.ipv.cri.passport.library.metrics.ThirdPartyAPIEndpointMetric.DVAD_TOKEN_REQUEST_SEND_OK;
+import static uk.gov.di.ipv.cri.passport.library.metrics.ThirdPartyAPIEndpointMetric.DVAD_TOKEN_RESPONSE_LATENCY;
 import static uk.gov.di.ipv.cri.passport.library.metrics.ThirdPartyAPIEndpointMetric.DVAD_TOKEN_RESPONSE_TYPE_EXPECTED_HTTP_STATUS;
 import static uk.gov.di.ipv.cri.passport.library.metrics.ThirdPartyAPIEndpointMetric.DVAD_TOKEN_RESPONSE_TYPE_INVALID;
 import static uk.gov.di.ipv.cri.passport.library.metrics.ThirdPartyAPIEndpointMetric.DVAD_TOKEN_RESPONSE_TYPE_UNEXPECTED_HTTP_STATUS;
@@ -142,6 +145,9 @@ class TokenRequestServiceTest {
                 .counterMetric(DVAD_TOKEN_REQUEST_SEND_OK.withEndpointPrefix());
         inOrderMockEventProbeSequence
                 .verify(mockEventProbe)
+                .counterMetric(eq(DVAD_TOKEN_RESPONSE_LATENCY.withEndpointPrefix()), anyDouble());
+        inOrderMockEventProbeSequence
+                .verify(mockEventProbe)
                 .counterMetric(DVAD_TOKEN_RESPONSE_TYPE_EXPECTED_HTTP_STATUS.withEndpointPrefix());
         inOrderMockEventProbeSequence
                 .verify(mockEventProbe)
@@ -187,6 +193,9 @@ class TokenRequestServiceTest {
         inOrderMockEventProbeSequence
                 .verify(mockEventProbe)
                 .counterMetric(DVAD_TOKEN_REQUEST_CREATED.withEndpointPrefix());
+        inOrderMockEventProbeSequence
+                .verify(mockEventProbe)
+                .counterMetric(eq(DVAD_TOKEN_RESPONSE_LATENCY.withEndpointPrefix()), anyDouble());
         inOrderMockEventProbeSequence
                 .verify(mockEventProbe)
                 .counterMetric(
@@ -240,6 +249,9 @@ class TokenRequestServiceTest {
                 .counterMetric(DVAD_TOKEN_REQUEST_SEND_OK.withEndpointPrefix());
         inOrderMockEventProbeSequence
                 .verify(mockEventProbe)
+                .counterMetric(eq(DVAD_TOKEN_RESPONSE_LATENCY.withEndpointPrefix()), anyDouble());
+        inOrderMockEventProbeSequence
+                .verify(mockEventProbe)
                 .counterMetric(
                         DVAD_TOKEN_RESPONSE_TYPE_UNEXPECTED_HTTP_STATUS.withEndpointPrefix());
         verifyNoMoreInteractions(mockEventProbe);
@@ -288,6 +300,9 @@ class TokenRequestServiceTest {
         inOrderMockEventProbeSequence
                 .verify(mockEventProbe)
                 .counterMetric(DVAD_TOKEN_REQUEST_SEND_OK.withEndpointPrefix());
+        inOrderMockEventProbeSequence
+                .verify(mockEventProbe)
+                .counterMetric(eq(DVAD_TOKEN_RESPONSE_LATENCY.withEndpointPrefix()), anyDouble());
         inOrderMockEventProbeSequence
                 .verify(mockEventProbe)
                 .counterMetric(DVAD_TOKEN_RESPONSE_TYPE_EXPECTED_HTTP_STATUS.withEndpointPrefix());
@@ -348,6 +363,9 @@ class TokenRequestServiceTest {
                 .counterMetric(DVAD_TOKEN_REQUEST_SEND_OK.withEndpointPrefix());
         inOrderMockEventProbeSequence
                 .verify(mockEventProbe)
+                .counterMetric(eq(DVAD_TOKEN_RESPONSE_LATENCY.withEndpointPrefix()), anyDouble());
+        inOrderMockEventProbeSequence
+                .verify(mockEventProbe)
                 .counterMetric(DVAD_TOKEN_RESPONSE_TYPE_EXPECTED_HTTP_STATUS.withEndpointPrefix());
         inOrderMockEventProbeSequence
                 .verify(mockEventProbe)
@@ -400,6 +418,9 @@ class TokenRequestServiceTest {
         inOrderMockEventProbeSequence
                 .verify(mockEventProbe, times(1))
                 .counterMetric(DVAD_TOKEN_REQUEST_SEND_OK.withEndpointPrefix());
+        inOrderMockEventProbeSequence
+                .verify(mockEventProbe)
+                .counterMetric(eq(DVAD_TOKEN_RESPONSE_LATENCY.withEndpointPrefix()), anyDouble());
         inOrderMockEventProbeSequence
                 .verify(mockEventProbe, times(1))
                 .counterMetric(DVAD_TOKEN_RESPONSE_TYPE_EXPECTED_HTTP_STATUS.withEndpointPrefix());
@@ -462,6 +483,9 @@ class TokenRequestServiceTest {
                 .counterMetric(DVAD_TOKEN_REQUEST_SEND_OK.withEndpointPrefix());
         inOrderMockEventProbeSequence
                 .verify(mockEventProbe, times(1))
+                .counterMetric(eq(DVAD_TOKEN_RESPONSE_LATENCY.withEndpointPrefix()), anyDouble());
+        inOrderMockEventProbeSequence
+                .verify(mockEventProbe, times(1))
                 .counterMetric(DVAD_TOKEN_RESPONSE_TYPE_EXPECTED_HTTP_STATUS.withEndpointPrefix());
         inOrderMockEventProbeSequence
                 .verify(mockEventProbe, times(1))
@@ -473,6 +497,9 @@ class TokenRequestServiceTest {
         inOrderMockEventProbeSequence
                 .verify(mockEventProbe, times(1))
                 .counterMetric(DVAD_TOKEN_REQUEST_SEND_OK.withEndpointPrefix());
+        inOrderMockEventProbeSequence
+                .verify(mockEventProbe, times(1))
+                .counterMetric(eq(DVAD_TOKEN_RESPONSE_LATENCY.withEndpointPrefix()), anyDouble());
         inOrderMockEventProbeSequence
                 .verify(mockEventProbe, times(1))
                 .counterMetric(DVAD_TOKEN_RESPONSE_TYPE_EXPECTED_HTTP_STATUS.withEndpointPrefix());

@@ -19,6 +19,7 @@ import uk.gov.di.ipv.cri.passport.library.error.ErrorResponse;
 import uk.gov.di.ipv.cri.passport.library.exceptions.OAuthErrorResponseException;
 import uk.gov.di.ipv.cri.passport.library.util.HTTPReply;
 import uk.gov.di.ipv.cri.passport.library.util.HTTPReplyHelper;
+import uk.gov.di.ipv.cri.passport.library.util.StopWatch;
 
 import java.io.IOException;
 import java.net.URI;
@@ -35,6 +36,7 @@ import static uk.gov.di.ipv.cri.passport.library.metrics.ThirdPartyAPIEndpointMe
 import static uk.gov.di.ipv.cri.passport.library.metrics.ThirdPartyAPIEndpointMetric.DVAD_TOKEN_REQUEST_REUSING_CACHED_TOKEN;
 import static uk.gov.di.ipv.cri.passport.library.metrics.ThirdPartyAPIEndpointMetric.DVAD_TOKEN_REQUEST_SEND_ERROR;
 import static uk.gov.di.ipv.cri.passport.library.metrics.ThirdPartyAPIEndpointMetric.DVAD_TOKEN_REQUEST_SEND_OK;
+import static uk.gov.di.ipv.cri.passport.library.metrics.ThirdPartyAPIEndpointMetric.DVAD_TOKEN_RESPONSE_LATENCY;
 import static uk.gov.di.ipv.cri.passport.library.metrics.ThirdPartyAPIEndpointMetric.DVAD_TOKEN_RESPONSE_TYPE_EXPECTED_HTTP_STATUS;
 import static uk.gov.di.ipv.cri.passport.library.metrics.ThirdPartyAPIEndpointMetric.DVAD_TOKEN_RESPONSE_TYPE_INVALID;
 import static uk.gov.di.ipv.cri.passport.library.metrics.ThirdPartyAPIEndpointMetric.DVAD_TOKEN_RESPONSE_TYPE_UNEXPECTED_HTTP_STATUS;
@@ -61,6 +63,8 @@ public class TokenRequestService {
 
     private AccessTokenResponseCache accessTokenResponseCache = null;
 
+    private final StopWatch stopWatch;
+
     public TokenRequestService(
             String endpoint,
             CloseableHttpClient closeableHttpClient,
@@ -72,6 +76,7 @@ public class TokenRequestService {
         this.requestConfig = requestConfig;
         this.objectMapper = objectMapper;
         this.eventProbe = eventProbe;
+        this.stopWatch = new StopWatch();
     }
 
     public AccessTokenResponse requestAccessToken(
@@ -173,6 +178,7 @@ public class TokenRequestService {
         String requestURIString = requestURI.toString();
         LOGGER.debug("Token request endpoint is {}", requestURIString);
         LOGGER.info("Submitting token request to third party...");
+        stopWatch.start();
         try (CloseableHttpResponse response = closeableHttpClient.execute(request)) {
 
             eventProbe.counterMetric(DVAD_TOKEN_REQUEST_SEND_OK.withEndpointPrefix());
@@ -181,6 +187,9 @@ public class TokenRequestService {
             httpReply =
                     HTTPReplyHelper.retrieveStatusCodeAndBodyFromResponse(response, ENDPOINT_NAME);
         } catch (IOException e) {
+            // No Response Latency
+            eventProbe.counterMetric(
+                    DVAD_TOKEN_RESPONSE_LATENCY.withEndpointPrefix(), stopWatch.stop());
 
             LOGGER.error("IOException executing token request - {}", e.getMessage());
 
@@ -191,6 +200,10 @@ public class TokenRequestService {
                     HttpStatusCode.INTERNAL_SERVER_ERROR,
                     ErrorResponse.ERROR_INVOKING_THIRD_PARTY_API_TOKEN_ENDPOINT);
         }
+
+        // Response Latency
+        eventProbe.counterMetric(
+                DVAD_TOKEN_RESPONSE_LATENCY.withEndpointPrefix(), stopWatch.stop());
 
         if (httpReply.statusCode == 200) {
             LOGGER.info("Token status code {}", httpReply.statusCode);
