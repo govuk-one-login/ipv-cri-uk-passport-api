@@ -29,8 +29,8 @@ Feature: E2E
     And User should see message as Page Header not returned as expected and title should contain the text user information
     And The test is complete and I close the driver
     Examples:
-      | PassportSubject             | userName                   |
-      | PassportSubjectHappyKenneth |   KennethDecerqueira       |
+      | PassportSubject             | userName           |
+      | PassportSubjectHappyKenneth | KennethDecerqueira |
 
   @E2E
   Scenario Outline: address cri back button recovery page staging  - <userName>
@@ -51,8 +51,8 @@ Feature: E2E
     And User should see message as Page Header not returned as expected and title should contain the text user information
     And The test is complete and I close the driver
     Examples:
-      | PassportSubject             | userName                   |
-      | PassportSubjectHappyKenneth |   KennethDecerqueira       |
+      | PassportSubject             | userName           |
+      | PassportSubjectHappyKenneth | KennethDecerqueira |
 
   @E2E
   Scenario Outline: fraud cri back button recovery page staging  - <userName>
@@ -74,8 +74,8 @@ Feature: E2E
     And User should see message as Page Header not returned as expected and title should contain the text user information
     And The test is complete and I close the driver
     Examples:
-      | PassportSubject             | userName                   |
-      | PassportSubjectHappyKenneth |   KennethDecerqueira       |
+      | PassportSubject             | userName           |
+      | PassportSubjectHappyKenneth | KennethDecerqueira |
 
   @E2E
   Scenario Outline: Passport cri back button recovery page through hyperlink staging - <userName>
@@ -98,8 +98,8 @@ Feature: E2E
     And User should see message as Page Header not returned as expected and title should contain the text user information
     And The test is complete and I close the driver
     Examples:
-      | PassportSubject             | userName                   |
-      | PassportSubjectHappyKenneth |   KennethDecerqueira       |
+      | PassportSubject             | userName           |
+      | PassportSubjectHappyKenneth | KennethDecerqueira |
 
   @E2E
   Scenario Outline: Prove Your Identity Full Journey Route (STUB) happy Path
@@ -119,9 +119,9 @@ Feature: E2E
     Then verify the users address credentials. current address 8 HADLEY ROAD, BATH, BA2 5AA
     And verify the users fraud credentials
     And The test is complete and I close the driver
-      Examples:
-        | PassportSubject           |
-        | PassportSubjectHappyKenneth |
+    Examples:
+      | PassportSubject             |
+      | PassportSubjectHappyKenneth |
 
   @E2E
   Scenario: Prove Your Identity Full Journey Route (STUB) unhappy Path
@@ -136,10 +136,11 @@ Feature: E2E
     And User clicks on continue
     Then Proper error message for Could not find your details is displayed
     When User Re-enters data as a <PassportSubject>
+    And User re-enters passport number as <InvalidPassportNumber>
     And User clicks on continue
     Then I check the page title is Sorry, we could not confirm your details – GOV.UK
     And I can see the heading Sorry, we cannot confirm your identity
     And The test is complete and I close the driver
     Examples:
-      |PassportSubject |
-      |IncorrectPassportNumber |
+      | PassportSubject             | InvalidPassportNumber |
+      | PassportSubjectHappyKenneth | 887766551             |

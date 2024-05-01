@@ -243,21 +243,31 @@ Feature: Passport Test
   Scenario Outline: Error tab title validation
     And I check the page title is Enter your details exactly as they appear on your UK passport – Prove your identity – GOV.UK
     Then User enters data as a <PassportSubject>
+    And User re-enters passport number as <InvalidPassportNumber>
+    And User re-enters last name as <InvalidLastName>
+    And User re-enters first name as <InvalidFirstName>
+    And User re-enters birth day as <InvalidBirthDay>
+    And User re-enters birth month as <InvalidBirthMonth>
+    And User re-enters birth year as <InvalidBirthYear>
+    And User re-enters valid to day as <InvalidValidToDay>
+    And User re-enters valid to month as <InvalidValidToMonth>
+    And User re-enters valid to year as <InvalidValidToYear>
     And User clicks on continue
     Then I check the page title is Error: Enter your details exactly as they appear on your UK passport – Prove your identity – GOV.UK
     And The test is complete and I close the driver
     Examples:
-      | PassportSubject                       |
-      | NoLastName                            |
-      | NoFirstName                           |
-      | NoDateOfBirth                         |
-      | NoValidToDate                         |
-      | NoPassportNumber                      |
-      | InvalidFirstNameWithNumbers           |
-      | InvalidFirstNameWithSpecialCharacters |
-      | DateOfBirthWithSpecialCharacters      |
-      | InvalidDateOfBirth                    |
-      | DateOfBirthInFuture                   |
-      | ValidToDateWithSpecialCharacters      |
-      | ValidToDateInPast                     |
-      | PassportNumberWithSpecialChar         |
+      | PassportSubject             | InvalidPassportNumber | InvalidLastName | InvalidFirstName | InvalidBirthDay | InvalidBirthMonth | InvalidBirthYear | InvalidValidToDay | InvalidValidToMonth | InvalidValidToYear | Scenario                              |
+      | PassportSubjectHappyKenneth | 321654987             |                 | KENNETH          | 08              | 07                | 1965             | 01                | 10                  | 2042               | NoLastName                            |
+      | PassportSubjectHappyKenneth | 321654987             | DECERQUEIRA     |                  | 08              | 07                | 1965             | 01                | 10                  | 2042               | NoFirstName                           |
+      | PassportSubjectHappyKenneth | 321654987             | DECERQUEIRA     | KENNETH          |                 |                   |                  | 01                | 10                  | 2042               | NoDateOfBirth                         |
+      | PassportSubjectHappyKenneth | 321654987             | DECERQUEIRA     | KENNETH          | 08              | 07                | 1965             |                   |                     |                    | NoValidToDate                         |
+      | PassportSubjectHappyKenneth |                       | DECERQUEIRA     | KENNETH          | 08              | 07                | 1965             | 01                | 10                  | 2042               | NoPassportNumber                      |
+      | PassportSubjectHappyKenneth | 321654987             | DECERQUEIRA     | SELINA987        | 08              | 07                | 1965             | 01                | 10                  | 2042               | InvalidFirstNameWithNumbers           |
+      | PassportSubjectHappyKenneth | 321654987             | DECERQUEIRA     | SELINA%$@        | 08              | 07                | 1965             | 01                | 10                  | 2042               | InvalidFirstNameWithSpecialCharacters |
+      | PassportSubjectHappyKenneth | 321654987             | DECERQUEIRA     | KENNETH          | @               | *&                | 19 7             | 01                | 10                  | 2042               | DateOfBirthWithSpecialCharacters      |
+      | PassportSubjectHappyKenneth | 321654987             | DECERQUEIRA     | KENNETH          | 51              | 71                | 198              | 01                | 10                  | 2042               | InvalidDateOfBirth                    |
+      | PassportSubjectHappyKenneth | 321654987             | DECERQUEIRA     | KENNETH          | 10              | 10                | 2042             | 01                | 10                  | 2042               | DateOfBirthInFuture                   |
+      | PassportSubjectHappyKenneth | 321654987             | DECERQUEIRA     | KENNETH          | 08              | 07                | 1965             | !@                | £$                  | %^ *               | ValidToDateWithSpecialCharacters      |
+      | PassportSubjectHappyKenneth | 321654987             | DECERQUEIRA     | KENNETH          | 08              | 07                | 1965             | 10                | 01                  | 2010               | ValidToDateInPast                     |
+      | PassportSubjectHappyKenneth | 555667^&*             | DECERQUEIRA     | KENNETH          | 08              | 07                | 1965             | 01                | 10                  | 2042               | PassportNumberWithSpecialChar         |
+
