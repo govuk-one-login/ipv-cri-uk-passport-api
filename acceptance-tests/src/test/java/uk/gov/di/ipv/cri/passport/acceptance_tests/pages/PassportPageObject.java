@@ -49,25 +49,25 @@ public class PassportPageObject extends UniversalSteps {
     @FindBy(xpath = "//*[@id=\"main-content\"]/p/a/button")
     public WebElement visitCredentialIssuers;
 
-    @FindBy(xpath = "//*[@value=\"Passport CRI dev V1\"]")
+    @FindBy(xpath = "//*[@value=\"Passport CRI dev\"]")
     public WebElement passportCRIDevLocalStub;
 
-    @FindBy(xpath = "//*[@value=\"Passport CRI Shared dev V1\"]")
+    @FindBy(xpath = "//*[@value=\"Passport CRI Shared dev\"]")
     public WebElement passportCRISharedDevLocalStub;
 
-    @FindBy(xpath = "//*[@value=\"Passport CRI Dev V1\"]")
+    @FindBy(xpath = "//*[@value=\"Passport CRI Dev\"]")
     public WebElement passportCRIDev;
 
-    @FindBy(xpath = "//*[@value=\"Passport CRI Shared Dev V1\"]")
+    @FindBy(xpath = "//*[@value=\"Passport CRI Shared Dev\"]")
     public WebElement passportCRISharedDev;
 
-    @FindBy(xpath = "//*[@value=\"Passport CRI Build V1\"]")
+    @FindBy(xpath = "//*[@value=\"Passport CRI Build\"]")
     public WebElement passportCRIBuild;
 
-    @FindBy(xpath = "//*[@value=\"Passport CRI Staging V1\"]")
+    @FindBy(xpath = "//*[@value=\"Passport CRI Staging\"]")
     public WebElement passportCRIStaging;
 
-    @FindBy(xpath = "//*[@value=\"Passport CRI Integration V1\"]")
+    @FindBy(xpath = "//*[@value=\"Passport CRI Integration\"]")
     public WebElement passportCRIIntegration;
 
     @FindBy(id = "rowNumber")
