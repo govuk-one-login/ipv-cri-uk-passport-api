@@ -73,7 +73,7 @@ public class PassportAPIPage extends PassportPageObject {
         Map<String, String> deserialisedSessionResponse =
                 objectMapper.readValue(SESSION_REQUEST_BODY, new TypeReference<>() {});
         CLIENT_ID = deserialisedSessionResponse.get("client_id");
-        LOGGER.info("CLIENT_ID = " + CLIENT_ID);
+        LOGGER.info("CLIENT_ID = {}", CLIENT_ID);
     }
 
     public void userIdentityAsJwtStringForupdatedUser(
