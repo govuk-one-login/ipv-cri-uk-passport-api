@@ -874,7 +874,7 @@ public class PassportPageObject extends UniversalSteps {
     }
 
     private LocalDate subtractMonthsFromCurrentDate(int monthsToSubtract) {
-        LocalDate currentDate = LocalDate.now();
+        LocalDate currentDate = LocalDate.now().plusDays(1);
         return currentDate.minusMonths(monthsToSubtract);
     }
 

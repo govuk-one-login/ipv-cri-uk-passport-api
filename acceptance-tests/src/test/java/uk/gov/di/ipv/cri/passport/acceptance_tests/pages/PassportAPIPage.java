@@ -37,6 +37,7 @@ import static org.junit.jupiter.api.Assertions.*;
 
 public class PassportAPIPage extends PassportPageObject {
 
+    private static String CLIENT_ID;
     private static String SESSION_REQUEST_BODY;
     private static String SESSION_ID;
     private static String STATE;
@@ -67,6 +68,12 @@ public class PassportAPIPage extends PassportPageObject {
         String coreStubUrl = configurationService.getCoreStubUrl(false);
         SESSION_REQUEST_BODY = createRequest(coreStubUrl, criId, jsonString);
         LOGGER.info("SESSION_REQUEST_BODY = " + SESSION_REQUEST_BODY);
+
+        // Capture client id for using later in the auth request
+        Map<String, String> deserialisedSessionResponse =
+                objectMapper.readValue(SESSION_REQUEST_BODY, new TypeReference<>() {});
+        CLIENT_ID = deserialisedSessionResponse.get("client_id");
+        LOGGER.info("CLIENT_ID = {}", CLIENT_ID);
     }
 
     public void userIdentityAsJwtStringForupdatedUser(
@@ -179,10 +186,6 @@ public class PassportAPIPage extends PassportPageObject {
     public void getAuthorisationCode() throws IOException, InterruptedException {
         String privateApiGatewayUrl = configurationService.getPrivateAPIEndpoint();
         String coreStubUrl = configurationService.getCoreStubUrl(false);
-        String coreStubClientId = "ipv-core-stub";
-        if (!configurationService.isUsingLocalStub()) {
-            coreStubClientId += "-aws-prod";
-        }
 
         HttpRequest request =
                 HttpRequest.newBuilder()
@@ -194,7 +197,7 @@ public class PassportAPIPage extends PassportPageObject {
                                                 + "/callback&state="
                                                 + STATE
                                                 + "&scope=openid&response_type=code&client_id="
-                                                + coreStubClientId))
+                                                + CLIENT_ID))
                         .setHeader("Accept", "application/json")
                         .setHeader("Content-Type", "application/json")
                         .setHeader("session-id", SESSION_ID)

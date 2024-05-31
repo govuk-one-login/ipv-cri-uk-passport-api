@@ -46,6 +46,7 @@ sam deploy --stack-name "$stack_name" \
    Environment=dev \
    AuditEventNamePrefix=$audit_event_name_prefix \
    CommonStackName=passport-common-cri-api-local \
+   CreateMockTxmaResourcesOverride=true \
    CriIdentifier=$cri_identifier \
    ParameterPrefix="ipv-cri-passport-api" \
    UseApiKey="' '" \
