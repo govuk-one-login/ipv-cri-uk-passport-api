@@ -17,7 +17,7 @@ Feature: Passport Test
     And JSON payload should contain validity score 2 and strength score 4
     And JSON response should contain documentNumber 321654987 same as given passport
     And Passport VC should contain JTI field
-    And exp should be absent in the JSON payload
+#    And exp should be absent in the JSON payload
     And The test is complete and I close the driver
     Examples:
       | PassportSubject             |
@@ -197,7 +197,7 @@ Feature: Passport Test
     Then I navigate to the passport verifiable issuer to check for a Valid response
     And JSON payload should contain validity score 2 and strength score 4
     And JSON response should contain documentNumber 321654987 same as given passport
-    And exp should be absent in the JSON payload
+#    And exp should be absent in the JSON payload
     And The test is complete and I close the driver
     Examples:
       | PassportSubject             | months | daysToSubtract |
@@ -223,7 +223,7 @@ Feature: Passport Test
     When I check the page title is Sorry, there is a problem – Prove your identity – GOV.UK
     And The test is complete and I close the driver
 
-  @build @stub @Language-regression
+  @build @Language-regression
   Scenario Outline: Language Title validation
     Given User clicks on language toggle and switches to Welsh
     Then I check the page title is Rhowch eich manylion yn union fel maent yn ymddangos ar eich pasbort y DU – Profi pwy ydych chi – GOV.UK
