@@ -64,7 +64,7 @@ dependencies {
 		webdrivermanager_version           : "5.6.4",
 
 		// acceptance tests testImplementation
-		rest_assured_version               : "5.3.0",
+		rest_assured_version               : "5.4.0",
 		cucumber_junit_version             : "7.13.0"
 	]
 
