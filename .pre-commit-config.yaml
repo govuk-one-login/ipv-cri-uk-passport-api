@@ -1,6 +1,6 @@
 repos:
--   repo: https://github.com/pre-commit/pre-commit-hooks
-    rev: v4.4.0
+  - repo: https://github.com/pre-commit/pre-commit-hooks
+    rev: v4.6.0
     hooks:
     -   id: check-json
     -   id: end-of-file-fixer
@@ -8,14 +8,22 @@ repos:
     -   id: detect-aws-credentials
         args: [ --allow-missing-credentials ]
     -   id: detect-private-key
--   repo: https://github.com/awslabs/cfn-python-lint
-    rev: v0.79.6 # The version of cfn-lint to use
+
+  - repo: https://github.com/awslabs/cfn-python-lint
+    rev: v1.2.5.a10 # The version of cfn-lint to use
     hooks:
     -   id: cfn-python-lint
         files: .template\.yaml$
-- repo: https://github.com/bridgecrewio/checkov.git
-  rev: '2.3.365'
-  hooks:
-  - id: checkov
-    verbose: true
-    args: [--soft-fail]
+
+  - repo: https://github.com/bridgecrewio/checkov.git
+    rev: '3.2.133'
+    hooks:
+    - id: checkov
+      verbose: true
+      args: [--soft-fail]
+
+  - repo: https://github.com/Yelp/detect-secrets
+    rev: v1.5.0
+    hooks:
+    - id: detect-secrets
+      args: ["--baseline", ".secrets.baseline"]
