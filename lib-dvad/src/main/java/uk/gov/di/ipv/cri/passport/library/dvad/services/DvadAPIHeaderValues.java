@@ -8,11 +8,11 @@ public class DvadAPIHeaderValues {
 
     public static final String DVAD_HEADER_PARAMETER_PATH = "HMPODVAD/API/Header";
 
-    public static final String MAP_KEY_APIKEY = "ApiKey";
+    public static final String MAP_KEY_APIKEY = "ApiKey"; // pragma: allowlist secret
     public static final String MAP_KEY_USERAGENT = "UserAgent";
     public static final String MAP_KEY_NETWORKTYPE = "NetworkType";
     public static final String MAP_KEY_CLIENTID = "ClientId";
-    public static final String MAP_KEY_SECRET = "Secret";
+    public static final String MAP_KEY_SECRET = "Secret"; // pragma: allowlist secret
     public static final String MAP_KEY_GRANTTYPE = "GrantType";
 
     public final String apiKey;
