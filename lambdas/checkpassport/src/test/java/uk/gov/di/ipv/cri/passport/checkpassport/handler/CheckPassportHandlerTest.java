@@ -114,7 +114,8 @@ class CheckPassportHandlerTest {
         when(mockParameterStoreService.getParameterValue("HMPODVAD/API/EndpointUrl"))
                 .thenReturn("http://localhost");
 
-        when(mockParameterStoreService.getParameterValue("HMPODVAD/API/TestStrategy/EndpointUrl"))
+        when(mockParameterStoreService.getParameterValue(
+                        "HMPODVAD/API/TestStrategy/EndpointUrl")) // pragma: allowlist secret
                 .thenReturn(testStrategyRawEndpointValue);
 
         mockServiceFactoryBehaviour();

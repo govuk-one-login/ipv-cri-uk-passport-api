@@ -15,7 +15,7 @@ public class ParameterStoreParameters {
 
     // temporary parameter, migrate back to original endpoint parameter post MVP
     public static final String TEST_STRATEGY_HMPO_API_ENDPOINT_URL =
-            "HMPODVAD/API/TestStrategy/EndpointUrl";
+            "HMPODVAD/API/TestStrategy/EndpointUrl"; // pragma: allowlist secret
     public static final String HMPO_API_ENDPOINT_URL = "HMPODVAD/API/EndpointUrl";
     public static final String HMPO_API_ENDPOINT_HEALTH = "HMPODVAD/API/HealthPath";
     public static final String HMPO_API_ENDPOINT_TOKEN = "HMPODVAD/API/TokenPath";
