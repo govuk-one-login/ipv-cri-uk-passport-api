@@ -32,6 +32,8 @@ dist
 
 # Ignore Gradle build output directory
 build
+lambdas/**/bin
+acceptance-tests/bin
 
 # Ignore AWS SAM folder
 */**/.aws-sam

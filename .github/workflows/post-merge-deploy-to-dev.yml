@@ -31,8 +31,10 @@ jobs:
         with:
           gradle-version: wrapper
 
-      - name: Setup SAM CLI
+      - name: Setup SAM
         uses: aws-actions/setup-sam@v2
+        with:
+          use-installer: true
 
       - name: Assume temporary AWS role
         uses: aws-actions/configure-aws-credentials@v4
@@ -44,7 +46,7 @@ jobs:
         run: sam validate --region ${{ env.AWS_REGION }} -t infrastructure/lambda/template.yaml
 
       - name: SAM build
-        run: | 
+        run: |
           mkdir out
           sam build -t infrastructure/lambda/template.yaml -b out
 

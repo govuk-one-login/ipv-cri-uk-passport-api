@@ -145,7 +145,7 @@ tasks.register('cucumber') {
 	}
 }
 
-tasks.register('passportCriSmokeBuild') {
+tasks.register('smokeTestBuild') {
 	dependsOn assemble, compileTestJava
 	doLast {
 		javaexec {
@@ -166,7 +166,7 @@ tasks.register('passportCriSmokeBuild') {
 	}
 }
 
-tasks.register('passportCriSmokeStaging') {
+tasks.register('smokeTestStaging') {
 	dependsOn assemble, compileTestJava
 	doLast {
 		javaexec {
