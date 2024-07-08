@@ -80,6 +80,6 @@ jobs:
       - name: Deploy SAM app
         uses: govuk-one-login/devplatform-upload-action@v3.9
         with:
-          artifact-bucket-name: "${{ secrets.ARTIFACT_SOURCE_BUCKET_NAME }}"
+          artifact-bucket-name: "${{ secrets.ARTIFACT_BUCKET_NAME }}"
           signing-profile-name: "${{ secrets.SIGNING_PROFILE_NAME }}"
           working-directory: ./out
