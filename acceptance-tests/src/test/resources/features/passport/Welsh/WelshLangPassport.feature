@@ -88,7 +88,7 @@ Feature: Passport Language Test
     When I enter the invalid Valid to date field
     And  User clicks on continue
     And I can see the valid to date error in the error summary as Rhowch y dyddiad dod i ben fel mae’n ymddangos ar eich pasbort
-    Then I clear the data and re enter the valid to expired year 
+    Then I clear the data and re enter the valid to expired year
     And  User clicks on continue
     And I can see the valid to date error in the error summary as Mae’n rhaid i’ch pasbort fod heb wedi dod i ben dros 18 mis yn ôl
     And The test is complete and I close the driver
@@ -173,7 +173,7 @@ Feature: Passport Language Test
 
   @Language-regression
   Scenario: passport number field error message in Welsh
-    When I enter invalid passport less than 8 char 
+    When I enter invalid passport less than 8 char
     Then User clicks on continue
     And I see the passport number error in the summary as Dylai rhif eich pasbort fod yn 9 digid o hyd
     And I clear the passport number enter the invalid passport
@@ -196,7 +196,7 @@ Feature: Passport Language Test
     When I enter the invalid Valid to date field
     And  User clicks on continue
     Then I can see the Valid to date field error as Gwall:Rhowch y dyddiad dod i ben fel mae’n ymddangos ar eich pasbort
-    And I clear the data and re enter the valid to expired year 
+    And I clear the data and re enter the valid to expired year
     Then  User clicks on continue
     And I can see the valid to date error in the error summary as Mae’n rhaid i’ch pasbort fod heb wedi dod i ben dros 18 mis yn ôl
     And The test is complete and I close the driver

@@ -270,4 +270,3 @@ Feature: Passport Test
       | PassportSubjectHappyKenneth | 321654987             | DECERQUEIRA     | KENNETH          | 08              | 07                | 1965             | !@                | £$                  | %^ *               | ValidToDateWithSpecialCharacters      |
       | PassportSubjectHappyKenneth | 321654987             | DECERQUEIRA     | KENNETH          | 08              | 07                | 1965             | 10                | 01                  | 2010               | ValidToDateInPast                     |
       | PassportSubjectHappyKenneth | 555667^&*             | DECERQUEIRA     | KENNETH          | 08              | 07                | 1965             | 01                | 10                  | 2042               | PassportNumberWithSpecialChar         |
-

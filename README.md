@@ -158,7 +158,7 @@ Then follow the on-screen prompts.
 
 ### Note
 
-To run API tests locally you need  
+To run API tests locally you need
 - A manually deployed api stack with the code (main or branch) that is to be tested.
 - A locally running core-stub with a cri id configured for `passport-v1-cri-dev`.
 
