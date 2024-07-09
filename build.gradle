@@ -29,7 +29,7 @@ ext {
 
 		// CRI_LIB aws
 		aws_sdk_version                    : "2.20.162",
-		aws_lambda_events_version          : "3.11.0",
+		aws_lambda_events_version          : "3.11.6",
 
 		// CRI_LIB nimbus
 		nimbusds_oauth_version             : "11.10.1",
