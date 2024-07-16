@@ -91,7 +91,7 @@ public class IssueCredentialHandler
                         serviceFactory
                                 .getCommonLibConfigurationService()
                                 .getVerifiableCredentialKmsSigningKeyId(),
-                        serviceFactory.getClientFactoryService().getKMSClient());
+                        serviceFactory.getClientProviderFactory().getKMSClient());
 
         // VerifiableCredentialService is internal to IssueCredentialHandler
         VerifiableCredentialService verifiableCredentialServiceNotAssignedYet =

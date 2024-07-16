@@ -8,7 +8,7 @@ import org.junit.jupiter.params.provider.CsvSource;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import uk.gov.di.ipv.cri.passport.library.config.ParameterStoreParameters;
-import uk.gov.di.ipv.cri.passport.library.service.ClientFactoryService;
+import uk.gov.di.ipv.cri.passport.library.service.ApacheHTTPClientFactoryService;
 import uk.gov.di.ipv.cri.passport.library.service.ParameterStoreService;
 import uk.org.webcompere.systemstubs.environment.EnvironmentVariables;
 import uk.org.webcompere.systemstubs.jupiter.SystemStub;
@@ -68,7 +68,7 @@ class DVADCloseableHttpClientFactoryTest {
                                 dvadCloseableHttpClientFactory.getClient(
                                         tlsOn,
                                         mockParameterStoreService,
-                                        new ClientFactoryService()));
+                                        new ApacheHTTPClientFactoryService()));
 
         assertNotNull(closeableHttpClient);
     }

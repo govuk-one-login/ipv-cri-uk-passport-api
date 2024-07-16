@@ -9,20 +9,23 @@ plugins {
 }
 
 dependencies {
-	implementation project(":lib"),
+	implementation platform("software.amazon.awssdk:bom:${dependencyVersions.aws_sdk_version}"), project(":lib"),
 			"uk.gov.account:cri-common-lib:${dependencyVersions.cri_common_lib_version}",
 			"com.nimbusds:oauth2-oidc-sdk:${dependencyVersions.nimbusds_oauth_version}",
 			"com.nimbusds:nimbus-jose-jwt:${dependencyVersions.nimbusds_jwt_version}",
 			"com.amazonaws:aws-lambda-java-core:${dependencyVersions.aws_lambda_core_version}",
 			"com.amazonaws:aws-lambda-java-events:${dependencyVersions.aws_lambda_events_version}",
 			"software.amazon.awssdk:lambda:${dependencyVersions.aws_sdk_version}",
+			"software.amazon.awssdk:dynamodb-enhanced:${dependencyVersions.aws_sdk_version}",
 			"software.amazon.awssdk:kms:${dependencyVersions.aws_sdk_version}",
-			"com.fasterxml.jackson.core:jackson-core:${dependencyVersions.jackson_version}",
+			"software.amazon.awssdk:sqs:${dependencyVersions.aws_sdk_version}",
+			"software.amazon.awssdk:aws-crt-client:${dependencyVersions.aws_sdk_version}",
+			"org.aspectj:aspectjrt:${dependencyVersions.aspectjrt_version}",
+			"com.fasterxml.jackson.core:jackson-core",
+			"com.fasterxml.jackson.core:jackson-databind",
+			"com.fasterxml.jackson.core:jackson-annotations",
 			"com.fasterxml.jackson.datatype:jackson-datatype-jsr310:${dependencyVersions.jackson_version}",
-			"com.fasterxml.jackson.datatype:jackson-datatype-jdk8:${dependencyVersions.jackson_version}",
-			"com.fasterxml.jackson.core:jackson-databind:${dependencyVersions.jackson_version}",
-			"com.fasterxml.jackson.core:jackson-annotations:${dependencyVersions.jackson_version}",
-			"org.aspectj:aspectjrt:${dependencyVersions.aspectjrt_version}"
+			"com.fasterxml.jackson.datatype:jackson-datatype-jdk8:${dependencyVersions.jackson_version}"
 
 	aspect "software.amazon.lambda:powertools-logging:${dependencyVersions.aws_powertools_logging_version}",
 			"software.amazon.lambda:powertools-metrics:${dependencyVersions.aws_powertools_metrics_version}",
@@ -34,11 +37,12 @@ dependencies {
 			"org.mockito:mockito-junit-jupiter:${dependencyVersions.mockito_version}",
 			"org.mockito:mockito-inline:${dependencyVersions.mockito_version}",
 			"org.hamcrest:hamcrest:${dependencyVersions.hamcrest_version}",
+			"com.github.tomakehurst:wiremock-jre8:${dependencyVersions.wiremock_version}",
 			"uk.org.webcompere:system-stubs-core:${dependencyVersions.webcompere_version}",
 			"uk.org.webcompere:system-stubs-jupiter:${dependencyVersions.webcompere_version}",
 			"au.com.dius.pact:provider:${dependencyVersions.pact_provider_version}",
 			"au.com.dius.pact.provider:junit5:${dependencyVersions.pact_provider_version}",
-			"software.amazon.awssdk:dynamodb:${dependencyVersions.aws_sdk_version}"
+			"org.slf4j:slf4j-log4j12:${dependencyVersions.slf4j_log4j12_version}"
 }
 
 tasks.register('buildZip', Zip) {

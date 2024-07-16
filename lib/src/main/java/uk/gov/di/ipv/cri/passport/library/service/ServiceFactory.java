@@ -9,6 +9,7 @@ import uk.gov.di.ipv.cri.common.library.service.AuditService;
 import uk.gov.di.ipv.cri.common.library.service.ConfigurationService;
 import uk.gov.di.ipv.cri.common.library.service.PersonIdentityService;
 import uk.gov.di.ipv.cri.common.library.service.SessionService;
+import uk.gov.di.ipv.cri.common.library.util.ClientProviderFactory;
 import uk.gov.di.ipv.cri.common.library.util.EventProbe;
 import uk.gov.di.ipv.cri.passport.library.persistence.DocumentCheckResultItem;
 
@@ -20,7 +21,8 @@ public class ServiceFactory {
 
     private ObjectMapper objectMapper;
     private EventProbe eventProbe;
-    private ClientFactoryService clientFactoryService;
+    private ClientProviderFactory clientProviderFactory;
+    private ApacheHTTPClientFactoryService apacheHTTPClientFactoryService;
     private ParameterStoreService parameterStoreService;
     private ConfigurationService commonLibConfigurationService;
     private SessionService sessionService;
@@ -42,7 +44,7 @@ public class ServiceFactory {
     public ServiceFactory(
             ObjectMapper objectMapper,
             EventProbe eventProbe,
-            ClientFactoryService clientFactoryService,
+            ClientProviderFactory clientProviderFactory,
             ParameterStoreService parameterStoreService,
             SessionService sessionService,
             AuditService auditService,
@@ -50,7 +52,7 @@ public class ServiceFactory {
             DataStore<DocumentCheckResultItem> documentCheckResultStore) {
         this.objectMapper = objectMapper;
         this.eventProbe = eventProbe;
-        this.clientFactoryService = clientFactoryService;
+        this.clientProviderFactory = clientProviderFactory;
         this.parameterStoreService = parameterStoreService;
         this.sessionService = sessionService;
         this.auditService = auditService;
@@ -76,19 +78,28 @@ public class ServiceFactory {
         return eventProbe;
     }
 
-    public ClientFactoryService getClientFactoryService() {
+    public ClientProviderFactory getClientProviderFactory() {
 
-        if (clientFactoryService == null) {
-            clientFactoryService = new ClientFactoryService();
+        if (clientProviderFactory == null) {
+            clientProviderFactory = new ClientProviderFactory();
         }
 
-        return clientFactoryService;
+        return clientProviderFactory;
+    }
+
+    public ApacheHTTPClientFactoryService getApacheHTTPClientFactoryService() {
+        if (apacheHTTPClientFactoryService == null) {
+            apacheHTTPClientFactoryService = new ApacheHTTPClientFactoryService();
+        }
+
+        return apacheHTTPClientFactoryService;
     }
 
     public ParameterStoreService getParameterStoreService() {
 
         if (parameterStoreService == null) {
-            parameterStoreService = new ParameterStoreService(getClientFactoryService());
+            parameterStoreService =
+                    new ParameterStoreService(getClientProviderFactory().getSSMProvider());
         }
 
         return parameterStoreService;
@@ -97,7 +108,10 @@ public class ServiceFactory {
     public SessionService getSessionService() {
 
         if (sessionService == null) {
-            sessionService = new SessionService(getCommonLibConfigurationService());
+            sessionService =
+                    new SessionService(
+                            getCommonLibConfigurationService(),
+                            getClientProviderFactory().getDynamoDbEnhancedClient());
         }
 
         return sessionService;
@@ -108,7 +122,7 @@ public class ServiceFactory {
         if (auditService == null) {
             auditService =
                     new AuditService(
-                            getClientFactoryService().getSqsClient(),
+                            getClientProviderFactory().getSqsClient(),
                             getCommonLibConfigurationService(),
                             getObjectMapper(),
                             new AuditEventFactory(
@@ -121,7 +135,10 @@ public class ServiceFactory {
     public PersonIdentityService getPersonIdentityService() {
 
         if (personIdentityService == null) {
-            personIdentityService = new PersonIdentityService(getCommonLibConfigurationService());
+            this.personIdentityService =
+                    new PersonIdentityService(
+                            getCommonLibConfigurationService(),
+                            getClientProviderFactory().getDynamoDbEnhancedClient());
         }
 
         return personIdentityService;
@@ -130,9 +147,10 @@ public class ServiceFactory {
     public ConfigurationService getCommonLibConfigurationService() {
 
         if (commonLibConfigurationService == null) {
-            // Note SSM parameter gets via this service use a 5min cache time
             commonLibConfigurationService =
-                    new uk.gov.di.ipv.cri.common.library.service.ConfigurationService();
+                    new uk.gov.di.ipv.cri.common.library.service.ConfigurationService(
+                            getClientProviderFactory().getSSMProvider(),
+                            getClientProviderFactory().getSecretsProvider());
         }
 
         return commonLibConfigurationService;
@@ -147,7 +165,9 @@ public class ServiceFactory {
 
             documentCheckResultStore =
                     new DataStore<>(
-                            tableName, DocumentCheckResultItem.class, DataStore.getClient());
+                            tableName,
+                            DocumentCheckResultItem.class,
+                            getClientProviderFactory().getDynamoDbEnhancedClient());
         }
 
         return documentCheckResultStore;

@@ -38,7 +38,6 @@ import uk.gov.di.ipv.cri.common.library.service.PersonIdentityMapper;
 import uk.gov.di.ipv.cri.common.library.service.PersonIdentityService;
 import uk.gov.di.ipv.cri.common.library.service.SessionService;
 import uk.gov.di.ipv.cri.common.library.util.EventProbe;
-import uk.gov.di.ipv.cri.common.library.util.ListUtil;
 import uk.gov.di.ipv.cri.passport.issuecredential.handler.IssueCredentialHandler;
 import uk.gov.di.ipv.cri.passport.issuecredential.pact.utils.Injector;
 import uk.gov.di.ipv.cri.passport.issuecredential.pact.utils.MockHttpServer;
@@ -46,6 +45,9 @@ import uk.gov.di.ipv.cri.passport.issuecredential.service.VerifiableCredentialSe
 import uk.gov.di.ipv.cri.passport.library.persistence.DocumentCheckResultItem;
 import uk.gov.di.ipv.cri.passport.library.service.ParameterStoreService;
 import uk.gov.di.ipv.cri.passport.library.service.ServiceFactory;
+import uk.org.webcompere.systemstubs.environment.EnvironmentVariables;
+import uk.org.webcompere.systemstubs.jupiter.SystemStub;
+import uk.org.webcompere.systemstubs.jupiter.SystemStubsExtension;
 
 import java.io.IOException;
 import java.net.URI;
@@ -69,6 +71,8 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.doNothing;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
+import static uk.gov.di.ipv.cri.common.library.util.VerifiableCredentialClaimsSetBuilder.ENV_VAR_FEATURE_FLAG_VC_CONTAINS_UNIQUE_ID;
+import static uk.gov.di.ipv.cri.common.library.util.VerifiableCredentialClaimsSetBuilder.ENV_VAR_FEATURE_FLAG_VC_EXPIRY_REMOVED;
 import static uk.gov.di.ipv.cri.passport.library.config.ParameterStoreParameters.MAX_JWT_TTL_UNIT;
 
 @Tag("Pact")
@@ -80,9 +84,13 @@ import static uk.gov.di.ipv.cri.passport.library.config.ParameterStoreParameters
                         username = "${PACT_BROKER_USERNAME}",
                         password = "${PACT_BROKER_PASSWORD}"))
 @ExtendWith(MockitoExtension.class)
+@ExtendWith(SystemStubsExtension.class)
 class IssueCredentialHandlerTest {
 
     private static final int PORT = 5050;
+
+    // Needs to be created here
+    @SystemStub private EnvironmentVariables environmentVariables = new EnvironmentVariables();
 
     @Mock private ServiceFactory mockServiceFactory;
     @Mock private EventProbe mockEventProbe;
@@ -112,6 +120,9 @@ class IssueCredentialHandlerTest {
     @BeforeEach
     void pactSetup(PactVerificationContext context)
             throws IOException, NoSuchAlgorithmException, InvalidKeySpecException, JOSEException {
+
+        environmentVariables.set(ENV_VAR_FEATURE_FLAG_VC_EXPIRY_REMOVED, true);
+        environmentVariables.set(ENV_VAR_FEATURE_FLAG_VC_CONTAINS_UNIQUE_ID, true);
 
         mockServiceFactoryBehaviour();
 
@@ -359,10 +370,7 @@ class IssueCredentialHandlerTest {
                 .thenReturn(mockCommonLibConfigurationService);
         sessionService =
                 new SessionService(
-                        sessionItemDataStore,
-                        mockCommonLibConfigurationService,
-                        Clock.systemUTC(),
-                        new ListUtil());
+                        sessionItemDataStore, mockCommonLibConfigurationService, Clock.systemUTC());
         when(mockServiceFactory.getSessionService()).thenReturn(sessionService);
         when(mockServiceFactory.getAuditService()).thenReturn(mockAuditService);
         when(mockServiceFactory.getPersonIdentityService())
@@ -390,11 +398,5 @@ class IssueCredentialHandlerTest {
                 .thenReturn("HOURS");
         when(mockCommonLibConfigurationService.getVerifiableCredentialIssuer())
                 .thenReturn("dummyPassportComponentId");
-        when(mockCommonLibConfigurationService.getParameterValueByAbsoluteName(
-                        "/release-flags/vc-expiry-removed"))
-                .thenReturn("true");
-        when(mockCommonLibConfigurationService.getParameterValue(
-                        "release-flags/vc-contains-unique-id"))
-                .thenReturn("true");
     }
 }

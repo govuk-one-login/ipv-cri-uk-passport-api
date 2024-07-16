@@ -8,9 +8,9 @@ import software.amazon.lambda.powertools.logging.CorrelationIdPathConstants;
 import software.amazon.lambda.powertools.logging.Logging;
 import software.amazon.lambda.powertools.metrics.Metrics;
 import uk.gov.di.ipv.cri.common.library.annotations.ExcludeFromGeneratedCoverageReport;
+import uk.gov.di.ipv.cri.common.library.util.ClientProviderFactory;
 import uk.gov.di.ipv.cri.common.library.util.EventProbe;
 import uk.gov.di.ipv.cri.passport.certexpiryreminder.handler.config.CertExpiryReminderConfig;
-import uk.gov.di.ipv.cri.passport.library.service.ClientFactoryService;
 import uk.gov.di.ipv.cri.passport.library.service.ParameterStoreService;
 
 import java.security.cert.CertificateException;
@@ -36,9 +36,10 @@ public class CertExpiryReminderHandler implements RequestHandler<Object, Object>
 
     @ExcludeFromGeneratedCoverageReport
     public CertExpiryReminderHandler() {
-        ClientFactoryService clientFactoryService = new ClientFactoryService();
+        ClientProviderFactory clientProviderFactory = new ClientProviderFactory();
 
-        this.parameterStoreService = new ParameterStoreService(clientFactoryService);
+        this.parameterStoreService =
+                new ParameterStoreService(clientProviderFactory.getSSMProvider());
 
         this.certExpiryReminderConfig = new CertExpiryReminderConfig(parameterStoreService);
 

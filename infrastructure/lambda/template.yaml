@@ -240,6 +240,23 @@ Mappings:
       integration: "false"
       production: "false"
 
+  FeatureFlagMapping:
+    dev:
+      VcExpiryRemoved: "true"
+      VcContainsUniqueIdMapping: "true"
+    build:
+      VcExpiryRemoved: "true"
+      VcContainsUniqueIdMapping: "true"
+    staging:
+      VcExpiryRemoved: "true"
+      VcContainsUniqueIdMapping: "true"
+    integration:
+      VcExpiryRemoved: "true"
+      VcContainsUniqueIdMapping: "true"
+    production:
+      VcExpiryRemoved: "true"
+      VcContainsUniqueIdMapping: "true"
+
 Resources:
 
 ####################################################################
@@ -581,6 +598,8 @@ Resources:
         Variables:
           POWERTOOLS_SERVICE_NAME: !Sub "${CriIdentifier}-issuecredential"
           ENVIRONMENT: !Ref Environment
+          ENV_VAR_FEATURE_FLAG_VC_EXPIRY_REMOVED: !FindInMap [ FeatureFlagMapping, !Ref Environment, VcExpiryRemoved ]
+          ENV_VAR_FEATURE_FLAG_VC_CONTAINS_UNIQUE_ID: !FindInMap [ FeatureFlagMapping, !Ref Environment, VcContainsUniqueIdMapping ]
       Policies:
         - DynamoDBReadPolicy:
             TableName: !Sub "{{resolve:ssm:/${CommonStackName}/SessionTableName}}"

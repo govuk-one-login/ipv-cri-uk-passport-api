@@ -25,13 +25,13 @@ ext {
 		// cri_common_lib dependencies should match the ipv-cri-lib version
 		// Workaround until dependency resolution is fixed.
 		// ---------------------------------------------------------
-		cri_common_lib_version             : "1.6.2",
+		cri_common_lib_version             : "3.0.2",
 
-		// CRI_LIB aws
-		aws_sdk_version                    : "2.20.162",
-		aws_lambda_events_version          : "3.11.0",
+		// AWS SDK
+		aws_sdk_version                    : "2.26.16",
+		aws_lambda_events_version          : "3.11.6",
 
-		// CRI_LIB nimbus
+		// Nimbus Oauth
 		nimbusds_oauth_version             : "11.10.1",
 		nimbusds_jwt_version               : "9.37.3",
 
@@ -46,11 +46,8 @@ ext {
 
 		// AWS  aws-lambda-java-libs see https://github.com/aws/aws-lambda-java-libs
 		aws_lambda_core_version            : "1.2.1",
-		// Object mapper
-		jackson_version                    : "2.17.1",
-		// GSON only Used in DCS pathway remove with DCS removal
-		gson_version						: "2.8.9",
-
+		// Jackson Addons/ needs to track the aws sdk version of jackson
+		jackson_version                    : "2.15.2",
 		// Code weaving (lombok+powertools)
 		aspectjrt_version                  : "1.9.21",
 
@@ -62,12 +59,14 @@ ext {
 		junit_version                      : "5.10.2",
 		hamcrest_version                   : "2.2",
 		mockito_version                    : "4.3.1",
-		webcompere_version                 : "2.0.2",
+		wiremock_version                   : "3.0.1",
+		webcompere_version                 : "2.1.6",
 
 		// testFixturesImplementation
 
 		// Contract Tests
-		pact_provider_version              : "4.6.9",
+		pact_provider_version              : "4.6.4",
+		slf4j_log4j12_version              : "2.0.13", // For contract test debug
 	]
 
 	// Sets the version used on the lambda + lib (ac tests have separate dependencies)
