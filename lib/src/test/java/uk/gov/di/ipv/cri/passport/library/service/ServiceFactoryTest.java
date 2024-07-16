@@ -12,6 +12,7 @@ import uk.gov.di.ipv.cri.common.library.service.AuditService;
 import uk.gov.di.ipv.cri.common.library.service.ConfigurationService;
 import uk.gov.di.ipv.cri.common.library.service.PersonIdentityService;
 import uk.gov.di.ipv.cri.common.library.service.SessionService;
+import uk.gov.di.ipv.cri.common.library.util.ClientProviderFactory;
 import uk.gov.di.ipv.cri.common.library.util.EventProbe;
 import uk.gov.di.ipv.cri.passport.library.persistence.DocumentCheckResultItem;
 import uk.org.webcompere.systemstubs.environment.EnvironmentVariables;
@@ -63,12 +64,23 @@ class ServiceFactoryTest {
     }
 
     @Test
-    void shouldReturnClientFactoryService() {
-        ClientFactoryService clientFactoryService = serviceFactory.getClientFactoryService();
-        assertNotNull(clientFactoryService);
+    void shouldReturnClientProviderFactory() {
+        ClientProviderFactory clientProviderFactory1 = serviceFactory.getClientProviderFactory();
+        assertNotNull(clientProviderFactory1);
 
-        ClientFactoryService clientFactoryService2 = serviceFactory.getClientFactoryService();
-        assertEquals(clientFactoryService, clientFactoryService2);
+        ClientProviderFactory clientProviderFactory2 = serviceFactory.getClientProviderFactory();
+        assertEquals(clientProviderFactory1, clientProviderFactory2);
+    }
+
+    @Test
+    void shouldReturnApacheHTTPClientFactoryService() {
+        ApacheHTTPClientFactoryService apacheHTTPClientFactoryService1 =
+                serviceFactory.getApacheHTTPClientFactoryService();
+        assertNotNull(apacheHTTPClientFactoryService1);
+
+        ApacheHTTPClientFactoryService apacheHTTPClientFactoryService2 =
+                serviceFactory.getApacheHTTPClientFactoryService();
+        assertEquals(apacheHTTPClientFactoryService1, apacheHTTPClientFactoryService2);
     }
 
     @Test
@@ -124,7 +136,7 @@ class ServiceFactoryTest {
     }
 
     @Test
-    void shouldReturnPersonIdentityService() throws NoSuchFieldException, IllegalAccessException {
+    void shouldReturnPersonIdentityService() {
         try (MockedConstruction<PersonIdentityService> personIdentityServiceMockedConstruction =
                 mockConstruction(PersonIdentityService.class)) {
 

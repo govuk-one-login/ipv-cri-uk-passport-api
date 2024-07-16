@@ -21,9 +21,8 @@ public class ParameterStoreService {
 
     private final SSMProvider ssmProvider;
 
-    public ParameterStoreService(ClientFactoryService clientFactoryService) {
-
-        this.ssmProvider = clientFactoryService.getSSMProvider();
+    public ParameterStoreService(SSMProvider ssmProvider) {
+        this.ssmProvider = ssmProvider;
 
         this.parameterPrefix =
                 Optional.ofNullable(System.getenv("PARAMETER_PREFIX"))

@@ -35,7 +35,7 @@ import uk.gov.di.ipv.cri.passport.library.domain.Strategy;
 import uk.gov.di.ipv.cri.passport.library.error.CommonExpressOAuthError;
 import uk.gov.di.ipv.cri.passport.library.exceptions.OAuthErrorResponseException;
 import uk.gov.di.ipv.cri.passport.library.persistence.DocumentCheckResultItem;
-import uk.gov.di.ipv.cri.passport.library.service.ClientFactoryService;
+import uk.gov.di.ipv.cri.passport.library.service.ApacheHTTPClientFactoryService;
 import uk.gov.di.ipv.cri.passport.library.service.ParameterStoreService;
 import uk.gov.di.ipv.cri.passport.library.service.ServiceFactory;
 import uk.gov.di.ipv.cri.passport.library.service.ThirdPartyAPIService;
@@ -92,7 +92,7 @@ class CheckPassportHandlerTest {
 
     // Returned via the ServiceFactory
     @Mock private EventProbe mockEventProbe;
-    @Mock private ClientFactoryService mockClientFactoryService;
+    @Mock private ApacheHTTPClientFactoryService mockApacheHTTPClientFactoryService;
     @Mock private ParameterStoreService mockParameterStoreService;
     @Mock private SessionService mockSessionService;
     @Mock private PersonIdentityService mockPersonIdentityService;
@@ -583,7 +583,8 @@ class CheckPassportHandlerTest {
         when(mockServiceFactory.getObjectMapper()).thenReturn(realObjectMapper);
         when(mockServiceFactory.getEventProbe()).thenReturn(mockEventProbe);
 
-        when(mockServiceFactory.getClientFactoryService()).thenReturn(mockClientFactoryService);
+        when(mockServiceFactory.getApacheHTTPClientFactoryService())
+                .thenReturn(mockApacheHTTPClientFactoryService);
 
         when(mockServiceFactory.getParameterStoreService()).thenReturn(mockParameterStoreService);
 

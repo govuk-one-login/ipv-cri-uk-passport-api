@@ -3,7 +3,7 @@ package uk.gov.di.ipv.cri.passport.library.dvad.services;
 import org.apache.http.impl.client.CloseableHttpClient;
 import uk.gov.di.ipv.cri.passport.library.config.ParameterStoreParameters;
 import uk.gov.di.ipv.cri.passport.library.exceptions.HttpClientException;
-import uk.gov.di.ipv.cri.passport.library.service.ClientFactoryService;
+import uk.gov.di.ipv.cri.passport.library.service.ApacheHTTPClientFactoryService;
 import uk.gov.di.ipv.cri.passport.library.service.ParameterStoreService;
 
 import java.io.IOException;
@@ -24,7 +24,7 @@ public class DVADCloseableHttpClientFactory {
     public CloseableHttpClient getClient(
             boolean tlsOn,
             ParameterStoreService parameterStoreService,
-            ClientFactoryService clientFactoryService) {
+            ApacheHTTPClientFactoryService apacheHTTPClientFactoryService) {
         try {
             if (tlsOn) {
                 Map<String, String> dvadHtpClientCertsKeysMap =
@@ -41,13 +41,14 @@ public class DVADCloseableHttpClientFactory {
                 final String base64TLSIntCertString =
                         dvadHtpClientCertsKeysMap.get(MAP_KEY_TLS_INT_CERT);
 
-                return clientFactoryService.generateHTTPClientFromExternalApacheHttpClient(
-                        base64TLSCertString,
-                        base64TLSKeyString,
-                        base64TLSRootCertString,
-                        base64TLSIntCertString);
+                return apacheHTTPClientFactoryService
+                        .generateHTTPClientFromExternalApacheHttpClient(
+                                base64TLSCertString,
+                                base64TLSKeyString,
+                                base64TLSRootCertString,
+                                base64TLSIntCertString);
             } else {
-                return new ClientFactoryService().generatePublicHttpClient();
+                return apacheHTTPClientFactoryService.generatePublicHttpClient();
             }
         } catch (NoSuchAlgorithmException
                 | InvalidKeySpecException
