@@ -30,6 +30,7 @@ import uk.gov.di.ipv.cri.passport.library.persistence.DocumentCheckResultItem;
 import uk.gov.di.ipv.cri.passport.library.service.ParameterStoreService;
 import uk.gov.di.ipv.cri.passport.library.service.ServiceFactory;
 
+import java.net.MalformedURLException;
 import java.security.NoSuchAlgorithmException;
 import java.security.spec.InvalidKeySpecException;
 import java.text.ParseException;
@@ -57,7 +58,8 @@ import static uk.gov.di.ipv.cri.passport.library.config.ParameterStoreParameters
 class VerifiableCredentialServiceTest implements VerifiableCredentialServiceTestFixtures {
     private static final Logger LOGGER = LogManager.getLogger();
 
-    private final String UNIT_TEST_VC_ISSUER = "UNIT_TEST_VC_ISSUER";
+    private final String UNIT_TEST_VC_KMS_KEY_ID = "UNIT_TEST_VC_KMS_KEY_ID";
+    private final String UNIT_TEST_VC_ISSUER = "https://UNIT_TEST_VC_ISSUER";
     private final String UNIT_TEST_SUBJECT = "urn:fdc:12345678";
 
     @Mock private ServiceFactory mockServiceFactory;
@@ -92,7 +94,8 @@ class VerifiableCredentialServiceTest implements VerifiableCredentialServiceTest
     })
     void shouldGenerateSignedVerifiableCredentialJWTWithMaxTTL(
             String maxJwtTtl, String maxJwtTtlUnit, boolean verified)
-            throws JOSEException, JsonProcessingException, ParseException {
+            throws JOSEException, JsonProcessingException, ParseException, MalformedURLException,
+                    NoSuchAlgorithmException {
 
         final long TTL = Long.parseLong(maxJwtTtl);
         final String JWT_TTL_UNIT = maxJwtTtlUnit;
@@ -121,6 +124,8 @@ class VerifiableCredentialServiceTest implements VerifiableCredentialServiceTest
                 .thenReturn(JWT_TTL_UNIT);
         when(mockCommonLibConfigurationService.getVerifiableCredentialIssuer())
                 .thenReturn(UNIT_TEST_VC_ISSUER);
+        when(mockCommonLibConfigurationService.getVerifiableCredentialKmsSigningKeyId())
+                .thenReturn(UNIT_TEST_VC_KMS_KEY_ID);
 
         SignedJWT signedJWT =
                 verifiableCredentialService.generateSignedVerifiableCredentialJwt(
