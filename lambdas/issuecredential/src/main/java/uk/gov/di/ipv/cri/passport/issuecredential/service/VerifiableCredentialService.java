@@ -15,6 +15,9 @@ import uk.gov.di.ipv.cri.passport.library.persistence.DocumentCheckResultItem;
 import uk.gov.di.ipv.cri.passport.library.service.ParameterStoreService;
 import uk.gov.di.ipv.cri.passport.library.service.ServiceFactory;
 
+import java.net.MalformedURLException;
+import java.net.URL;
+import java.security.NoSuchAlgorithmException;
 import java.time.Clock;
 import java.time.format.DateTimeFormatter;
 import java.time.temporal.ChronoUnit;
@@ -51,8 +54,12 @@ public class VerifiableCredentialService {
             String subject,
             DocumentCheckResultItem documentCheckResultItem,
             PersonIdentityDetailed personIdentityDetailed)
-            throws JOSEException {
+            throws JOSEException, MalformedURLException, NoSuchAlgorithmException {
         long jwtTtl = commonLibConfigurationService.getMaxJwtTtl();
+        String issuer =
+                removeIssuerPrefix(commonLibConfigurationService.getVerifiableCredentialIssuer());
+        String kmsSigningKeyId =
+                commonLibConfigurationService.getVerifiableCredentialKmsSigningKeyId();
 
         ChronoUnit jwtTtlUnit =
                 ChronoUnit.valueOf(parameterStoreService.getStackParameterValue(MAX_JWT_TTL_UNIT));
@@ -73,7 +80,7 @@ public class VerifiableCredentialService {
                         .verifiableCredentialEvidence(calculateEvidence(documentCheckResultItem))
                         .build();
 
-        return signedJwtFactory.createSignedJwt(claimsSet);
+        return signedJwtFactory.createSignedJwt(claimsSet, issuer, kmsSigningKeyId);
     }
 
     private Object[] convertPassport(DocumentCheckResultItem documentCheckResultItem) {
@@ -103,5 +110,10 @@ public class VerifiableCredentialService {
                     EvidenceHelper.documentCheckResultItemToEvidence(documentCheckResultItem),
                     Map.class)
         };
+    }
+
+    private String removeIssuerPrefix(String issuerUrl) throws MalformedURLException {
+        URL url = new URL(issuerUrl);
+        return url.getAuthority() + url.getPath();
     }
 }
