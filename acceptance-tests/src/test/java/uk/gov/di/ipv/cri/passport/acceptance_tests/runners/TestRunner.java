@@ -6,7 +6,6 @@ import org.junit.runner.RunWith;
 
 @RunWith(Cucumber.class)
 @CucumberOptions(
-        publish = false,
         plugin = "io.qameta.allure.cucumber7jvm.AllureCucumber7Jvm",
         features = "src/test/resources/features",
         glue = "uk/gov/di/ipv/cri/passport/acceptance_tests/step_definitions",
