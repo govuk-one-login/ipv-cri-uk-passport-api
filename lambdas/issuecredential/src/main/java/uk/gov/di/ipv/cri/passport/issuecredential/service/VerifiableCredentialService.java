@@ -15,6 +15,9 @@ import uk.gov.di.ipv.cri.passport.library.persistence.DocumentCheckResultItem;
 import uk.gov.di.ipv.cri.passport.library.service.ParameterStoreService;
 import uk.gov.di.ipv.cri.passport.library.service.ServiceFactory;
 
+import java.net.MalformedURLException;
+import java.net.URL;
+import java.security.NoSuchAlgorithmException;
 import java.time.Clock;
 import java.time.format.DateTimeFormatter;
 import java.time.temporal.ChronoUnit;
@@ -51,7 +54,7 @@ public class VerifiableCredentialService {
             String subject,
             DocumentCheckResultItem documentCheckResultItem,
             PersonIdentityDetailed personIdentityDetailed)
-            throws JOSEException {
+            throws JOSEException, MalformedURLException, NoSuchAlgorithmException {
         long jwtTtl = commonLibConfigurationService.getMaxJwtTtl();
 
         ChronoUnit jwtTtlUnit =
@@ -73,7 +76,21 @@ public class VerifiableCredentialService {
                         .verifiableCredentialEvidence(calculateEvidence(documentCheckResultItem))
                         .build();
 
-        return signedJwtFactory.createSignedJwt(claimsSet);
+        SignedJWT signedJwt = null;
+        if (Boolean.parseBoolean(System.getenv("INCLUDE_VC_KID"))) {
+            String issuer =
+                    removeIssuerPrefix(
+                            commonLibConfigurationService.getCommonParameterValue(
+                                    "verifiable-credential/issuer"));
+            String kmsSigningKeyId =
+                    commonLibConfigurationService.getCommonParameterValue(
+                            "verifiableCredentialKmsSigningKeyId");
+            signedJwt = signedJwtFactory.createSignedJwt(claimsSet, issuer, kmsSigningKeyId);
+        } else {
+            signedJwt = signedJwtFactory.createSignedJwt(claimsSet);
+        }
+
+        return signedJwt;
     }
 
     private Object[] convertPassport(DocumentCheckResultItem documentCheckResultItem) {
@@ -103,5 +120,10 @@ public class VerifiableCredentialService {
                     EvidenceHelper.documentCheckResultItemToEvidence(documentCheckResultItem),
                     Map.class)
         };
+    }
+
+    private String removeIssuerPrefix(String issuerUrl) throws MalformedURLException {
+        URL url = new URL(issuerUrl);
+        return url.getAuthority() + url.getPath();
     }
 }

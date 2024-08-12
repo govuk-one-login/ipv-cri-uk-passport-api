@@ -5,6 +5,7 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import com.nimbusds.jose.JOSEException;
+import com.nimbusds.jose.JWSHeader;
 import com.nimbusds.jose.JWSSigner;
 import com.nimbusds.jose.crypto.ECDSASigner;
 import com.nimbusds.jose.crypto.ECDSAVerifier;
@@ -29,7 +30,11 @@ import uk.gov.di.ipv.cri.passport.library.helpers.PersonIdentityDetailedHelperMa
 import uk.gov.di.ipv.cri.passport.library.persistence.DocumentCheckResultItem;
 import uk.gov.di.ipv.cri.passport.library.service.ParameterStoreService;
 import uk.gov.di.ipv.cri.passport.library.service.ServiceFactory;
+import uk.org.webcompere.systemstubs.environment.EnvironmentVariables;
+import uk.org.webcompere.systemstubs.jupiter.SystemStub;
+import uk.org.webcompere.systemstubs.jupiter.SystemStubsExtension;
 
+import java.net.MalformedURLException;
 import java.security.NoSuchAlgorithmException;
 import java.security.spec.InvalidKeySpecException;
 import java.text.ParseException;
@@ -54,10 +59,18 @@ import static uk.gov.di.ipv.cri.passport.library.config.GlobalConstants.UK_ICAO_
 import static uk.gov.di.ipv.cri.passport.library.config.ParameterStoreParameters.MAX_JWT_TTL_UNIT;
 
 @ExtendWith(MockitoExtension.class)
+@ExtendWith(SystemStubsExtension.class)
 class VerifiableCredentialServiceTest implements VerifiableCredentialServiceTestFixtures {
     private static final Logger LOGGER = LogManager.getLogger();
+    @SystemStub private EnvironmentVariables environmentVariables = new EnvironmentVariables();
 
-    private final String UNIT_TEST_VC_ISSUER = "UNIT_TEST_VC_ISSUER";
+    @SuppressWarnings("java:S116")
+    private final String UNIT_TEST_VC_KEYID = "UNIT_TEST_VC_KEYID";
+
+    @SuppressWarnings("java:S116")
+    private final String UNIT_TEST_VC_ISSUER = "https://UNIT_TEST_VC_ISSUER";
+
+    @SuppressWarnings("java:S116")
     private final String UNIT_TEST_SUBJECT = "urn:fdc:12345678";
 
     @Mock private ServiceFactory mockServiceFactory;
@@ -72,27 +85,36 @@ class VerifiableCredentialServiceTest implements VerifiableCredentialServiceTest
 
     @BeforeEach
     void setup() throws InvalidKeySpecException, NoSuchAlgorithmException, JOSEException {
+        mockServiceFactoryBehaviour();
 
         JWSSigner jwsSigner = new ECDSASigner(getPrivateKey());
 
-        mockServiceFactoryBehaviour();
-
         verifiableCredentialService =
                 new VerifiableCredentialService(mockServiceFactory, jwsSigner);
+        System.out.println(environmentVariables.getVariables());
     }
 
     @ParameterizedTest
     @CsvSource({
-        "3600, SECONDS, true", // 1 hour, Verified VC
-        "1814400, SECONDS, true", // 3 weeks, Verified VC
-        "15780000, SECONDS, true", // 6 months, Verified VC
-        "3600, SECONDS, false", // 1 hour, Unverified VC
-        "1814400, SECONDS, false", // 3 weeks, Unverified VC
-        "15780000, SECONDS, false", // 6 months, Unverified VC
+        "3600, SECONDS, true, true", // 1 hour, Verified VC, IncludeKidInVc
+        "1814400, SECONDS, true, true", // 3 weeks, Verified VC, IncludeKidInVc
+        "15780000, SECONDS, true, true", // 6 months, Verified VC, IncludeKidInVc
+        "3600, SECONDS, false, true", // 1 hour, Unverified VC, IncludeKidInVc
+        "1814400, SECONDS, false, true", // 3 weeks, Unverified VC, IncludeKidInVc
+        "15780000, SECONDS, false, true", // 6 months, Unverified VC, IncludeKidInVc
+        "3600, SECONDS, true, false", // 1 hour, Verified VC
+        "1814400, SECONDS, true, false", // 3 weeks, Verified VC
+        "15780000, SECONDS, true, false", // 6 months, Verified VC
+        "3600, SECONDS, false, false", // 1 hour, Unverified VC
+        "1814400, SECONDS, false, false", // 3 weeks, Unverified VC
+        "15780000, SECONDS, false, false", // 6 months, Unverified VC
     })
     void shouldGenerateSignedVerifiableCredentialJWTWithMaxTTL(
-            String maxJwtTtl, String maxJwtTtlUnit, boolean verified)
-            throws JOSEException, JsonProcessingException, ParseException {
+            String maxJwtTtl, String maxJwtTtlUnit, boolean verified, boolean includeKidInVC)
+            throws JOSEException, JsonProcessingException, ParseException, MalformedURLException,
+                    NoSuchAlgorithmException {
+
+        environmentVariables.set("INCLUDE_VC_KID", includeKidInVC);
 
         final long TTL = Long.parseLong(maxJwtTtl);
         final String JWT_TTL_UNIT = maxJwtTtlUnit;
@@ -114,6 +136,16 @@ class VerifiableCredentialServiceTest implements VerifiableCredentialServiceTest
             documentCheckResultItem =
                     DocumentCheckTestDataGenerator.generateUnverifiedResultItem(
                             sessionID, passportFormData.getPassportNumber());
+        }
+
+        if (includeKidInVC) {
+            when(mockCommonLibConfigurationService.getCommonParameterValue(
+                            "verifiableCredentialKmsSigningKeyId"))
+                    .thenReturn(UNIT_TEST_VC_KEYID);
+
+            when(mockCommonLibConfigurationService.getCommonParameterValue(
+                            "verifiable-credential/issuer"))
+                    .thenReturn(UNIT_TEST_VC_ISSUER);
         }
 
         when(mockCommonLibConfigurationService.getMaxJwtTtl()).thenReturn(TTL);
@@ -139,6 +171,16 @@ class VerifiableCredentialServiceTest implements VerifiableCredentialServiceTest
                         .withDefaultPrettyPrinter()
                         .writeValueAsString(generatedClaims);
         LOGGER.info(jsonGeneratedClaims);
+
+        JWSHeader generatedJWSHeader = null;
+        if (includeKidInVC) {
+            generatedJWSHeader = signedJWT.getHeader();
+            String[] jwsHeaderParts = generatedJWSHeader.getKeyID().split(":");
+
+            assertEquals("did", jwsHeaderParts[0]);
+            assertEquals("web", jwsHeaderParts[1]);
+            assertEquals("UNIT_TEST_VC_ISSUER", jwsHeaderParts[2]);
+        }
 
         JsonNode claimsSet = realObjectMapper.readTree(generatedClaims.toString());
         assertNotNull(claimsSet);

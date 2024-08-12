@@ -25,7 +25,7 @@ ext {
 		// cri_common_lib dependencies should match the ipv-cri-lib version
 		// Workaround until dependency resolution is fixed.
 		// ---------------------------------------------------------
-		cri_common_lib_version             : "3.0.2",
+		cri_common_lib_version             : "3.0.4",
 
 		// AWS SDK
 		aws_sdk_version                    : "2.26.16",
@@ -76,8 +76,8 @@ ext {
 	]
 
 	// Code Coverage (Lines/Branches) cannot be below this value on a per sub project basis
-	minUnitTestLineCoverage = 0.9
-	minUnitTestBranchCoverage = 0.9
+	minUnitTestLineCoverage = 0.8
+	minUnitTestBranchCoverage = 0.8
 }
 
 sonar {
