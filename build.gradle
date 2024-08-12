@@ -25,7 +25,7 @@ ext {
 		// cri_common_lib dependencies should match the ipv-cri-lib version
 		// Workaround until dependency resolution is fixed.
 		// ---------------------------------------------------------
-		cri_common_lib_version             : "3.0.2",
+		cri_common_lib_version             : "3.0.5",
 
 		// AWS SDK
 		aws_sdk_version                    : "2.26.16",
@@ -86,8 +86,8 @@ sonar {
 		property "sonar.organization", "govuk-one-login"
 		property "sonar.host.url", "https://sonarcloud.io"
 		property "sonar.java.coveragePlugin", "jacoco"
-		property "sonar.coverage.jacoco.xmlReportPath", "${buildDir}/reports/jacoco/reports/reports.xml"
-		property "sonar.dependencyCheck.htmlReportPath", "${buildDir}/reports/dependency-check-report.html"
+		property "sonar.coverage.jacoco.xmlReportPath", layout.buildDirectory.file("reports/jacoco/reports/reports.xml")
+		property "sonar.dependencyCheck.htmlReportPath", layout.buildDirectory.file("reports/dependency-check-report.html")
 	}
 }
 
