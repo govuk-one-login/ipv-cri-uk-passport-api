@@ -82,11 +82,6 @@ Conditions:
     - !Ref Environment
     - production
 
-  # This is a special case fix to avoid setting this environment wide feature flag in dev.
-  # As it becomes owned by the first stack using it. Remove once the feature flag is removed and feature is permanent.
-  OverrideSettingOfEnvironmentWideFeatureFlag: !Equals
-    - !Ref Environment
-    - dev
   IsNotCRIDevEnv:
     Fn::Not:
       - Fn::Equals:
@@ -203,22 +198,6 @@ Mappings:
       staging: 1
       integration: 1
       production: 1
-
-  VcExpiryRemoved:
-    Environment:
-      dev: "true"
-      build: "true"
-      staging: "true"
-      integration: "true"
-      production: "true"
-
-  VcContainsUniqueIdMapping:
-    Environment:
-      dev: "true"
-      build: "true"
-      staging: "true"
-      integration: "true"
-      production: "true"
 
   # VC Permitted values: SECONDS,MINUTES,HOURS,DAYS,MONTHS,YEARS
   JwtTtlUnitMapping:
@@ -867,25 +846,6 @@ Resources:
 # Parameters                                                       #
 #                                                                  #
 ####################################################################
-
-  ParameterReleaseFlagsVcExpiryRemoved:
-    Type: AWS::SSM::Parameter
-    Properties:
-      Name: !If
-        - OverrideSettingOfEnvironmentWideFeatureFlag
-        - !Sub "/${AWS::StackName}/release-flags-vc-expiry-removed-not-used-in-dev"
-        - !Sub "/release-flags/vc-expiry-removed"
-      Value: !FindInMap [ VcExpiryRemoved, Environment, !Ref Environment ]
-      Type: String
-      Description: Expiry date release toggle
-
-  ReleaseFlagsVcContainsUniqueIdParameter:
-    Type: AWS::SSM::Parameter
-    Properties:
-      Name: !Sub "/${AWS::StackName}/release-flags/vc-contains-unique-id"
-      Value: !FindInMap [ VcContainsUniqueIdMapping, Environment, !Ref Environment ]
-      Type: String
-      Description: Verifiable Credential Contains UniqueId Mapping
 
   ParameterDocumentCheckResultTableName:
     Type: AWS::SSM::Parameter

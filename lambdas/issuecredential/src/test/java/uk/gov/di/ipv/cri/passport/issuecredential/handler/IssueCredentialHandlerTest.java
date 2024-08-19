@@ -46,7 +46,6 @@ import uk.org.webcompere.systemstubs.environment.EnvironmentVariables;
 import uk.org.webcompere.systemstubs.jupiter.SystemStub;
 import uk.org.webcompere.systemstubs.jupiter.SystemStubsExtension;
 
-import java.net.MalformedURLException;
 import java.security.NoSuchAlgorithmException;
 import java.util.Map;
 import java.util.UUID;
@@ -103,7 +102,7 @@ class IssueCredentialHandlerTest {
 
     @Test
     void shouldReturn200OkWhenIssueCredentialRequestIsValid()
-            throws JOSEException, SqsException, MalformedURLException, NoSuchAlgorithmException {
+            throws JOSEException, SqsException, NoSuchAlgorithmException {
         APIGatewayProxyRequestEvent event = new APIGatewayProxyRequestEvent();
         AccessToken accessToken = new BearerAccessToken();
         event.withHeaders(
@@ -172,7 +171,7 @@ class IssueCredentialHandlerTest {
 
     @Test
     void shouldReturn200OkWhenIssueCredentialRequestIsValidAndIncludeKIdIsTrue()
-            throws JOSEException, SqsException, MalformedURLException, NoSuchAlgorithmException {
+            throws JOSEException, SqsException, NoSuchAlgorithmException {
         environmentVariables.set("INCLUDE_VC_KID", "true");
 
         APIGatewayProxyRequestEvent event = new APIGatewayProxyRequestEvent();
@@ -243,8 +242,7 @@ class IssueCredentialHandlerTest {
 
     @Test
     void shouldThrowJOSEExceptionWhenGenerateVerifiableCredentialIsMalformed()
-            throws JOSEException, SqsException, JsonProcessingException, MalformedURLException,
-                    NoSuchAlgorithmException {
+            throws JOSEException, SqsException, JsonProcessingException, NoSuchAlgorithmException {
         APIGatewayProxyRequestEvent event = new APIGatewayProxyRequestEvent();
         AccessToken accessToken = new BearerAccessToken();
         event.withHeaders(

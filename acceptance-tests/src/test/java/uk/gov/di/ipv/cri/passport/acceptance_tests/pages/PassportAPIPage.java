@@ -43,7 +43,8 @@ public class PassportAPIPage extends PassportPageObject {
     private static String STATE;
     private static String AUTHCODE;
     private static String ACCESS_TOKEN;
-    private static String VC;
+    private static String vcHeader;
+    private static String vcBody;
     private static String RETRY;
     private final ObjectMapper objectMapper =
             new ObjectMapper().registerModule(new JavaTimeModule());
@@ -233,7 +234,7 @@ public class PassportAPIPage extends PassportPageObject {
         ACCESS_TOKEN = deserialisedResponse.get("access_token");
     }
 
-    public String postRequestToPassportVCEndpoint()
+    public void postRequestToPassportVCEndpoint()
             throws IOException, InterruptedException, ParseException {
         String publicApiGatewayUrl = configurationService.getPublicAPIEndpoint();
         HttpRequest request =
@@ -247,19 +248,22 @@ public class PassportAPIPage extends PassportPageObject {
         String requestPassportVCResponse = sendHttpRequest(request).body();
         LOGGER.info("requestPassportVCResponse = " + requestPassportVCResponse);
         SignedJWT signedJWT = SignedJWT.parse(requestPassportVCResponse);
-        VC = signedJWT.getJWTClaimsSet().toString();
-        return signedJWT.getJWTClaimsSet().toString();
+
+        vcHeader = signedJWT.getHeader().toString();
+        LOGGER.info("VC Header = {}", vcHeader);
+
+        vcBody = signedJWT.getJWTClaimsSet().toString();
+        LOGGER.info("VC Body = {}", vcBody);
     }
 
     public void validityScoreAndStrengthScoreInVC(String validityScore, String strengthScore)
             throws IOException, InterruptedException, ParseException {
-        scoreIs(validityScore, strengthScore, VC);
+        scoreIs(validityScore, strengthScore, vcBody);
     }
 
     public void assertJtiIsPresent() throws IOException, ParseException, InterruptedException {
-        LOGGER.info("result = " + VC);
         ObjectMapper objectMapper = new ObjectMapper();
-        JsonNode jsonNode = objectMapper.readTree(VC);
+        JsonNode jsonNode = objectMapper.readTree(vcBody);
         JsonNode jtiNode = jsonNode.get("jti");
         LOGGER.info("jti = " + jtiNode.asText());
 
@@ -298,7 +302,7 @@ public class PassportAPIPage extends PassportPageObject {
             "Cdf9YoboXyJxqCKvcAgqxvq+r4TCMt2Qh7WtgLWqr8k="
         };
 
-        JsonNode vcRootNode = objectMapper.readTree((VC));
+        JsonNode vcRootNode = objectMapper.readTree((vcBody));
 
         // Only the first evidence item
         JsonNode evidenceArrayFirst = vcRootNode.get("vc").get("evidence").get(0);
@@ -375,7 +379,7 @@ public class PassportAPIPage extends PassportPageObject {
 
     public void ciInPassportCriVc(String ci)
             throws IOException, InterruptedException, ParseException {
-        JsonNode jsonNode = objectMapper.readTree((VC));
+        JsonNode jsonNode = objectMapper.readTree((vcBody));
         JsonNode evidenceArray = jsonNode.get("vc").get("evidence");
         JsonNode ciInEvidenceArray = evidenceArray.get(0);
         LOGGER.info("ciInEvidenceArray = " + ciInEvidenceArray);
