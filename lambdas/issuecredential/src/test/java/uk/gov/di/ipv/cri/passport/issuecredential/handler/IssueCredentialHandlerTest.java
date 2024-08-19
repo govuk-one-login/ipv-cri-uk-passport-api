@@ -46,6 +46,7 @@ import uk.org.webcompere.systemstubs.environment.EnvironmentVariables;
 import uk.org.webcompere.systemstubs.jupiter.SystemStub;
 import uk.org.webcompere.systemstubs.jupiter.SystemStubsExtension;
 
+import java.security.NoSuchAlgorithmException;
 import java.util.Map;
 import java.util.UUID;
 
@@ -71,6 +72,7 @@ class IssueCredentialHandlerTest {
     @SystemStub private EnvironmentVariables environmentVariables = new EnvironmentVariables();
 
     public static final String REQUEST_SUBJECT = "subject";
+
     @Mock private Context mockLambdaContext;
 
     @Mock private ServiceFactory mockServiceFactory;
@@ -99,7 +101,79 @@ class IssueCredentialHandlerTest {
     }
 
     @Test
-    void shouldReturn200OkWhenIssueCredentialRequestIsValid() throws JOSEException, SqsException {
+    void shouldReturn200OkWhenIssueCredentialRequestIsValid()
+            throws JOSEException, SqsException, NoSuchAlgorithmException {
+        APIGatewayProxyRequestEvent event = new APIGatewayProxyRequestEvent();
+        AccessToken accessToken = new BearerAccessToken();
+        event.withHeaders(
+                Map.of(
+                        IssueCredentialHandler.AUTHORIZATION_HEADER_KEY,
+                        accessToken.toAuthorizationHeader()));
+        setRequestBodyAsPlainJWT(event);
+
+        PersonIdentityDetailed personIdentityDetailed =
+                PersonIdentityDetailedHelperMapper.passportFormDataToAuditRestrictedFormat(
+                        PassportFormTestDataGenerator.generate());
+        SessionItem sessionItem = new SessionItem();
+        sessionItem.setSessionId(UUID.randomUUID());
+        DocumentCheckResultItem resultItem =
+                DocumentCheckTestDataGenerator.generateUnverifiedResultItem();
+
+        when(mockSessionService.getSessionByAccessToken(accessToken)).thenReturn(sessionItem);
+        when(mockPersonIdentityService.getPersonIdentityDetailed(sessionItem.getSessionId()))
+                .thenReturn(personIdentityDetailed);
+        when(mockDocumentCheckResultStore.getItem(String.valueOf(sessionItem.getSessionId())))
+                .thenReturn(resultItem);
+        when(mockVerifiableCredentialService.generateSignedVerifiableCredentialJwt(
+                        sessionItem.getSubject(), resultItem, personIdentityDetailed))
+                .thenReturn(mock(SignedJWT.class));
+
+        doNothing()
+                .when(mockAuditService)
+                .sendAuditEvent(
+                        eq(AuditEventType.VC_ISSUED),
+                        any(AuditEventContext.class),
+                        any(VCISSDocumentCheckAuditExtension.class));
+
+        when(mockLambdaContext.getFunctionName()).thenReturn("functionName");
+        when(mockLambdaContext.getFunctionVersion()).thenReturn("1.0");
+        APIGatewayProxyResponseEvent responseEvent =
+                issueCredentialHandler.handleRequest(event, mockLambdaContext);
+
+        verify(mockSessionService).getSessionByAccessToken(accessToken);
+        verify(mockDocumentCheckResultStore).getItem(String.valueOf(sessionItem.getSessionId()));
+        verify(mockPersonIdentityService).getPersonIdentityDetailed(any());
+        verify(mockVerifiableCredentialService)
+                .generateSignedVerifiableCredentialJwt(
+                        sessionItem.getSubject(), resultItem, personIdentityDetailed);
+
+        InOrder inOrder = inOrder(mockEventProbe, mockAuditService);
+        inOrder.verify(mockEventProbe)
+                .counterMetric(eq(LAMBDA_ISSUE_CREDENTIAL_FUNCTION_INIT_DURATION), anyDouble());
+        inOrder.verify(mockAuditService)
+                .sendAuditEvent(
+                        eq(AuditEventType.VC_ISSUED),
+                        any(AuditEventContext.class),
+                        any(VCISSDocumentCheckAuditExtension.class));
+        inOrder.verify(mockEventProbe)
+                .counterMetric(PASSPORT_CI_PREFIX + resultItem.getContraIndicators().get(0));
+        inOrder.verify(mockAuditService)
+                .sendAuditEvent(eq(AuditEventType.END), any(AuditEventContext.class));
+        inOrder.verify(mockEventProbe).counterMetric(LAMBDA_ISSUE_CREDENTIAL_COMPLETED_OK);
+        verifyNoMoreInteractions(mockEventProbe);
+        verifyNoMoreInteractions(mockAuditService);
+
+        assertEquals(
+                ContentType.APPLICATION_JWT.getType(),
+                responseEvent.getHeaders().get("Content-Type"));
+        assertEquals(HttpStatusCode.OK, responseEvent.getStatusCode());
+    }
+
+    @Test
+    void shouldReturn200OkWhenIssueCredentialRequestIsValidAndIncludeKIdIsTrue()
+            throws JOSEException, SqsException, NoSuchAlgorithmException {
+        environmentVariables.set("INCLUDE_VC_KID", "true");
+
         APIGatewayProxyRequestEvent event = new APIGatewayProxyRequestEvent();
         AccessToken accessToken = new BearerAccessToken();
         event.withHeaders(
@@ -168,7 +242,7 @@ class IssueCredentialHandlerTest {
 
     @Test
     void shouldThrowJOSEExceptionWhenGenerateVerifiableCredentialIsMalformed()
-            throws JOSEException, SqsException, JsonProcessingException {
+            throws JOSEException, SqsException, JsonProcessingException, NoSuchAlgorithmException {
         APIGatewayProxyRequestEvent event = new APIGatewayProxyRequestEvent();
         AccessToken accessToken = new BearerAccessToken();
         event.withHeaders(
