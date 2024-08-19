@@ -535,6 +535,8 @@ Resources:
                 - !GetAtt MockAuditEventQueueEncryptionKey.Arn
                 - Fn::ImportValue: AuditEventQueueEncryptionKeyArn
       AutoPublishAlias: live
+      SnapStart:
+        ApplyOn: PublishedVersions
       ProvisionedConcurrencyConfig:
         !If
           - AddProvisionedConcurrency
@@ -559,7 +561,7 @@ Resources:
     Type: AWS::Lambda::Permission
     Properties:
       Action: lambda:InvokeFunction
-      FunctionName: !GetAtt CheckPassportFunction.Arn
+      FunctionName: !Sub "${CheckPassportFunction}:live"
       Principal: apigateway.amazonaws.com
 
 ####################################################################
@@ -629,6 +631,8 @@ Resources:
                 - !Sub "arn:aws:ssm:${AWS::Region}:${AWS::AccountId}:parameter/${CommonStackName}/verifiable-credential/issuer"
                 - !Sub "arn:aws:ssm:${AWS::Region}:${AWS::AccountId}:parameter/${CommonStackName}/verifiableCredentialKmsSigningKeyId"
       AutoPublishAlias: live
+      SnapStart:
+        ApplyOn: PublishedVersions
       ProvisionedConcurrencyConfig:
         !If
           - AddProvisionedConcurrency
@@ -653,7 +657,7 @@ Resources:
     Type: AWS::Lambda::Permission
     Properties:
       Action: lambda:InvokeFunction
-      FunctionName: !GetAtt IssueCredentialFunction.Arn
+      FunctionName: !Sub "${IssueCredentialFunction}:live"
       Principal: apigateway.amazonaws.com
 
   ####################################################################

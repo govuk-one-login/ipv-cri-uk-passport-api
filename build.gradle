@@ -25,7 +25,7 @@ ext {
 		// cri_common_lib dependencies should match the ipv-cri-lib version
 		// Workaround until dependency resolution is fixed.
 		// ---------------------------------------------------------
-		cri_common_lib_version             : "3.0.5",
+		cri_common_lib_version             : "4.0.0",
 
 		// AWS SDK
 		aws_sdk_version                    : "2.26.16",
@@ -139,9 +139,9 @@ subprojects {
 		maven {
 			url 'https://gds.jfrog.io/artifactory/di-allowed-repos'
 		}
-		//flatDir {
-		//	dirs '<Location of your projects absolute path>/di-ipv-cri-lib/build/libs'
-		//}
+		flatDir {
+			dirs '/Users/smcshane/repos/di-ipv-cri-lib/build/libs'
+		}
 	}
 
 	plugins.withId('java') {
