@@ -173,6 +173,11 @@ public class CheckPassportHandler
 
             Map<String, String> requestHeaders = input.getHeaders();
             String sessionId = requestHeaders.get("session_id");
+
+            if (sessionId == null) {
+                throw new SessionNotFoundException("Session ID not found in headers");
+            }
+
             LOGGER.info("Extracting session from header ID {}", sessionId);
             var sessionItem = sessionService.validateSessionId(sessionId);
 

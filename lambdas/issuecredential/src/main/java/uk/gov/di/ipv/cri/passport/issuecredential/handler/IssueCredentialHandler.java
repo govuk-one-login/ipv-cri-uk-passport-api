@@ -166,6 +166,10 @@ public class IssueCredentialHandler
             LOGGER.info("Validating access token...");
             var accessToken = validateInputHeaderBearerToken(input.getHeaders());
             var sessionItem = this.sessionService.getSessionByAccessToken(accessToken);
+
+            if (sessionItem == null || sessionItem.getSessionId() == null) {
+                throw new SessionNotFoundException("Session not found in headers");
+            }
             LOGGER.info("Extracted session from session store ID {}", sessionItem.getSessionId());
 
             LOGGER.info("Retrieving identity details and document check results...");
