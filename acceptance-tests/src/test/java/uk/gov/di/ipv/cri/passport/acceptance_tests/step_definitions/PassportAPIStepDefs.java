@@ -40,6 +40,15 @@ public class PassportAPIStepDefs extends PassportAPIPage {
     }
 
     @When(
+            "Passport user sends a POST request to Passport endpoint with a invalid (.*) using jsonRequest (.*)$")
+    public void passport_user_sends_a_post_request_to_passport_end_point_with_invalid_sessionId(
+            String invalidHeaderValue, String passportJsonRequestBody)
+            throws IOException, InterruptedException, NoSuchFieldException, IllegalAccessException {
+        postRequestToPassportEndpointWithInvalidSessionId(
+                invalidHeaderValue, passportJsonRequestBody);
+    }
+
+    @When(
             "Passport user sends a editable POST request to Passport endpoint using jsonRequest (.*) with edited fields (.*)$")
     public void passport_user_sends_a_post_request_to_passport_end_point(
             String passportJsonRequestBody, String jsonEdits)
@@ -67,6 +76,13 @@ public class PassportAPIStepDefs extends PassportAPIPage {
     public void user_requests_passport_vc()
             throws IOException, InterruptedException, ParseException {
         postRequestToPassportVCEndpoint();
+    }
+
+    @Then(
+            "User requests Passport CRI VC from the Credential Issuer Endpoint with a invalid Bearer Token value")
+    public void user_requests_passport_vc_with_invalid_headers()
+            throws IOException, InterruptedException {
+        postRequestToPassportVCEndpointWithInvalidAuthCode();
     }
 
     @And("Passport VC should contain validityScore (.*) and strengthScore (.*)$")

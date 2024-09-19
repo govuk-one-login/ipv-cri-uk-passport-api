@@ -33,6 +33,7 @@ import java.text.ParseException;
 import java.util.Base64;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.UUID;
 
 import static org.junit.jupiter.api.Assertions.*;
 
@@ -176,6 +177,79 @@ public class PassportAPIPage extends PassportPageObject {
             LOGGER.info("Not a CheckPassportSuccessResponse");
 
             RETRY = passportCheckResponse;
+            LOGGER.info("RETRY = {}", RETRY);
+        }
+    }
+
+    public void postRequestToPassportEndpointWithInvalidSessionId(
+            String invalidHeaderValue, String passportJsonRequestBody)
+            throws IOException, InterruptedException, NoSuchFieldException, IllegalAccessException {
+        postRequestToPassportEndpointWithInvalidSessionId(
+                invalidHeaderValue, passportJsonRequestBody, "");
+    }
+
+    public void postRequestToPassportEndpointWithInvalidSessionId(
+            String invalidHeaderValue, String passportJsonRequestBody, String jsonEditsString)
+            throws IOException, InterruptedException, NoSuchFieldException, IllegalAccessException {
+        Map<String, String> jsonEdits = new HashMap<>();
+        if (!StringUtils.isEmpty(jsonEditsString)) {
+            jsonEdits = objectMapper.readValue(jsonEditsString, Map.class);
+        }
+
+        String privateApiGatewayUrl = configurationService.getPrivateAPIEndpoint();
+        PassportFormData passportJson =
+                objectMapper.readValue(
+                        new File("src/test/resources/Data/" + passportJsonRequestBody + ".json"),
+                        PassportFormData.class);
+
+        for (Map.Entry<String, String> entry : jsonEdits.entrySet()) {
+            Field field = passportJson.getClass().getDeclaredField(entry.getKey());
+            field.setAccessible(true);
+
+            field.set(passportJson, entry.getValue());
+        }
+        String passportInputJsonString = objectMapper.writeValueAsString(passportJson);
+
+        HttpRequest.Builder builder = HttpRequest.newBuilder();
+        builder.uri(URI.create(privateApiGatewayUrl + "/check-passport"))
+                .setHeader("Accept", "application/json")
+                .setHeader("Content-Type", "application/json")
+                .POST(HttpRequest.BodyPublishers.ofString(passportInputJsonString));
+
+        switch (invalidHeaderValue) {
+            case "mismatchSessionId" -> builder.setHeader(
+                    "session_id", UUID.randomUUID().toString());
+            case "malformedSessionId" -> builder.setHeader("session_id", "&%^$£$%");
+            case "missingSessionId" -> builder.setHeader("session_id", "");
+            default -> {
+                /*Do Nothing - No Header Provided*/
+            }
+        }
+
+        HttpRequest request = builder.build();
+        LOGGER.info("passport RequestBody = {}, {}", passportInputJsonString, request.headers());
+        String passportCheckResponse = sendHttpRequest(request).body();
+
+        LOGGER.info("passportCheckResponse = {}", passportCheckResponse);
+
+        String expectedResponseForInvalidSessionId =
+                "{\"oauth_error\":{\"error_description\":\"Session not found\",\"error\":\"access_denied\"}}";
+        assertEquals(expectedResponseForInvalidSessionId, passportCheckResponse);
+
+        try {
+            CheckPassportSuccessResponse checkPassportSuccessResponse =
+                    objectMapper.readValue(
+                            passportCheckResponse, CheckPassportSuccessResponse.class);
+
+            STATE = checkPassportSuccessResponse.getState();
+            SESSION_ID = checkPassportSuccessResponse.getPassportSessionId();
+
+            LOGGER.info("Found a CheckPassportSuccessResponse");
+
+        } catch (JsonMappingException e) {
+            LOGGER.info("Not a CheckPassportSuccessResponse");
+
+            RETRY = passportCheckResponse;
             LOGGER.info("RETRY = " + RETRY);
         }
     }
@@ -283,6 +357,26 @@ public class PassportAPIPage extends PassportPageObject {
                 kid.startsWith(KID_PREFIX));
         String kidSuffix = kid.substring(KID_PREFIX.length());
         Assert.assertFalse("The 'kid' field suffix should not be empty", kidSuffix.isEmpty());
+    }
+
+    public void postRequestToPassportVCEndpointWithInvalidAuthCode()
+            throws IOException, InterruptedException {
+        String publicApiGatewayUrl = configurationService.getPublicAPIEndpoint();
+        String randomAccessToken = UUID.randomUUID().toString();
+        HttpRequest request =
+                HttpRequest.newBuilder()
+                        .uri(URI.create(publicApiGatewayUrl + "/credential/issue"))
+                        .setHeader("Accept", "application/json")
+                        .setHeader("Content-Type", "application/json")
+                        .setHeader("Authorization", "Bearer " + randomAccessToken)
+                        .POST(HttpRequest.BodyPublishers.ofString(""))
+                        .build();
+        String requestPassportVCResponse = sendHttpRequest(request).body();
+        LOGGER.info("requestPassportVCResponse = {}", requestPassportVCResponse);
+
+        String expectedResponseForInvalidAuthCode =
+                "{\"oauth_error\":{\"error_description\":\"Session not found\",\"error\":\"access_denied\"}}";
+        assertEquals(expectedResponseForInvalidAuthCode, requestPassportVCResponse);
     }
 
     public void validityScoreAndStrengthScoreInVC(String validityScore, String strengthScore)
