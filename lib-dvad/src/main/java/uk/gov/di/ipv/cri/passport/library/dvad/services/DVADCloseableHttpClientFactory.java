@@ -16,10 +16,10 @@ import java.security.spec.InvalidKeySpecException;
 import java.util.Map;
 
 public class DVADCloseableHttpClientFactory {
-    public static final String MAP_KEY_TLS_CERT = "TLSCert";
-    public static final String MAP_KEY_TLS_KEY = "TLSKey";
+    public static final String MAP_KEY_TLS_CERT = "TLSCert-23-09-2024";
+    public static final String MAP_KEY_TLS_KEY = "TLSKey-23-09-2024";
     public static final String MAP_KEY_TLS_ROOT_CERT = "TLSRootCertificate";
-    public static final String MAP_KEY_TLS_INT_CERT = "TLSIntermediateCertificate";
+    public static final String MAP_KEY_TLS_INT_CERT = "TLSIntermediateCertificate-23-09-2024";
 
     public CloseableHttpClient getClient(
             boolean tlsOn,

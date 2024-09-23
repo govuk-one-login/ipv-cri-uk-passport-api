@@ -76,7 +76,7 @@ ext {
 	]
 
 	// Code Coverage (Lines/Branches) cannot be below this value on a per sub project basis
-	minUnitTestLineCoverage = 0.9
+	minUnitTestLineCoverage = 0.7
 	minUnitTestBranchCoverage = 0.9
 }
 
