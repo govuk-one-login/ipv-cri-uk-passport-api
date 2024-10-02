@@ -55,3 +55,26 @@ Feature: Passport CRI API
       |PassportJsonPayload              | CI  |  Scenario |
       |PassportInvalidCI1JsonPayload    | D01 |  3        |
       |PassportInvalidCI2JsonPayload    | D01 |  4        |
+
+  @hmpoDVAD @pre-merge @dev
+  Scenario Outline: Passport Journey Un-Happy path with invalid sessionId on Passport Endpoint
+    Given Passport user has the user identity in the form of a signed JWT string for CRI Id passport-v1-cri-dev and row number 6
+    And Passport user sends a POST request to session endpoint
+    And Passport user gets a session-id
+    When Passport user sends a POST request to Passport endpoint with a invalid <invalidHeaderValue> using jsonRequest PassportValidKennethJsonPayload
+    Examples:
+      |invalidHeaderValue              |
+      | mismatchSessionId               |
+      | malformedSessionId             |
+      | missingSessionId               |
+      | noSessionHeader                |
+
+  @hmpoDVAD @pre-merge @dev
+  Scenario: Passport Journey Un-Happy path with invalid authCode on Credential Issuer Endpoint
+    Given Passport user has the user identity in the form of a signed JWT string for CRI Id passport-v1-cri-dev and row number 6
+    And Passport user sends a POST request to session endpoint
+    And Passport user gets a session-id
+    When Passport user sends a POST request to Passport endpoint using jsonRequest PassportValidKennethJsonPayload
+    And Passport user gets authorisation code
+    And Passport user sends a POST request to Access Token endpoint passport-v1-cri-dev
+    Then User requests Passport CRI VC from the Credential Issuer Endpoint with a invalid Bearer Token value
