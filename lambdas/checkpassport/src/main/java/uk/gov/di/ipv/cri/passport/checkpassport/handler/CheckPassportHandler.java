@@ -45,6 +45,7 @@ import java.time.Duration;
 import java.time.temporal.ChronoUnit;
 import java.util.List;
 import java.util.Map;
+import java.util.regex.Pattern;
 
 import static uk.gov.di.ipv.cri.common.library.error.ErrorResponse.SESSION_EXPIRED;
 import static uk.gov.di.ipv.cri.common.library.error.ErrorResponse.SESSION_NOT_FOUND;
@@ -174,7 +175,7 @@ public class CheckPassportHandler
             Map<String, String> requestHeaders = input.getHeaders();
             String sessionId = requestHeaders.get("session_id");
 
-            if (sessionId == null) {
+            if (sessionId == null || sessionIdIsNotUUID(sessionId)) {
                 throw new SessionNotFoundException("Session ID not found in headers");
             }
 
@@ -311,6 +312,13 @@ public class CheckPassportHandler
                     HttpStatusCode.INTERNAL_SERVER_ERROR,
                     new CommonExpressOAuthError(OAuth2Error.SERVER_ERROR));
         }
+    }
+
+    public boolean sessionIdIsNotUUID(String sessionId) {
+        Pattern uuidRegex =
+                Pattern.compile(
+                        "^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$");
+        return !uuidRegex.matcher(sessionId).matches();
     }
 
     private boolean determineVerificationRetryStatus(

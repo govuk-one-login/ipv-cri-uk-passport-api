@@ -611,6 +611,43 @@ class CheckPassportHandlerTest {
                 oauthErrorNode.get("error_description").textValue()); // error description
     }
 
+    @Test
+    void handleResponseShouldThrowExceptionWhenSessionIdIsInvalidUUID()
+            throws JsonProcessingException {
+        APIGatewayProxyRequestEvent mockRequestEvent =
+                Mockito.mock(APIGatewayProxyRequestEvent.class);
+
+        Map<String, String> headers = new HashMap<>();
+        headers.put("session_id", "invalid");
+
+        when(mockRequestEvent.getHeaders()).thenReturn(headers);
+
+        APIGatewayProxyResponseEvent responseEvent =
+                checkPassportHandler.handleRequest(mockRequestEvent, mockLambdaContext);
+
+        JsonNode responseTreeRootNode = new ObjectMapper().readTree(responseEvent.getBody());
+        JsonNode oauthErrorNode = responseTreeRootNode.get("oauth_error");
+
+        CommonExpressOAuthError expectedObject =
+                new CommonExpressOAuthError(
+                        OAuth2Error.ACCESS_DENIED, SESSION_NOT_FOUND.getMessage());
+
+        assertNotNull(responseEvent);
+        assertNotNull(responseTreeRootNode);
+        assertNotNull(oauthErrorNode);
+        assertEquals(HttpStatusCode.FORBIDDEN, responseEvent.getStatusCode());
+
+        assertEquals(
+                "oauth_error",
+                responseTreeRootNode.fieldNames().next().toString()); // Root Node Name
+        assertEquals(
+                expectedObject.getError().get("error"),
+                oauthErrorNode.get("error").textValue()); // error
+        assertEquals(
+                expectedObject.getError().get("error_description"),
+                oauthErrorNode.get("error_description").textValue()); // error description
+    }
+
     private void mockServiceFactoryBehaviour() {
         when(mockServiceFactory.getObjectMapper()).thenReturn(realObjectMapper);
         when(mockServiceFactory.getEventProbe()).thenReturn(mockEventProbe);
