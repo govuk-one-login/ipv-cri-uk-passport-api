@@ -2,6 +2,8 @@ package uk.gov.di.ipv.cri.passport.acceptance_tests.pages;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
+import org.junit.Assert;
+import org.openqa.selenium.By;
 import org.openqa.selenium.support.PageFactory;
 import uk.gov.di.ipv.cri.passport.acceptance_tests.utilities.Driver;
 
@@ -22,11 +24,27 @@ public class UniversalSteps {
         waitForPageToLoad(MAX_WAIT_SEC);
 
         String title = Driver.get().getTitle();
+        if (title == null) {
+            title = "Driver had no page title";
+        }
 
-        boolean match = fuzzy ? title.contains(expTitle) : title.equals(expTitle);
+        final boolean match = fuzzy ? title.contains(expTitle) : title.equals(expTitle);
 
-        LOGGER.info("Page title: " + title);
-        assertTrue(match);
+        LOGGER.info(
+                "{} match - Page title: {}, Expected {}",
+                fuzzy ? "Fuzzy" : "Match",
+                title,
+                expTitle);
+
+        if (!match) {
+            // Log the entire page content if title match fails
+            // Body logged as there are several error pages
+            LOGGER.error(
+                    "Error page content - : {}",
+                    Driver.get().findElement(By.tagName("body")).getText());
+        }
+
+        Assert.assertTrue(match);
     }
 
     public void driverClose() {
