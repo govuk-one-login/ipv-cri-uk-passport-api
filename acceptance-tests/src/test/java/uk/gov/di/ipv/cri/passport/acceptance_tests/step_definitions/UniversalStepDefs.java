@@ -1,5 +1,6 @@
 package uk.gov.di.ipv.cri.passport.acceptance_tests.step_definitions;
 
+import io.cucumber.java.After;
 import io.cucumber.java.en.And;
 import uk.gov.di.ipv.cri.passport.acceptance_tests.pages.UniversalSteps;
 
@@ -33,5 +34,11 @@ public class UniversalStepDefs extends UniversalSteps {
     private static String getProperty(String propertyName) {
         String property = System.getProperty(propertyName);
         return Objects.requireNonNullElse(property, "");
+    }
+
+    @After
+    public void cleanUp() {
+        System.out.println("CleanUp after test");
+        driverClose();
     }
 }
