@@ -41,6 +41,10 @@ Parameters:
       - "integration"
       - "production"
     ConstraintDescription: must be dev, build, staging, integration or production
+  LambdaDeploymentPreference:
+    Description: "Specifies the configuration to enable gradual Lambda deployments"
+    Type: String
+    Default: AllAtOnce
   AuditEventNamePrefix:
     Description: "The audit event name prefix"
     Type: AWS::SSM::Parameter::Value<String>
@@ -114,6 +118,9 @@ Conditions:
     Fn::And:
       - !Equals [!Ref Environment, "dev"]
       - !Equals [ !Ref CreateMockTxmaResourcesOverride, "true" ]
+  UseCanaryDeploymentAlarms:
+    Fn::Not:
+      - !Equals [ !Ref LambdaDeploymentPreference, AllAtOnce ]
 
 Globals:
   Function:
@@ -469,6 +476,15 @@ Resources:
             - Fn::ImportValue:
                 !Sub "${VpcStackName}-PrivateSubnetIdB"
       Handler: uk.gov.di.ipv.cri.passport.checkpassport.handler.CheckPassportHandler::handleRequest
+      DeploymentPreference:
+        Enabled: true
+        Type: !Ref LambdaDeploymentPreference
+        Role: !GetAtt CodeDeployServiceRole.Arn
+
+        Alarms: !If
+          - UseCanaryDeploymentAlarms
+          - [!Ref CheckPassportFunctionCanaryErrors, !Ref CheckPassportFunctionCanary5xxErrors]
+          - [!Ref AWS::NoValue]
       Runtime: java17
       CodeUri: ../../lambdas/checkpassport
       Environment:
@@ -579,6 +595,14 @@ Resources:
       # checkov:skip=CKV_AWS_116: Lambdas invoked via API Gateway do not support Dead Letter Queues.
       # checkov:skip=CKV_AWS_117: Lambdas will migrate to our own VPC in future work.
       Handler: uk.gov.di.ipv.cri.passport.issuecredential.handler.IssueCredentialHandler::handleRequest
+      DeploymentPreference:
+        Enabled: true
+        Type: !Ref LambdaDeploymentPreference
+        Role: !GetAtt CodeDeployServiceRole.Arn
+        Alarms: !If
+          - UseCanaryDeploymentAlarms
+          - [!Ref IssueCredentialFunctionCanaryErrors, !Ref IssueCredentialFunctionCanary5xxErrors]
+          - [!Ref AWS::NoValue]
       Runtime: java17
       CodeUri: ../../lambdas/issuecredential
       Environment:
@@ -1122,6 +1146,125 @@ Resources:
       ComparisonOperator: GreaterThanOrEqualToThreshold
       TreatMissingData: notBreaching
 
+###################################################################
+#                                                                 #
+# Canary Alarms                                                   #
+#                                                                 #
+###################################################################
+
+  CheckPassportFunctionCanaryErrors:
+    Type: AWS::CloudWatch::Alarm
+    Condition: UseCanaryDeploymentAlarms
+    Properties:
+      ActionsEnabled: false
+      AlarmActions:
+        - !ImportValue platform-alarm-warning-alert-topic
+      OKActions:
+        - !ImportValue platform-alarm-warning-alert-topic
+      AlarmDescription: !Sub "Errors returned from the CheckPassportFunction Lambda."
+      MetricName: Errors
+      Dimensions:
+        - Name: Resource
+          Value: !Sub "${AWS::StackName}-CheckPassportFunction:live"
+        - Name: FunctionName
+          Value: !Ref CheckPassportFunction
+        - Name: ExecutedVersion
+          Value: !GetAtt CheckPassportFunction.Version.Version
+      Namespace: AWS/Lambda
+      Statistic: Sum
+      Unit: Count
+      Period: 60
+      EvaluationPeriods: 1
+      Threshold: 1
+      ComparisonOperator: GreaterThanOrEqualToThreshold
+      TreatMissingData: notBreaching
+
+  CheckPassportFunctionCanary5xxErrors:
+    Type: AWS::CloudWatch::Alarm
+    Condition: UseCanaryDeploymentAlarms
+    Properties:
+      ActionsEnabled: false
+      AlarmActions:
+        - !ImportValue platform-alarm-warning-alert-topic
+      OKActions:
+        - !ImportValue platform-alarm-warning-alert-topic
+      AlarmDescription: !Sub "CheckPassportFunction Lambda returning 5xx response."
+      Namespace: AWS/ApiGateway
+      MetricName: 5XXError
+      Dimensions:
+        - Name: ApiName
+          Value: !Sub "${AWS::StackName}-PrivateUKPassportAPI"
+        - Name: Method
+          Value: POST
+        - Name: Stage
+          Value: !Ref Environment
+        - Name: Resource
+          Value: /check-passport
+      Statistic: Sum
+      Unit: Count
+      Period: 60
+      EvaluationPeriods: 1
+      Threshold: 1
+      ComparisonOperator: GreaterThanOrEqualToThreshold
+      TreatMissingData: notBreaching
+
+  IssueCredentialFunctionCanaryErrors:
+    Type: AWS::CloudWatch::Alarm
+    Condition: UseCanaryDeploymentAlarms
+    Properties:
+      ActionsEnabled: false
+      AlarmActions:
+        - !ImportValue platform-alarm-warning-alert-topic
+      OKActions:
+        - !ImportValue platform-alarm-warning-alert-topic
+      AlarmDescription: !Sub "Errors returned from the IssueCredentialFunction Lambda."
+      MetricName: Errors
+      Dimensions:
+        - Name: Resource
+          Value: !Sub "${AWS::StackName}-IssueCredentialFunction:live"
+        - Name: FunctionName
+          Value: !Ref IssueCredentialFunction
+        - Name: ExecutedVersion
+          Value: !GetAtt IssueCredentialFunction.Version.Version
+      Namespace: AWS/Lambda
+      Statistic: Sum
+      Unit: Count
+      Period: 60
+      EvaluationPeriods: 1
+      Threshold: 1
+      ComparisonOperator: GreaterThanOrEqualToThreshold
+      TreatMissingData: notBreaching
+
+  IssueCredentialFunctionCanary5xxErrors:
+    Type: AWS::CloudWatch::Alarm
+    Condition: UseCanaryDeploymentAlarms
+    Properties:
+      ActionsEnabled: false
+      AlarmActions:
+        - !ImportValue platform-alarm-warning-alert-topic
+      OKActions:
+        - !ImportValue platform-alarm-warning-alert-topic
+      AlarmDescription: !Sub "IssueCredentialFunction Lambda returning 5xx response."
+      Namespace: AWS/ApiGateway
+      MetricName: 5XXError
+      Dimensions:
+        - Name: ApiName
+          Value: !Sub "${AWS::StackName}-PublicPassportApi"
+        - Name: Method
+          Value: POST
+        - Name: Stage
+          Value: !Ref Environment
+        - Name: Resource
+          Value: /credential/issue
+      Statistic: Sum
+      Unit: Count
+      Period: 60
+      EvaluationPeriods: 1
+      Threshold: 1
+      ComparisonOperator: GreaterThanOrEqualToThreshold
+      TreatMissingData: notBreaching
+
+
 ####################################################################
 #                                                                  #
 # Alarm setup                                                      #
@@ -1163,6 +1306,28 @@ Resources:
                   Fn::Sub: arn:aws:cloudwatch:${AWS::Region}:${AWS::AccountId}:alarm:*
     Metadata:
       SamResourceId: AlarmPublishToTopicPolicyPassport
+
+  ####################################################################
+  #                                                                  #
+  # Code Deploy Service Role                                         #
+  #                                                                  #
+  ####################################################################
+
+  CodeDeployServiceRole:
+    Type: AWS::IAM::Role
+    Properties:
+      AssumeRolePolicyDocument:
+        Version: "2012-10-17"
+        Statement:
+          - Action:
+              - sts:AssumeRole
+            Effect: Allow
+            Principal:
+              Service:
+                - codedeploy.amazonaws.com
+      ManagedPolicyArns:
+        - arn:aws:iam::aws:policy/service-role/AWSCodeDeployRoleForLambda
+      PermissionsBoundary: !If [ UsePermissionsBoundary, !Ref PermissionsBoundary, !Ref AWS::NoValue ]
 
 ####################################################################
 #                                                                  #
