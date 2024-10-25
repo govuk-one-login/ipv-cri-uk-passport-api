@@ -579,7 +579,7 @@ Resources:
     Type: AWS::Lambda::Permission
     Properties:
       Action: lambda:InvokeFunction
-      FunctionName: !GetAtt CheckPassportFunction.Arn
+      FunctionName: !Ref CheckPassportFunction.Alias
       Principal: apigateway.amazonaws.com
 
 ####################################################################
@@ -681,7 +681,7 @@ Resources:
     Type: AWS::Lambda::Permission
     Properties:
       Action: lambda:InvokeFunction
-      FunctionName: !GetAtt IssueCredentialFunction.Arn
+      FunctionName: !Ref IssueCredentialFunction.Alias
       Principal: apigateway.amazonaws.com
 
   ####################################################################
