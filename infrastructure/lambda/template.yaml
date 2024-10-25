@@ -593,7 +593,7 @@ Resources:
     Type: AWS::Lambda::Permission
     Properties:
       Action: lambda:InvokeFunction
-      FunctionName: !GetAtt CertExpiryReminderFunction.Arn
+      FunctionName: !GetAtt CheckPassportFunction.Arn
       Principal: apigateway.amazonaws.com
 
   CheckPassportFunctionAliasPermission:
@@ -705,7 +705,7 @@ Resources:
     Type: AWS::Lambda::Permission
     Properties:
       Action: lambda:InvokeFunction
-      FunctionName: !GetAtt IssueCredentialFunction.Arn
+      FunctionName: !Ref IssueCredentialFunction.Alias
       Principal: apigateway.amazonaws.com
 
   IssueCredentialFunctionAliasPermission:
