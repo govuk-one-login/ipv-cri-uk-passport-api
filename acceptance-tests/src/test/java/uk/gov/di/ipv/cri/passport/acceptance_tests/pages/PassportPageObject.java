@@ -875,17 +875,32 @@ public class PassportPageObject extends UniversalSteps {
 
     private LocalDate subtractMonthsFromCurrentDate(int monthsToSubtract) {
         LocalDate currentDate = LocalDate.now();
-        return currentDate.minusMonths(monthsToSubtract);
+        LocalDate pastDate = currentDate.minusMonths(monthsToSubtract);
+
+        LOGGER.info(
+                "SubtractMonthsFromCurrentDate - monthsToSubtract {}, currentDate {}, pastDate {}",
+                monthsToSubtract,
+                currentDate,
+                pastDate);
+
+        return pastDate;
     }
 
     public void userReEntersExpiryDateAsCurrentDateMinus(int monthsToSubtract, int daysToSubtract) {
 
-        LocalDate result = subtractMonthsFromCurrentDate(monthsToSubtract);
-        result = result.minusDays(daysToSubtract);
+        LocalDate resultMinusMonths = subtractMonthsFromCurrentDate(monthsToSubtract);
+        LocalDate resultMinusDays = resultMinusMonths.minusDays(daysToSubtract);
 
-        String dayMinusEighteen = String.valueOf(result.getDayOfMonth());
-        String monthMinusEighteen = String.valueOf(result.getMonthValue());
-        String yearMinusEighteen = String.valueOf(result.getYear());
+        LOGGER.info(
+                "UserReEntersExpiryDateAsCurrentDateMinus - monthsToSubtract {}, daysToSubtract {}, resultMinusMonths {}, resultMinusDays {}",
+                monthsToSubtract,
+                daysToSubtract,
+                resultMinusMonths,
+                resultMinusDays);
+
+        String dayMinusEighteen = String.valueOf(resultMinusDays.getDayOfMonth());
+        String monthMinusEighteen = String.valueOf(resultMinusDays.getMonthValue());
+        String yearMinusEighteen = String.valueOf(resultMinusDays.getYear());
 
         validToDay.clear();
         validToMonth.clear();
