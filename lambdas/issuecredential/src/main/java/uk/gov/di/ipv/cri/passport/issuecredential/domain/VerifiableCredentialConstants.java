@@ -6,7 +6,7 @@ public class VerifiableCredentialConstants {
     public static final String VC_CLAIM_KEY = "vc";
     public static final String VC_CLAIM_TYPE_KEY = "type";
     public static final String VC_CREDENTIAL_TYPE_VC =
-            "VerifiableCredential"; // Internally added by VerifiableCredentialClaimsSetBuilder CANARY
+            "VerifiableCredential"; // Internally added by VerifiableCredentialClaimsSetBuilder CANARY 2
     public static final String VC_CREDENTIAL_TYPE_ICC = "IdentityCheckCredential";
     public static final String VC_SUBJECT_KEY = "credentialSubject";
     public static final String VC_NAME_KEY = "name";
