@@ -51,17 +51,17 @@ else
   export JOURNEY_TAG="${TEST_TAG}"
 fi
 
-print("test1")
+echo "*********test1***********"
 pushd /home/gradle
 gradle cucumber -P tags=${JOURNEY_TAG}
 popd
 
-print("test2")
+echo "*********test2***********"
 pushd /home/gradle
 gradle cucumber -P tags=${JOURNEY_TAG}
 popd
 
-print("test3")
+echo "*********test3***********"
 pushd /home/gradle
 gradle cucumber -P tags=${JOURNEY_TAG}
 popd
