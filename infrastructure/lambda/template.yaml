@@ -714,7 +714,8 @@ Resources:
     Properties:
       Action: lambda:InvokeFunction
       FunctionName: !GetAtt CertExpiryReminderFunction.Arn
-      Principal: scheduler.amazonaws.com
+      Principal: events.amazonaws.com
+      SourceArn: !GetAtt CertExpiryReminderEventRule.Arn
 
   CertExpiryReminderEventRule:
     Type: AWS::Events::Rule
