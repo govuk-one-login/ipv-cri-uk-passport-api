@@ -58,10 +58,10 @@ dependencies {
 
 		// acceptance tests Implementation
 		// Update these together
-		cucumber_version                   : "7.15.0",
-		selenium_version                   : "4.23.1",
-		axe_core_selenium_version          : "4.6.0",
-		webdrivermanager_version           : "5.6.4",
+		cucumber_version                   : "7.20.1",
+		selenium_version                   : "4.26.0",
+		axe_core_selenium_version          : "4.10.1",
+		webdrivermanager_version           : "5.9.2",
 
 		// acceptance tests testImplementation
 		rest_assured_version               : "5.4.0",
