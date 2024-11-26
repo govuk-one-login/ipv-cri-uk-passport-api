@@ -1,5 +1,6 @@
 AWSTemplateFormatVersion: '2010-09-09'
-Transform: AWS::Serverless-2016-10-31
+Transform: ["AWS::Serverless-2016-10-31", 'AWS::LanguageExtensions']
+
 Description: Digital Identity Passport Credential Issuer API
 Metadata:
   cfn-lint:
@@ -195,6 +196,7 @@ Mappings:
       integration: "6"
       production: "6"
 
+  # CANNOT be 1 with SnapStart
   ProvisionedConcurrency:
     Environment:
       dev: 0
@@ -202,6 +204,15 @@ Mappings:
       staging: 1
       integration: 1
       production: 1
+
+  # CANNOT be used with ProvisionedConcurrency
+  SnapStartMapping:
+    Environment:
+      dev: None
+      build: None
+      staging: None
+      integration: None
+      production: None
 
   # VC Permitted values: SECONDS,MINUTES,HOURS,DAYS,MONTHS,YEARS
   JwtTtlUnitMapping:
@@ -477,6 +488,9 @@ Resources:
           POWERTOOLS_SERVICE_NAME: !Sub "${CriIdentifier}-checkpassport"
           ENVIRONMENT: !Ref Environment
           DEV_ENVIRONMENT_ONLY_ENHANCED_DEBUG: !FindInMap [ DevEnvironmentOnlyEnhancedDebugMapping, Environment, !Ref Environment ]
+      AutoPublishAlias: live
+      SnapStart:
+        ApplyOn: !FindInMap [ SnapStartMapping, Environment, !Ref Environment ]
       Policies:
         - DynamoDBWritePolicy:
             TableName: !Sub "{{resolve:ssm:/${CommonStackName}/SessionTableName}}"
@@ -538,7 +552,6 @@ Resources:
                 - CreateMockTxmaResources
                 - !GetAtt MockAuditEventQueueEncryptionKey.Arn
                 - Fn::ImportValue: AuditEventQueueEncryptionKeyArn
-      AutoPublishAlias: live
       ProvisionedConcurrencyConfig:
         !If
           - AddProvisionedConcurrency
@@ -563,7 +576,14 @@ Resources:
     Type: AWS::Lambda::Permission
     Properties:
       Action: lambda:InvokeFunction
-      FunctionName: !GetAtt CheckPassportFunction.Arn
+      FunctionName: !GetAtt CertExpiryReminderFunction.Arn
+      Principal: apigateway.amazonaws.com
+
+  CheckPassportFunctionAliasPermission:
+    Type: AWS::Lambda::Permission
+    Properties:
+      Action: lambda:InvokeFunction
+      FunctionName: !Ref CheckPassportFunction.Alias
       Principal: apigateway.amazonaws.com
 
 ####################################################################
@@ -589,6 +609,9 @@ Resources:
           ENV_VAR_FEATURE_FLAG_VC_EXPIRY_REMOVED: !FindInMap [ FeatureFlagMapping, !Ref Environment, VcExpiryRemoved ]
           ENV_VAR_FEATURE_FLAG_VC_CONTAINS_UNIQUE_ID: !FindInMap [ FeatureFlagMapping, !Ref Environment, VcContainsUniqueIdMapping ]
           INCLUDE_VC_KID: !FindInMap [ FeatureFlagMapping, !Ref Environment, IncludeKidInVc ]
+      AutoPublishAlias: live
+      SnapStart:
+        ApplyOn: !FindInMap [ SnapStartMapping, Environment, !Ref Environment ]
       Policies:
         - DynamoDBReadPolicy:
             TableName: !Sub "{{resolve:ssm:/${CommonStackName}/SessionTableName}}"
@@ -632,7 +655,6 @@ Resources:
                 - !Sub "arn:aws:ssm:${AWS::Region}:${AWS::AccountId}:parameter/${CommonStackName}/PersonIdentityTableName"
                 - !Sub "arn:aws:ssm:${AWS::Region}:${AWS::AccountId}:parameter/${CommonStackName}/verifiable-credential/issuer"
                 - !Sub "arn:aws:ssm:${AWS::Region}:${AWS::AccountId}:parameter/${CommonStackName}/verifiableCredentialKmsSigningKeyId"
-      AutoPublishAlias: live
       ProvisionedConcurrencyConfig:
         !If
           - AddProvisionedConcurrency
@@ -660,6 +682,13 @@ Resources:
       FunctionName: !GetAtt IssueCredentialFunction.Arn
       Principal: apigateway.amazonaws.com
 
+  IssueCredentialFunctionAliasPermission:
+    Type: AWS::Lambda::Permission
+    Properties:
+      Action: lambda:InvokeFunction
+      FunctionName: !Ref IssueCredentialFunction.Alias
+      Principal: apigateway.amazonaws.com
+
   ####################################################################
   #                                                                  #
   # Cert expiry reminder function                                    #
@@ -675,6 +704,9 @@ Resources:
       Environment:
         Variables:
           POWERTOOLS_SERVICE_NAME: !Sub "${CriIdentifier}-CertExpiryReminder"
+      AutoPublishAlias: live
+      SnapStart:
+        ApplyOn: !FindInMap [ SnapStartMapping, Environment, !Ref Environment ]
       Policies:
         - AWSLambdaBasicExecutionRole
         - AWSXrayWriteOnlyAccess
@@ -713,7 +745,7 @@ Resources:
     Type: AWS::Lambda::Permission
     Properties:
       Action: lambda:InvokeFunction
-      FunctionName: !GetAtt CertExpiryReminderFunction.Arn
+      FunctionName: !Ref CertExpiryReminderFunction.Alias
       Principal: events.amazonaws.com
       SourceArn: !GetAtt CertExpiryReminderEventRule.Arn
 
@@ -724,7 +756,7 @@ Resources:
       ScheduleExpression: "cron(0 12 ? * MON-FRI *)"
       State: ENABLED
       Targets:
-        - Arn: !GetAtt CertExpiryReminderFunction.Arn
+        - Arn: !Ref CertExpiryReminderFunction.Alias
           Id: scheduled-Cert-Expiry-event
           RetryPolicy:
             MaximumRetryAttempts: 0
