@@ -729,6 +729,23 @@ Resources:
           RetryPolicy:
             MaximumRetryAttempts: 0
 
+  ####################################################################
+  #                                                                  #
+  # Custom Lambda canary deployment strategy                         #
+  #                                                                  #
+  ####################################################################
+
+  LambdaCanary50Percent5Minutes:
+    Type: AWS::CodeDeploy::DeploymentConfig
+    Properties:
+      ComputePlatform: Lambda
+      DeploymentConfigName: LambdaCanary50Percent5Minutes
+      TrafficRoutingConfig:
+        TimeBasedCanary:
+          CanaryPercentage: 50
+          CanaryInterval: 5
+        Type: TimeBasedCanary
+
   #############################
   # New consumer queue for testing TxMA header
   #############################
