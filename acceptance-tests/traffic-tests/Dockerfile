@@ -19,7 +19,11 @@ RUN wget https://dl.google.com/linux/direct/google-chrome-stable_current_amd64.d
 RUN dpkg --configure -a
 RUN dpkg -i --force-depends google-chrome-stable_current_amd64.deb
 RUN apt-get install -fy
+RUN pwd & ls -al
 
-COPY . .
-RUN mv traffic-tests/run-tests.sh /run-tests.sh
+COPY . /
+COPY traffic-tests/run-tests.sh /
+WORKDIR /
+RUN pwd & ls -al
+
 ENTRYPOINT ["/run-tests.sh"]
