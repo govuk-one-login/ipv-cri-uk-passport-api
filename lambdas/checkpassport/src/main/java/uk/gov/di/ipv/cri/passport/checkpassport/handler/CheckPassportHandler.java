@@ -130,6 +130,11 @@ public class CheckPassportHandler
 
         this.thirdPartyAPIServiceFactory = new ThirdPartyAPIServiceFactory(serviceFactory);
 
+        // Prime DynamoDB Client
+        SessionItem primedSessionItem = sessionService.getSession("-1");
+        String loggedValue = String.valueOf(primedSessionItem);
+        LOGGER.info("DynamoDB primed - {}", loggedValue);
+
         // Runtime/SnapStart function init duration
         functionInitMetricLatchedValue =
                 System.currentTimeMillis() - FUNCTION_INIT_START_TIME_MILLISECONDS;
