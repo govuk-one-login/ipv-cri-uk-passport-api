@@ -85,7 +85,7 @@ jobs:
           container-sign-kms-key-arn: ${{ secrets.CONTAINER_SIGN_KMS_KEY_DEV }}
           role-to-assume-arn: ${{ secrets.AWS_DEV_ROLE_ARN }}
           ecr-repo-name: ${{ secrets.ECR_REPOSITORY_TRAFFIC_TEST_DEV }}
-          dockerfile: Dockerfile
+          dockerfile: traffic-tests/Dockerfile
           build-and-push-image-only: "true"
           push-latest-tag: true
-          working-directory: ./acceptance-tests/traffic-tests
+          working-directory: ./acceptance-tests

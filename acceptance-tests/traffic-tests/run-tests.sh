@@ -53,7 +53,7 @@ fi
 
 for test in `seq 1 4`; do
   echo "********* test number: ${test} ***********"
-  pushd ./acceptance-tests/home/gradle
+  pushd home/gradle
   gradle cucumber -P tags=${JOURNEY_TAG}
   popd
   sleep 5
