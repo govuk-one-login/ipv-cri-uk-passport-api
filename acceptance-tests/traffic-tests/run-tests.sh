@@ -58,5 +58,3 @@ for test in `seq 1 4`; do
   popd
   sleep 5
 done
-
-cp -r ./acceptance-tests/home/gradle/build/test-results "$REPORT_DIR"
