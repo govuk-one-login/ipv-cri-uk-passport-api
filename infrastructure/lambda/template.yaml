@@ -86,6 +86,12 @@ Conditions:
     - !Ref Environment
     - production
 
+  IsProdLikeEnvironment: !Or
+    - !Equals [!Ref Environment, staging]
+    - !Equals [!Ref Environment, integration]
+    - !Equals [!Ref Environment, production]
+  IsNotProdLikeEnvironment: !Not
+    - !Condition IsProdLikeEnvironment
   IsNotCRIDevEnv:
     Fn::Not:
       - Fn::Equals:
@@ -737,6 +743,7 @@ Resources:
 
   LambdaCanary50Percent5Minutes:
     Type: AWS::CodeDeploy::DeploymentConfig
+    Condition: IsNotProdLikeEnvironment
     Properties:
       ComputePlatform: Lambda
       DeploymentConfigName: LambdaCanary50Percent5Minutes
