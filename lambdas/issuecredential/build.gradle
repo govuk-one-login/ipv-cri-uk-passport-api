@@ -8,6 +8,13 @@ plugins {
 	id 'io.freefair.aspectj.post-compile-weaving' version '8.7.1'
 }
 
+configurations.all {
+	// https://aws.amazon.com/blogs/developer/tuning-the-aws-java-sdk-2-x-to-reduce-startup-time/
+	exclude group:"software.amazon.awssdk", module: "apache-client"
+	exclude group:"software.amazon.awssdk", module: "netty-nio-client"
+	exclude group:"software.amazon.awssdk", module: "url-connection-client"
+}
+
 dependencies {
 	implementation platform("software.amazon.awssdk:bom:${dependencyVersions.aws_sdk_version}"), project(":lib"),
 			"uk.gov.account:cri-common-lib:${dependencyVersions.cri_common_lib_version}",

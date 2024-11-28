@@ -26,6 +26,7 @@ import uk.gov.di.ipv.cri.common.library.exception.SessionExpiredException;
 import uk.gov.di.ipv.cri.common.library.exception.SessionNotFoundException;
 import uk.gov.di.ipv.cri.common.library.exception.SqsException;
 import uk.gov.di.ipv.cri.common.library.persistence.DataStore;
+import uk.gov.di.ipv.cri.common.library.persistence.item.SessionItem;
 import uk.gov.di.ipv.cri.common.library.service.AuditService;
 import uk.gov.di.ipv.cri.common.library.service.ConfigurationService;
 import uk.gov.di.ipv.cri.common.library.service.PersonIdentityService;
@@ -119,6 +120,11 @@ public class IssueCredentialHandler
         this.documentCheckResultStore = serviceFactory.getDocumentCheckResultStore();
 
         this.verifiableCredentialService = verifiableCredentialService;
+
+        // Prime DynamoDB Client
+        SessionItem primedSessionItem = sessionService.getSession("-1");
+        String loggedValue = String.valueOf(primedSessionItem);
+        LOGGER.info("DynamoDB primed - {}", loggedValue);
 
         // Runtime/SnapStart function init duration
         functionInitMetricLatchedValue =
