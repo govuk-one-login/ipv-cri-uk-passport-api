@@ -88,4 +88,4 @@ jobs:
           dockerfile: traffic-tests/Dockerfile
           build-and-push-image-only: "true"
           push-latest-tag: true
-          working-directory: ./acceptance-tests
+          working-directory: acceptance-tests
