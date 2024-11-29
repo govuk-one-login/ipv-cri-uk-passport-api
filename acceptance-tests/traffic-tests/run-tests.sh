@@ -51,16 +51,16 @@ else
   export JOURNEY_TAG="${TEST_TAG}"
 fi
 
-echo "starting:**********"
-echo $PWD
+pushd /home/gradle
+gradle cucumber -P tags=${JOURNEY_TAG}
+popd
 
-for test in `seq 1 4`; do
-  echo $PWD
-  echo "********* test number: ${test} ***********"
-  pushd home/gradle
-  echo "inside home/gradle"
-  echo $PWD
-  gradle cucumber -P tags=${JOURNEY_TAG}
-  popd
-  sleep 5
-done
+pushd /home/gradle
+gradle cucumber -P tags=${JOURNEY_TAG}
+popd
+
+pushd /home/gradle
+gradle cucumber -P tags=${JOURNEY_TAG}
+popd
+
+cp -r /home/gradle/build/test-results "$REPORT_DIR"
