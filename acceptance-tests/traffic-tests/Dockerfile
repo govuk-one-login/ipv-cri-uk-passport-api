@@ -21,7 +21,7 @@ RUN dpkg -i --force-depends google-chrome-stable_current_amd64.deb
 RUN apt-get install -fy
 RUN pwd & ls -al
 
-COPY . /
+COPY ../acceptance-tests /
 COPY traffic-tests/run-tests.sh /
 WORKDIR /
 RUN pwd & ls -al
