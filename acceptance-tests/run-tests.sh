@@ -55,12 +55,4 @@ pushd /home/gradle
 gradle cucumber -P tags=${JOURNEY_TAG}
 popd
 
-pushd /home/gradle
-gradle cucumber -P tags=${JOURNEY_TAG}
-popd
-
-pushd /home/gradle
-gradle cucumber -P tags=${JOURNEY_TAG}
-popd
-
 cp -r /home/gradle/build/test-results "$REPORT_DIR"

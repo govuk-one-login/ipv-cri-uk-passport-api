@@ -2,8 +2,6 @@
 
 set -e
 
-REPORT_DIR="${TEST_REPORT_DIR:=$PWD}"
-
 export BROWSER="${BROWSER:-chrome-headless}"
 export NO_CHROME_SANDBOX=true
 
@@ -62,5 +60,3 @@ popd
 pushd /home/gradle
 gradle cucumber -P tags=${JOURNEY_TAG}
 popd
-
-cp -r /home/gradle/build/test-results "$REPORT_DIR"
