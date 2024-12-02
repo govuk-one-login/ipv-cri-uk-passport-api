@@ -200,7 +200,7 @@ Mappings:
   ProvisionedConcurrency:
     Environment:
       dev: 0
-      build: 1
+      build: 0
       staging: 1
       integration: 1
       production: 1
@@ -489,6 +489,7 @@ Resources:
           ENVIRONMENT: !Ref Environment
           DEV_ENVIRONMENT_ONLY_ENHANCED_DEBUG: !FindInMap [ DevEnvironmentOnlyEnhancedDebugMapping, Environment, !Ref Environment ]
       AutoPublishAlias: live
+      AutoPublishAliasAllProperties: true
       SnapStart:
         ApplyOn: !FindInMap [ SnapStartMapping, Environment, !Ref Environment ]
       Policies:
@@ -610,6 +611,7 @@ Resources:
           ENV_VAR_FEATURE_FLAG_VC_CONTAINS_UNIQUE_ID: !FindInMap [ FeatureFlagMapping, !Ref Environment, VcContainsUniqueIdMapping ]
           INCLUDE_VC_KID: !FindInMap [ FeatureFlagMapping, !Ref Environment, IncludeKidInVc ]
       AutoPublishAlias: live
+      AutoPublishAliasAllProperties: true
       SnapStart:
         ApplyOn: !FindInMap [ SnapStartMapping, Environment, !Ref Environment ]
       Policies:
@@ -705,6 +707,7 @@ Resources:
         Variables:
           POWERTOOLS_SERVICE_NAME: !Sub "${CriIdentifier}-CertExpiryReminder"
       AutoPublishAlias: live
+      AutoPublishAliasAllProperties: true
       SnapStart:
         ApplyOn: !FindInMap [ SnapStartMapping, Environment, !Ref Environment ]
       Policies:
