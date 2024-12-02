@@ -49,28 +49,28 @@ else
   export JOURNEY_TAG="${TEST_TAG}"
 fi
 
-echo "this is updated working version PARALLEL pushd and popd ***********"
+echo "this is updated version PARALLEL pushd and popd with /usr/bin/nohup ***********"
 
 pushd /home/gradle
-gradle cucumber -P tags=${JOURNEY_TAG} &
+/usr/bin/nohup gradle cucumber -P tags=${JOURNEY_TAG} >Output.log 2>&1 &
 disown
 popd
 sleep 10
 
 pushd /home/gradle
-gradle cucumber -P tags=${JOURNEY_TAG} &
+/usr/bin/nohup gradle cucumber -P tags=${JOURNEY_TAG} >Output.log 2>&1 &
 disown
 popd
 sleep 10
 
 pushd /home/gradle
-gradle cucumber -P tags=${JOURNEY_TAG} &
+/usr/bin/nohup gradle cucumber -P tags=${JOURNEY_TAG} >Output.log 2>&1 &
 disown
 popd
 sleep 10
 
 pushd /home/gradle
-gradle cucumber -P tags=${JOURNEY_TAG} &
+/usr/bin/nohup gradle cucumber -P tags=${JOURNEY_TAG} >Output.log 2>&1 &
 disown
 popd
 wait
