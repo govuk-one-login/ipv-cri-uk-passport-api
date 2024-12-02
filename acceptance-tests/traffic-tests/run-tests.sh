@@ -49,15 +49,22 @@ else
   export JOURNEY_TAG="${TEST_TAG}"
 fi
 
-echo "this is updated working version***********"
+echo "this is updated working version PARALLEL ***********"
 
 pushd /home/gradle
+echo "******TEST 1 start ***********"
 gradle cucumber -P tags=${JOURNEY_TAG} &
 sleep 10
+echo "TEST 1 started ***********"
+echo "******TEST 2 START ***********"
 gradle cucumber -P tags=${JOURNEY_TAG} &
 sleep 10
+echo "TEST 2 started ***********"
+echo "******TEST 3 START ***********"
 gradle cucumber -P tags=${JOURNEY_TAG} &
 sleep 10
+echo "TEST 3 started ***********"
+echo "******TEST 4 START ***********"
 gradle cucumber -P tags=${JOURNEY_TAG} &
 wait
 popd
