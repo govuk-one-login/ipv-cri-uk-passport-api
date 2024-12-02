@@ -86,12 +86,12 @@ Conditions:
     - !Ref Environment
     - production
 
-  IsProdLikeEnvironment: !Or
-    - !Equals [!Ref Environment, staging]
-    - !Equals [!Ref Environment, integration]
-    - !Equals [!Ref Environment, production]
-  IsNotProdLikeEnvironment: !Not
-    - !Condition IsProdLikeEnvironment
+  # IsProdLikeEnvironment: !Or
+  #   - !Equals [!Ref Environment, staging]
+  #   - !Equals [!Ref Environment, integration]
+  #   - !Equals [!Ref Environment, production]
+  # IsNotProdLikeEnvironment: !Not
+  #   - !Condition IsProdLikeEnvironment
   IsNotCRIDevEnv:
     Fn::Not:
       - Fn::Equals:
@@ -735,23 +735,23 @@ Resources:
           RetryPolicy:
             MaximumRetryAttempts: 0
 
-  ####################################################################
-  #                                                                  #
-  # Custom Lambda canary deployment strategy                         #
-  #                                                                  #
-  ####################################################################
+  # ####################################################################
+  # #                                                                  #
+  # # Custom Lambda canary deployment strategy                         #
+  # #                                                                  #
+  # ####################################################################
 
-  LambdaCanary50Percent5Minutes:
-    Type: AWS::CodeDeploy::DeploymentConfig
-    Condition: IsNotProdLikeEnvironment
-    Properties:
-      ComputePlatform: Lambda
-      DeploymentConfigName: LambdaCanary50Percent5Minutes
-      TrafficRoutingConfig:
-        TimeBasedCanary:
-          CanaryPercentage: 50
-          CanaryInterval: 5
-        Type: TimeBasedCanary
+  # LambdaCanary50Percent5Minutes:
+  #   Type: AWS::CodeDeploy::DeploymentConfig
+  #   Condition: IsNotProdLikeEnvironment
+  #   Properties:
+  #     ComputePlatform: Lambda
+  #     DeploymentConfigName: LambdaCanary50Percent5Minutes
+  #     TrafficRoutingConfig:
+  #       TimeBasedCanary:
+  #         CanaryPercentage: 50
+  #         CanaryInterval: 5
+  #       Type: TimeBasedCanary
 
   #############################
   # New consumer queue for testing TxMA header
