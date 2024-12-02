@@ -55,9 +55,13 @@ pushd /home/gradle
 gradle cucumber -P tags=${JOURNEY_TAG}
 popd
 
+sleep 10
+
 pushd /home/gradle
 gradle cucumber -P tags=${JOURNEY_TAG}
 popd
+
+sleep 10
 
 pushd /home/gradle
 gradle cucumber -P tags=${JOURNEY_TAG}
