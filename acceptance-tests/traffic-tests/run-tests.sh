@@ -52,17 +52,12 @@ fi
 echo "this is updated working version***********"
 
 pushd /home/gradle
-gradle cucumber -P tags=${JOURNEY_TAG}
-popd
-
+gradle cucumber -P tags=${JOURNEY_TAG} &
 sleep 10
-
-pushd /home/gradle
-gradle cucumber -P tags=${JOURNEY_TAG}
-popd
-
+gradle cucumber -P tags=${JOURNEY_TAG} &
 sleep 10
-
-pushd /home/gradle
-gradle cucumber -P tags=${JOURNEY_TAG}
+gradle cucumber -P tags=${JOURNEY_TAG} &
+sleep 10
+gradle cucumber -P tags=${JOURNEY_TAG} &
+wait
 popd
