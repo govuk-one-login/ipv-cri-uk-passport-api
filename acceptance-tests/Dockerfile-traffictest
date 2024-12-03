@@ -13,6 +13,7 @@ RUN apt-get install -y libappindicator1 fonts-liberation
 RUN apt-get -y install dbus-x11 xfonts-base xfonts-100dpi xfonts-75dpi xfonts-cyrillic xfonts-scalable
 RUN apt-get -y install libxss1 lsb-release xdg-utils
 RUN apt-get -y install jq
+RUN apt-get -y install parallel
 
 # Chrome not available for arm64 linux currently and we want to use chrome not chromium
 RUN wget https://dl.google.com/linux/direct/google-chrome-stable_current_amd64.deb
@@ -21,5 +22,5 @@ RUN dpkg -i --force-depends google-chrome-stable_current_amd64.deb
 RUN apt-get install -fy
 
 COPY . .
-RUN mv run-tests.sh /run-tests.sh
+RUN mv traffic-tests/run-tests.sh /run-tests.sh
 ENTRYPOINT ["/run-tests.sh"]
