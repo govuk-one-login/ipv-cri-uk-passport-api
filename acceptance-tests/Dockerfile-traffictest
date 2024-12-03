@@ -21,5 +21,6 @@ RUN dpkg -i --force-depends google-chrome-stable_current_amd64.deb
 RUN apt-get install -fy
 
 COPY . .
+COPY ../gradle.properties .
 RUN mv traffic-tests/run-tests.sh /run-tests.sh
 ENTRYPOINT ["/run-tests.sh"]
