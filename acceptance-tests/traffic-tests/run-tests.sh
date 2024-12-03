@@ -49,8 +49,6 @@ else
   export JOURNEY_TAG="${TEST_TAG}"
 fi
 
-echo "PARELLEL 4 times***********"
+echo "PARELLEL 4 times UPDATED***********"
 
-pushd /home/gradle
 seq 4 | parallel --progress -j4 -n0 ../gradlew cucumber -P tags=${TAG}
-popd
