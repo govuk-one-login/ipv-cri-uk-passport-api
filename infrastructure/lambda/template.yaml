@@ -200,7 +200,7 @@ Mappings:
   ProvisionedConcurrency:
     Environment:
       dev: 0
-      build: 0
+      build: 1
       staging: 1
       integration: 1
       production: 1
