@@ -52,5 +52,5 @@ fi
 echo "PARELLEL 4 times***********"
 
 pushd /home/gradle
-seq 4 | parallel --progress -j4 -n0 ./gradlew cucumber -P tags=${TAG}
+seq 4 | parallel --progress -j4 -n0 ../gradlew cucumber -P tags=${TAG}
 popd
