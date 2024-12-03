@@ -51,8 +51,10 @@ else
   export JOURNEY_TAG="${TEST_TAG}"
 fi
 
-pushd /home/gradle
-gradle cucumber -P tags=${JOURNEY_TAG}
-popd
+# pushd /home/gradle
+# gradle cucumber -P tags=${JOURNEY_TAG}
+# popd
+
+seq 4 | parallel --progress -j8 -n0 ./gradlew cucumber -P tags=${TAG}
 
 cp -r /home/gradle/build/test-results "$REPORT_DIR"
