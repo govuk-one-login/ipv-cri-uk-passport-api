@@ -51,6 +51,6 @@ fi
 
 echo "PARALLEL seq down to 4 SILENT who am i username ************"
 
-echo $whoami
+# echo $whoami
 
-# seq 4 | parallel --progress -j4 -n0 gradle cucumber -P tags=${TAG}
+seq 4 | parallel --bg -j4 -n0 gradle cucumber -P tags=${TAG}
