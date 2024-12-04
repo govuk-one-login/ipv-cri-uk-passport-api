@@ -49,6 +49,8 @@ else
   export JOURNEY_TAG="${TEST_TAG}"
 fi
 
-echo "PARALLEL seq down to 4 SILENT --open-tty ************"
+echo "PARALLEL seq down to 4 SILENT who am i username ************"
 
-seq 4 | parallel --progress --open-tty -j4 -n0 gradle cucumber -P tags=${TAG}
+echo $whoami
+
+# seq 4 | parallel --progress -j4 -n0 gradle cucumber -P tags=${TAG}
