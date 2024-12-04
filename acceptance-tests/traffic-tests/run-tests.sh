@@ -51,4 +51,4 @@ fi
 
 echo "PARALLEL seq down to 4 SILENT************"
 
-seq 4 | parallel --silent -j4 -n0 gradle cucumber -P tags=${TAG}
+seq 4 | parallel --progress -j4 -n0 gradle cucumber -P tags=${TAG}
