@@ -49,10 +49,10 @@ else
   export JOURNEY_TAG="${TEST_TAG}"
 fi
 
-echo "reset command alpine image used ************"
+echo "reset command alpine image used GRADLE ************"
 
 # echo $whoami
 
-seq 16 | parallel --progress -j8 -n0 ./gradlew cucumber -P tags=${TAG}
+seq 16 | parallel --progress -j8 -n0 gradle cucumber -P tags=${TAG}
 
 wait
