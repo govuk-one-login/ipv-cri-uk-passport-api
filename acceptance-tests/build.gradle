@@ -35,9 +35,9 @@ dependencies {
 		nimbusds_oauth_version             : "11.19.1",
 
 		// CRI_LIB powertools
-		aws_powertools_logging_version     : "1.12.0",
-		aws_powertools_metrics_version     : "1.12.0",
-		aws_powertools_parameters_version  : "1.12.0",
+		aws_powertools_logging_version     : "1.18.0",
+		aws_powertools_metrics_version     : "1.18.0",
+		aws_powertools_parameters_version  : "1.18.0",
 
 		// ---------------------------------------------------------
 		// AC Test Dependencies (Passport CRI)
