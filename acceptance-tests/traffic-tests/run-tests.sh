@@ -49,7 +49,7 @@ else
   export JOURNEY_TAG="${TEST_TAG}"
 fi
 
-echo "PARALLEL seq down to 4 SILENT who am i username ************"
+echo "PARALLEL seq down to 4 SILENT who am i username JAMMY image updated ************"
 
 # echo $whoami
 
