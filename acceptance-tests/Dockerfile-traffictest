@@ -14,7 +14,7 @@ RUN apt-get -y install dbus-x11 xfonts-base xfonts-100dpi xfonts-75dpi xfonts-cy
 RUN apt-get -y install libxss1 lsb-release xdg-utils
 RUN apt-get -y install jq
 RUN apt-get -y install parallel
-RUN apt-get vim
+# RUN apt-get -y vim
 
 # Chrome not available for arm64 linux currently and we want to use chrome not chromium
 RUN wget https://dl.google.com/linux/direct/google-chrome-stable_current_amd64.deb
