@@ -91,7 +91,7 @@ jobs:
 
       - name: SAM build
         run: |
-          mkdir build
+          mkdir out
           sam build -t infrastructure/lambda/template.yaml -b out
 
       - name: Deploy SAM app

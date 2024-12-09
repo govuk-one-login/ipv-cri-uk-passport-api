@@ -3,7 +3,6 @@ on:
   push:
     branches:
       - main
-      - IPS-1240-traffic-test
   workflow_dispatch: # deploy manually
 
 jobs:
