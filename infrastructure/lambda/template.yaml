@@ -1243,7 +1243,7 @@ Resources:
       MetricName: 5XXError
       Dimensions:
         - Name: ApiName
-          Value: !Sub "${AWS::StackName}-PrivateUKPassportAPI"
+          Value: !Sub "${AWS::StackName}-PrivateUKPassportApi"
         - Name: Method
           Value: POST
         - Name: Stage
@@ -1300,7 +1300,7 @@ Resources:
       MetricName: 5XXError
       Dimensions:
         - Name: ApiName
-          Value: !Sub "${AWS::StackName}-PublicPassportApi"
+          Value: !Sub "${AWS::StackName}-PublicUKPassportApi"
         - Name: Method
           Value: POST
         - Name: Stage
