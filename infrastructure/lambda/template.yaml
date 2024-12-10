@@ -589,7 +589,7 @@ Resources:
       FilterPattern: ""
       LogGroupName: !Ref CheckPassportFunctionLogGroup
 
-  CheckPassportFunctionPermissionAlias:
+  CheckPassportFunctionPermission:
     Type: AWS::Lambda::Permission
     Properties:
       Action: lambda:InvokeFunction
@@ -601,13 +601,6 @@ Resources:
     Properties:
       Action: lambda:InvokeFunction
       FunctionName: !Ref CheckPassportFunction.Alias
-      Principal: apigateway.amazonaws.com
-
-  CheckPassportFunctionPermission:
-    Type: AWS::Lambda::Permission
-    Properties:
-      Action: lambda:InvokeFunction
-      FunctionName: !GetAtt CheckPassportFunction.Arn
       Principal: apigateway.amazonaws.com
 
 ####################################################################
@@ -707,13 +700,6 @@ Resources:
       DestinationArn: "arn:aws:logs:eu-west-2:885513274347:destination:csls_cw_logs_destination_prodpython"
       FilterPattern: ""
       LogGroupName: !Ref IssueCredentialFunctionLogGroup
-
-  IssueCredentialFunctionPermissionAlias:
-    Type: AWS::Lambda::Permission
-    Properties:
-      Action: lambda:InvokeFunction
-      FunctionName: !Ref IssueCredentialFunction.Alias
-      Principal: apigateway.amazonaws.com
 
   IssueCredentialFunctionPermission:
     Type: AWS::Lambda::Permission
