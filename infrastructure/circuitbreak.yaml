@@ -1,0 +1,21 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Description: CloudFormation template for EventBridge Rulepipeline-pause
+Resources:
+  Ruleb2e902cd:
+    Type: AWS::Events::Rule
+    Properties:
+      Name: pipeline-pause
+      EventPattern: >-
+        {"source":["aws.codedeploy"],"detail-type":["CodeDeploy Deployment State-change Notification"],"detail":{"state":["FAILURE"],"application":["ipv-cri-passport-api-ServerlessDeploymentApplication-DqzeiFMPGAsg"]}}
+      State: ENABLED
+      EventBusName: default
+      Targets:
+        - Id: Id6fde07e0-abd2-4a2e-bff5-8ffe3690dac9
+          Arn:
+            Fn::Sub: >-
+              arn:${AWS::Partition}:lambda:${AWS::Region}:${AWS::AccountId}:function:test-circuit-breaker-IPS-1214
+Parameters: {}
+
+
+command to disable transition:
+aws codepipeline disable-stage-transition --pipeline-name ipv-cri-passport-api-pipeline-Pipeline-1C1ODTKKI8MZK --stage-name Deploy --transition-type Inbound --reason "Testing pausing pipeline IPS-1214 16 Dec"
