@@ -55,7 +55,7 @@ import static uk.gov.di.ipv.cri.passport.library.metrics.Definitions.*;
 public class CheckPassportHandler
         implements RequestHandler<APIGatewayProxyRequestEvent, APIGatewayProxyResponseEvent> {
 
-    // We need this first and static for it to be created as soon as possible during function init
+    // We need this first and static for it to be created as soon as possible during function init TEST
     private static final long FUNCTION_INIT_START_TIME_MILLISECONDS = System.currentTimeMillis();
 
     private static final Logger LOGGER = LogManager.getLogger();

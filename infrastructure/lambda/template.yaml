@@ -1213,7 +1213,7 @@ Resources:
       EvaluationPeriods: 1
       Threshold: 1
       ComparisonOperator: GreaterThanOrEqualToThreshold
-      TreatMissingData: notBreaching
+      TreatMissingData: breaching
 
   CheckPassportFunctionCanary5xxErrors:
     Type: AWS::CloudWatch::Alarm
