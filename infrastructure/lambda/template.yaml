@@ -218,8 +218,8 @@ Mappings:
       dev: PublishedVersions
       build: PublishedVersions
       staging: PublishedVersions
-      integration: None
-      production: None
+      integration: PublishedVersions
+      production: PublishedVersions
 
   # VC Permitted values: SECONDS,MINUTES,HOURS,DAYS,MONTHS,YEARS
   JwtTtlUnitMapping:
