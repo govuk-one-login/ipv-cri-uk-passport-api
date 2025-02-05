@@ -12,7 +12,9 @@ updates:
     groups:
       aws_powertools:
         patterns:
-          - "aws_powertools_*"
+          - "aws_powertools_logging_version"
+          - "aws_powertools_metrics_version"
+          - "aws_powertools_parameters_version"
     commit-message:
       prefix: BAU
   - package-ecosystem: "github-actions"
