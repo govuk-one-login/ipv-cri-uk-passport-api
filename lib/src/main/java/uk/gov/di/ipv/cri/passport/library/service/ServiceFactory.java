@@ -81,7 +81,10 @@ public class ServiceFactory {
     public ClientProviderFactory getClientProviderFactory() {
 
         if (clientProviderFactory == null) {
-            clientProviderFactory = new ClientProviderFactory();
+            // The following sets avoidExecutionInterceptorsOnClientsUsedByPowerTools to true.
+            // This is due to a conflict between aws power tools and Dynatrace, when using OpenTel
+            // On the AWS clients used by the power tools providers.
+            clientProviderFactory = new ClientProviderFactory(true, true);
         }
 
         return clientProviderFactory;

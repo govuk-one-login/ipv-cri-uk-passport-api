@@ -1,6 +1,5 @@
 package uk.gov.di.ipv.cri.passport.library.util;
 
-import lombok.experimental.UtilityClass;
 import org.apache.http.HttpResponse;
 import org.apache.http.util.EntityUtils;
 import org.apache.logging.log4j.LogManager;
@@ -11,10 +10,13 @@ import uk.gov.di.ipv.cri.passport.library.exceptions.OAuthErrorResponseException
 
 import java.io.IOException;
 
-@UtilityClass
 public class HTTPReplyHelper {
 
     private static final Logger LOGGER = LogManager.getLogger();
+
+    private HTTPReplyHelper() {
+        // Utility Class
+    }
 
     // Small helper to avoid duplicating this code for each endpoint and api
     public static HTTPReply retrieveStatusCodeAndBodyFromResponse(

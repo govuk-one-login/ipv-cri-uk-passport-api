@@ -5,7 +5,6 @@ plugins {
 	id "java"
 	id "idea"
 	id "jacoco"
-	id 'io.freefair.aspectj.post-compile-weaving' version '8.7.1'
 }
 
 configurations.all {
@@ -16,32 +15,22 @@ configurations.all {
 }
 
 dependencies {
-	implementation platform("software.amazon.awssdk:bom:${dependencyVersions.aws_sdk_version}"), project(":lib"),
-			"uk.gov.account:cri-common-lib:${dependencyVersions.cri_common_lib_version}",
-			"com.nimbusds:oauth2-oidc-sdk:${dependencyVersions.nimbusds_oauth_version}",
-			"com.amazonaws:aws-lambda-java-core:${dependencyVersions.aws_lambda_core_version}",
-			"com.amazonaws:aws-lambda-java-events:${dependencyVersions.aws_lambda_events_version}",
-			"software.amazon.awssdk:lambda:${dependencyVersions.aws_sdk_version}",
-			"software.amazon.awssdk:dynamodb-enhanced:${dependencyVersions.aws_sdk_version}",
-			"software.amazon.awssdk:kms:${dependencyVersions.aws_sdk_version}",
-			"software.amazon.awssdk:sqs:${dependencyVersions.aws_sdk_version}",
-			"software.amazon.awssdk:aws-crt-client:${dependencyVersions.aws_sdk_version}",
-			"org.aspectj:aspectjrt:${dependencyVersions.aspectjrt_version}",
+	implementation "software.amazon.awssdk:lambda",
+			"software.amazon.awssdk:dynamodb-enhanced",
+			"software.amazon.awssdk:kms",
+			"software.amazon.awssdk:sqs",
+			"software.amazon.awssdk:aws-crt-client",
 			"com.fasterxml.jackson.core:jackson-core",
 			"com.fasterxml.jackson.core:jackson-databind",
 			"com.fasterxml.jackson.core:jackson-annotations",
-			"com.fasterxml.jackson.datatype:jackson-datatype-jsr310:${dependencyVersions.jackson_version}",
-			"com.fasterxml.jackson.datatype:jackson-datatype-jdk8:${dependencyVersions.jackson_version}"
-
-	aspect "software.amazon.lambda:powertools-logging:${dependencyVersions.aws_powertools_logging_version}",
-			"software.amazon.lambda:powertools-metrics:${dependencyVersions.aws_powertools_metrics_version}",
-			"software.amazon.lambda:powertools-parameters:${dependencyVersions.aws_powertools_parameters_version}"
+			"com.fasterxml.jackson.datatype:jackson-datatype-jsr310",
+			"com.fasterxml.jackson.datatype:jackson-datatype-jdk8"
 
 	testImplementation testFixtures(project(":lib")),"org.junit.jupiter:junit-jupiter-engine:${dependencyVersions.junit_version}",
 			"org.junit.jupiter:junit-jupiter-api:${dependencyVersions.junit_version}",
 			"org.junit.jupiter:junit-jupiter-params:${dependencyVersions.junit_version}",
 			"org.mockito:mockito-junit-jupiter:${dependencyVersions.mockito_version}",
-			"org.mockito:mockito-inline:${dependencyVersions.mockito_version}",
+			"org.mockito:mockito-core:${dependencyVersions.mockito_version}",
 			"org.hamcrest:hamcrest:${dependencyVersions.hamcrest_version}",
 			"com.github.tomakehurst:wiremock-jre8:${dependencyVersions.wiremock_version}",
 			"uk.org.webcompere:system-stubs-core:${dependencyVersions.webcompere_version}",

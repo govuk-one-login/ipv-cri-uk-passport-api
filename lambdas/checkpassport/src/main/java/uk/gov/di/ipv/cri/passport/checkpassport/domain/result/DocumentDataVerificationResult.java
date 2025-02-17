@@ -1,6 +1,5 @@
 package uk.gov.di.ipv.cri.passport.checkpassport.domain.result;
 
-import lombok.Getter;
 import uk.gov.di.ipv.cri.passport.library.domain.result.fields.APIResultSource;
 
 import java.util.ArrayList;
@@ -18,14 +17,18 @@ public class DocumentDataVerificationResult {
     private String transactionId;
 
     private List<String> checksSucceeded = new ArrayList<>();
-    @Getter private List<String> checksFailed = new ArrayList<>();
+    private List<String> checksFailed = new ArrayList<>();
     private List<String> contraIndicatorReasons = new ArrayList<>();
 
-    public APIResultSource getAPIResultSource() {
+    public DocumentDataVerificationResult() {
+        // Intended
+    }
+
+    public APIResultSource getApiResultSource() {
         return apiResultSource;
     }
 
-    public void setAPIResultSource(APIResultSource apiResultSource) {
+    public void setApiResultSource(APIResultSource apiResultSource) {
         this.apiResultSource = apiResultSource;
     }
 
@@ -77,15 +80,19 @@ public class DocumentDataVerificationResult {
         this.checksSucceeded = checksSucceeded;
     }
 
+    public List<String> getChecksFailed() {
+        return checksFailed;
+    }
+
     public void setChecksFailed(List<String> checksFailed) {
         this.checksFailed = checksFailed;
     }
 
-    public void setContraIndicatorReasons(List<String> contraIndicatorReasons) {
-        this.contraIndicatorReasons = contraIndicatorReasons;
-    }
-
     public List<String> getContraIndicatorReasons() {
         return contraIndicatorReasons;
+    }
+
+    public void setContraIndicatorReasons(List<String> contraIndicatorReasons) {
+        this.contraIndicatorReasons = contraIndicatorReasons;
     }
 }

@@ -2,7 +2,7 @@ plugins {
 	id "java"
 	id "idea"
 	id "org.sonarqube" version "6.0.1.5171"
-	id "io.freefair.lombok" version "8.4"
+	id 'io.freefair.aspectj.post-compile-weaving' version '8.12.1'
 	id "jacoco"
 	id "jacoco-report-aggregation"
 	id "com.diffplug.spotless" version "6.25.0"
@@ -25,10 +25,11 @@ ext {
 		// cri_common_lib dependencies should match the ipv-cri-lib version
 		// Workaround until dependency resolution is fixed.
 		// ---------------------------------------------------------
-		cri_common_lib_version             : "3.7.0",
+		cri_common_lib_version             : "4.0.0",
 
 		// AWS SDK
-		aws_sdk_version                    : "2.30.13",
+		aws_sdk_version                    : "2.30.16",
+
 		aws_lambda_events_version          : "3.14.0",
 
 		// Nimbus Oauth
@@ -44,11 +45,14 @@ ext {
 		// ---------------------------------------------------------
 
 		// AWS  aws-lambda-java-libs see https://github.com/aws/aws-lambda-java-libs
-		aws_lambda_core_version            : "1.2.3",
+		aws_lambda_core_version                    : "1.2.3",
 		// Jackson Addons/ needs to track the aws sdk version of jackson
-		jackson_version                    : "2.15.2",
-		// Code weaving (lombok+powertools)
-		aspectjrt_version                  : "1.9.21",
+		jackson_version                            : "2.15.2",
+		// Code weaving (powertools)
+		aspectjrt_version                          : "1.9.22.1",
+
+		// Open telemetry
+		opentelemetry_bom_alpha_version  : "2.12.0-alpha",
 
 		// CRI Apache HTTP Client see https://hc.apache.org/httpcomponents-client-4.5.x/current/httpclient/dependencies.html
 		httpcomponents_core_version        : "4.4.16",
@@ -57,7 +61,7 @@ ext {
 		// Test
 		junit_version                      : "5.11.4",
 		hamcrest_version                   : "2.2",
-		mockito_version                    : "4.3.1",
+		mockito_version                    : "5.15.2",
 		wiremock_version                   : "3.0.1",
 		webcompere_version                 : "2.1.6",
 
@@ -101,6 +105,7 @@ reporting {
 
 dependencies {
 	jacocoAggregation project(':lib'),
+			project(':lib-dvad'),
 			project("lambdas:checkpassport"),
 			project("lambdas:issuecredential"),
 			project("lambdas:certexpiryreminder")
@@ -131,8 +136,8 @@ dependencyCheck {
 
 subprojects {
 	apply plugin: 'org.sonarqube'
-	apply plugin: 'io.freefair.lombok'
 	apply plugin: 'org.owasp.dependencycheck'
+	apply plugin: 'io.freefair.aspectj.post-compile-weaving'
 
 	repositories {
 		maven {
@@ -151,6 +156,10 @@ subprojects {
 	plugins.withId('java-library') {
 		sourceCompatibility = "${javaCompatibility.source}"
 		targetCompatibility = "${javaCompatibility.target}"
+	}
+
+	tasks.withType(JavaCompile).configureEach {
+		options.compilerArgs << "-Xlint" << "-Xlint:-processing"
 	}
 
 	task allDeps(type: DependencyReportTask) {}

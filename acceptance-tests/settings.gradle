@@ -1,0 +1,3 @@
+rootProject.name = 'di-ipv-cri-uk-passport-api-acceptance-tests'
+
+include "acceptance-tests"

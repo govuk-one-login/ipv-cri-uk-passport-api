@@ -109,7 +109,7 @@ public class DocumentDataVerificationService {
             ContraIndicatorMapperResult contraIndicatorMapperResult =
                     getContraIndicatorsResult(thirdPartyAPIResult);
 
-            List<String> cis = contraIndicatorMapperResult.getContraIndicators();
+            List<String> cis = contraIndicatorMapperResult.contraIndicators();
             int documentStrengthScore = MAX_PASSPORT_GPG45_STRENGTH_VALUE;
             int documentValidityScore = calculateValidity(thirdPartyAPIResult, cis);
 
@@ -130,7 +130,7 @@ public class DocumentDataVerificationService {
             DocumentDataVerificationResult documentDataVerificationResult =
                     new DocumentDataVerificationResult();
 
-            documentDataVerificationResult.setAPIResultSource(apiResultSource);
+            documentDataVerificationResult.setApiResultSource(apiResultSource);
 
             documentDataVerificationResult.setContraIndicators(cis);
 
@@ -142,11 +142,11 @@ public class DocumentDataVerificationService {
 
             // See ContraIndicatorMapperResult as CI Mapper handles CI, CIReasons and CIChecks
             documentDataVerificationResult.setChecksSucceeded(
-                    contraIndicatorMapperResult.getContraIndicatorChecks());
+                    contraIndicatorMapperResult.contraIndicatorChecks());
             documentDataVerificationResult.setChecksFailed(
-                    contraIndicatorMapperResult.getContraIndicatorFailedChecks());
+                    contraIndicatorMapperResult.contraIndicatorFailedChecks());
             documentDataVerificationResult.setContraIndicatorReasons(
-                    contraIndicatorMapperResult.getContraIndicatorReasons());
+                    contraIndicatorMapperResult.contraIndicatorReasons());
 
             LOGGER.info("Sending audit event {}...", AuditEventType.RESPONSE_RECEIVED);
             auditService.sendAuditEvent(
@@ -209,7 +209,7 @@ public class DocumentDataVerificationService {
 
             contraIndicatorMapperResult = contraIndicatorMapper.mapFlagsToCIs(flagMap);
 
-            List<String> flagCIs = contraIndicatorMapperResult.getContraIndicators();
+            List<String> flagCIs = contraIndicatorMapperResult.contraIndicators();
             for (String ci : flagCIs) {
                 String message = String.format("Flag CI's %s ", ci);
                 LOGGER.debug(message);
@@ -220,11 +220,11 @@ public class DocumentDataVerificationService {
             contraIndicatorMapperResult = ContraIndicatorMapperResult.builder().build();
         }
 
-        List<String> ciCodes = contraIndicatorMapperResult.getContraIndicators();
-        List<String> ciReason = contraIndicatorMapperResult.getContraIndicatorReasons();
+        List<String> ciCodes = contraIndicatorMapperResult.contraIndicators();
+        List<String> ciReason = contraIndicatorMapperResult.contraIndicatorReasons();
 
-        List<String> ciChecks = contraIndicatorMapperResult.getContraIndicatorChecks();
-        List<String> ciFailedChecks = contraIndicatorMapperResult.getContraIndicatorFailedChecks();
+        List<String> ciChecks = contraIndicatorMapperResult.contraIndicatorChecks();
+        List<String> ciFailedChecks = contraIndicatorMapperResult.contraIndicatorFailedChecks();
 
         // isValid to VERIFICATION mapping is not processed as a flag
         if (!thirdPartyAPIResult.isValid()) {

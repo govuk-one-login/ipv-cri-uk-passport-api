@@ -118,7 +118,9 @@ public class TokenRequestService {
             assertAccessTokenResponseIsValid(newAccessTokenResponse);
 
             // Token response is valid and cached until near expiry
-            accessTokenResponseCache = new AccessTokenResponseCache(newAccessTokenResponse);
+            accessTokenResponseCache =
+                    new AccessTokenResponseCache(
+                            newAccessTokenResponse, MAX_ALLOWED_ACCESS_TOKEN_LIFETIME_SECONDS);
 
             long newExpiresTime = accessTokenResponseCache.getExpiresTime();
             LOGGER.info(
@@ -138,7 +140,7 @@ public class TokenRequestService {
             eventProbe.counterMetric(DVAD_TOKEN_REQUEST_REUSING_CACHED_TOKEN.withEndpointPrefix());
         }
 
-        return accessTokenResponseCache.getCachedAccessTokenResponse();
+        return accessTokenResponseCache.cachedAccessTokenResponse();
     }
 
     private AccessTokenResponse performNewTokenRequest(DvadAPIHeaderValues dvadAPIHeaderValues)
@@ -247,8 +249,8 @@ public class TokenRequestService {
     private void assertAccessTokenResponseIsValid(AccessTokenResponse accessTokenResponse)
             throws OAuthErrorResponseException {
 
-        String tokenType = accessTokenResponse.getTokenType();
-        long tokenLifetime = accessTokenResponse.getExpiresIn();
+        String tokenType = accessTokenResponse.tokenType();
+        long tokenLifetime = accessTokenResponse.expiresIn();
 
         if (!tokenType.equals(BEARER_TOKEN_TYPE)) {
             LOGGER.error(

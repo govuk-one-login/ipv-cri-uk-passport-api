@@ -130,7 +130,7 @@ public class HealthCheckService {
                 HealthCheckResponse healthCheckResponse =
                         objectMapper.readValue(httpReply.responseBody, HealthCheckResponse.class);
 
-                String apiStatus = healthCheckResponse.getStatus();
+                String apiStatus = healthCheckResponse.status();
 
                 boolean remoteAPIsUP = apiStatus.equals("UP");
 

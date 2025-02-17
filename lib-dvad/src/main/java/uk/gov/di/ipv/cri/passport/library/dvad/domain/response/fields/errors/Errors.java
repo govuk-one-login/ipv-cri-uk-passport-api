@@ -1,38 +1,53 @@
 package uk.gov.di.ipv.cri.passport.library.dvad.domain.response.fields.errors;
 
-import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonProperty;
-import lombok.Builder;
-import lombok.Data;
 
 import java.util.List;
 
 @JsonIgnoreProperties(ignoreUnknown = true)
-@Builder
-@Data
-public class Errors {
-    @JsonProperty("message")
-    private String message;
+public record Errors(
+        @JsonProperty("message") String message,
+        @JsonProperty("locations") List<Locations> locations,
+        @JsonProperty("path") List<String> path,
+        @JsonProperty("extensions") Extensions extensions) {
 
-    @JsonProperty("locations")
-    private List<Locations> locations;
+    public static ErrorsBuilder builder() {
+        return new ErrorsBuilder();
+    }
 
-    @JsonProperty("path")
-    private List<String> path;
+    public static class ErrorsBuilder {
+        private String message;
+        private List<Locations> locations;
+        private List<String> path;
+        private Extensions extensions;
 
-    @JsonProperty("extensions")
-    private Extensions extensions;
+        private ErrorsBuilder() {
+            // Intended
+        }
 
-    @JsonCreator
-    public Errors(
-            @JsonProperty(value = "message", required = true) String message,
-            @JsonProperty(value = "locations", required = true) List<Locations> locations,
-            @JsonProperty(value = "path", required = false) List<String> path,
-            @JsonProperty(value = "extensions", required = true) Extensions extensions) {
-        this.message = message;
-        this.locations = locations;
-        this.path = path;
-        this.extensions = extensions;
+        public ErrorsBuilder message(String message) {
+            this.message = message;
+            return this;
+        }
+
+        public ErrorsBuilder locations(List<Locations> locations) {
+            this.locations = locations;
+            return this;
+        }
+
+        public ErrorsBuilder path(List<String> path) {
+            this.path = path;
+            return this;
+        }
+
+        public ErrorsBuilder extensions(Extensions extensions) {
+            this.extensions = extensions;
+            return this;
+        }
+
+        public Errors build() {
+            return new Errors(message, locations, path, extensions);
+        }
     }
 }

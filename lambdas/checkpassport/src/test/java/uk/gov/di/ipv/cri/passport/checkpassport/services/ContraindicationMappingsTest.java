@@ -128,15 +128,15 @@ class ContraindicationMappingsTest {
 
         assertNotNull(mapperResult);
 
-        assertNotNull(mapperResult.getContraIndicators());
-        assertNotNull(mapperResult.getContraIndicatorReasons());
-        assertNotNull(mapperResult.getContraIndicatorChecks());
-        assertNotNull(mapperResult.getContraIndicatorFailedChecks());
+        assertNotNull(mapperResult.contraIndicators());
+        assertNotNull(mapperResult.contraIndicatorReasons());
+        assertNotNull(mapperResult.contraIndicatorChecks());
+        assertNotNull(mapperResult.contraIndicatorFailedChecks());
 
-        List<String> ciCodes = mapperResult.getContraIndicators();
-        List<String> ciReason = mapperResult.getContraIndicatorReasons();
-        List<String> ciChecks = mapperResult.getContraIndicatorChecks();
-        List<String> ciFailedChecks = mapperResult.getContraIndicatorFailedChecks();
+        List<String> ciCodes = mapperResult.contraIndicators();
+        List<String> ciReason = mapperResult.contraIndicatorReasons();
+        List<String> ciChecks = mapperResult.contraIndicatorChecks();
+        List<String> ciFailedChecks = mapperResult.contraIndicatorFailedChecks();
 
         assertNotNull(ciCodes);
         assertEquals(1, ciCodes.size());
@@ -162,15 +162,15 @@ class ContraindicationMappingsTest {
 
         assertNotNull(mapperResult);
 
-        assertNotNull(mapperResult.getContraIndicators());
-        assertNotNull(mapperResult.getContraIndicatorReasons());
-        assertNotNull(mapperResult.getContraIndicatorChecks());
-        assertNotNull(mapperResult.getContraIndicatorFailedChecks());
+        assertNotNull(mapperResult.contraIndicators());
+        assertNotNull(mapperResult.contraIndicatorReasons());
+        assertNotNull(mapperResult.contraIndicatorChecks());
+        assertNotNull(mapperResult.contraIndicatorFailedChecks());
 
-        List<String> ciCodes = mapperResult.getContraIndicators();
-        List<String> ciReason = mapperResult.getContraIndicatorReasons();
-        List<String> ciChecks = mapperResult.getContraIndicatorChecks();
-        List<String> ciFailedChecks = mapperResult.getContraIndicatorFailedChecks();
+        List<String> ciCodes = mapperResult.contraIndicators();
+        List<String> ciReason = mapperResult.contraIndicatorReasons();
+        List<String> ciChecks = mapperResult.contraIndicatorChecks();
+        List<String> ciFailedChecks = mapperResult.contraIndicatorFailedChecks();
 
         assertNotNull(ciCodes);
         assertEquals(2, ciCodes.size());
@@ -237,15 +237,15 @@ class ContraindicationMappingsTest {
 
         assertNotNull(mapperResult);
 
-        assertNotNull(mapperResult.getContraIndicators());
-        assertNotNull(mapperResult.getContraIndicatorReasons());
-        assertNotNull(mapperResult.getContraIndicatorChecks());
-        assertNotNull(mapperResult.getContraIndicatorFailedChecks());
+        assertNotNull(mapperResult.contraIndicators());
+        assertNotNull(mapperResult.contraIndicatorReasons());
+        assertNotNull(mapperResult.contraIndicatorChecks());
+        assertNotNull(mapperResult.contraIndicatorFailedChecks());
 
-        List<String> ciCodes = mapperResult.getContraIndicators();
-        List<String> ciReason = mapperResult.getContraIndicatorReasons();
-        List<String> ciChecks = mapperResult.getContraIndicatorChecks();
-        List<String> ciFailedChecks = mapperResult.getContraIndicatorFailedChecks();
+        List<String> ciCodes = mapperResult.contraIndicators();
+        List<String> ciReason = mapperResult.contraIndicatorReasons();
+        List<String> ciChecks = mapperResult.contraIndicatorChecks();
+        List<String> ciFailedChecks = mapperResult.contraIndicatorFailedChecks();
 
         assertNotNull(ciCodes);
         assertEquals(0, ciCodes.size());
@@ -271,15 +271,15 @@ class ContraindicationMappingsTest {
 
         assertNotNull(mapperResult);
 
-        assertNotNull(mapperResult.getContraIndicators());
-        assertNotNull(mapperResult.getContraIndicatorReasons());
-        assertNotNull(mapperResult.getContraIndicatorChecks());
-        assertNotNull(mapperResult.getContraIndicatorFailedChecks());
+        assertNotNull(mapperResult.contraIndicators());
+        assertNotNull(mapperResult.contraIndicatorReasons());
+        assertNotNull(mapperResult.contraIndicatorChecks());
+        assertNotNull(mapperResult.contraIndicatorFailedChecks());
 
-        List<String> ciCodes = mapperResult.getContraIndicators();
-        List<String> ciReason = mapperResult.getContraIndicatorReasons();
-        List<String> ciChecks = mapperResult.getContraIndicatorChecks();
-        List<String> ciFailedChecks = mapperResult.getContraIndicatorFailedChecks();
+        List<String> ciCodes = mapperResult.contraIndicators();
+        List<String> ciReason = mapperResult.contraIndicatorReasons();
+        List<String> ciChecks = mapperResult.contraIndicatorChecks();
+        List<String> ciFailedChecks = mapperResult.contraIndicatorFailedChecks();
 
         assertNotNull(ciCodes);
         assertEquals(1, ciCodes.size());
@@ -318,15 +318,15 @@ class ContraindicationMappingsTest {
 
         assertNotNull(mapperResult);
 
-        assertNotNull(mapperResult.getContraIndicators());
-        assertNotNull(mapperResult.getContraIndicatorReasons());
-        assertNotNull(mapperResult.getContraIndicatorChecks());
-        assertNotNull(mapperResult.getContraIndicatorFailedChecks());
+        assertNotNull(mapperResult.contraIndicators());
+        assertNotNull(mapperResult.contraIndicatorReasons());
+        assertNotNull(mapperResult.contraIndicatorChecks());
+        assertNotNull(mapperResult.contraIndicatorFailedChecks());
 
-        List<String> ciCodes = mapperResult.getContraIndicators();
-        List<String> ciReason = mapperResult.getContraIndicatorReasons();
-        List<String> ciChecks = mapperResult.getContraIndicatorChecks();
-        List<String> ciFailedChecks = mapperResult.getContraIndicatorFailedChecks();
+        List<String> ciCodes = mapperResult.contraIndicators();
+        List<String> ciReason = mapperResult.contraIndicatorReasons();
+        List<String> ciChecks = mapperResult.contraIndicatorChecks();
+        List<String> ciFailedChecks = mapperResult.contraIndicatorFailedChecks();
 
         assertNotNull(ciCodes);
         assertEquals(1, ciCodes.size());
@@ -359,15 +359,15 @@ class ContraindicationMappingsTest {
 
         assertNotNull(mapperResult);
 
-        assertNotNull(mapperResult.getContraIndicators());
-        assertNotNull(mapperResult.getContraIndicatorReasons());
-        assertNotNull(mapperResult.getContraIndicatorChecks());
-        assertNotNull(mapperResult.getContraIndicatorFailedChecks());
+        assertNotNull(mapperResult.contraIndicators());
+        assertNotNull(mapperResult.contraIndicatorReasons());
+        assertNotNull(mapperResult.contraIndicatorChecks());
+        assertNotNull(mapperResult.contraIndicatorFailedChecks());
 
-        List<String> ciCodes = mapperResult.getContraIndicators();
-        List<String> ciReason = mapperResult.getContraIndicatorReasons();
-        List<String> ciChecks = mapperResult.getContraIndicatorChecks();
-        List<String> ciFailedChecks = mapperResult.getContraIndicatorFailedChecks();
+        List<String> ciCodes = mapperResult.contraIndicators();
+        List<String> ciReason = mapperResult.contraIndicatorReasons();
+        List<String> ciChecks = mapperResult.contraIndicatorChecks();
+        List<String> ciFailedChecks = mapperResult.contraIndicatorFailedChecks();
 
         assertNotNull(ciCodes);
         assertEquals(1, ciCodes.size());
@@ -397,15 +397,15 @@ class ContraindicationMappingsTest {
 
         assertNotNull(mapperResult);
 
-        assertNotNull(mapperResult.getContraIndicators());
-        assertNotNull(mapperResult.getContraIndicatorReasons());
-        assertNotNull(mapperResult.getContraIndicatorChecks());
-        assertNotNull(mapperResult.getContraIndicatorFailedChecks());
+        assertNotNull(mapperResult.contraIndicators());
+        assertNotNull(mapperResult.contraIndicatorReasons());
+        assertNotNull(mapperResult.contraIndicatorChecks());
+        assertNotNull(mapperResult.contraIndicatorFailedChecks());
 
-        assertEquals(0, mapperResult.getContraIndicators().size());
-        assertEquals(0, mapperResult.getContraIndicatorReasons().size());
-        assertEquals(0, mapperResult.getContraIndicatorChecks().size());
-        assertEquals(0, mapperResult.getContraIndicatorFailedChecks().size());
+        assertEquals(0, mapperResult.contraIndicators().size());
+        assertEquals(0, mapperResult.contraIndicatorReasons().size());
+        assertEquals(0, mapperResult.contraIndicatorChecks().size());
+        assertEquals(0, mapperResult.contraIndicatorFailedChecks().size());
     }
 
     @Test
@@ -438,16 +438,16 @@ class ContraindicationMappingsTest {
 
             assertNotNull(mapperResult);
 
-            assertNotNull(mapperResult.getContraIndicators());
-            assertNotNull(mapperResult.getContraIndicatorReasons());
-            assertNotNull(mapperResult.getContraIndicatorChecks());
-            assertNotNull(mapperResult.getContraIndicatorFailedChecks());
+            assertNotNull(mapperResult.contraIndicators());
+            assertNotNull(mapperResult.contraIndicatorReasons());
+            assertNotNull(mapperResult.contraIndicatorChecks());
+            assertNotNull(mapperResult.contraIndicatorFailedChecks());
 
-            assertEquals(0, mapperResult.getContraIndicators().size());
-            assertEquals(0, mapperResult.getContraIndicatorReasons().size());
+            assertEquals(0, mapperResult.contraIndicators().size());
+            assertEquals(0, mapperResult.contraIndicatorReasons().size());
             // one check passed, other two unmapped
-            assertEquals(1, mapperResult.getContraIndicatorChecks().size());
-            assertEquals(0, mapperResult.getContraIndicatorFailedChecks().size());
+            assertEquals(1, mapperResult.contraIndicatorChecks().size());
+            assertEquals(0, mapperResult.contraIndicatorFailedChecks().size());
         }
     }
 }

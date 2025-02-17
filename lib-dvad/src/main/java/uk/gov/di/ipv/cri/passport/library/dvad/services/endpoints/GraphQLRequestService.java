@@ -85,8 +85,8 @@ public class GraphQLRequestService {
         final String requestId = UUID.randomUUID().toString();
         LOGGER.info("{} Request Id {}", ENDPOINT_NAME, requestId);
 
-        final String accessTokenValue = accessTokenResponse.getAccessToken();
-        final String tokenType = accessTokenResponse.getTokenType();
+        final String accessTokenValue = accessTokenResponse.accessToken();
+        final String tokenType = accessTokenResponse.tokenType();
 
         // GraphQL Request is posted as if JSON
         final HttpPost request = new HttpPost();

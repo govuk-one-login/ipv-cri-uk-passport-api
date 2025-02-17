@@ -165,7 +165,7 @@ class GraphQLRequestServiceTest {
         verifyNoMoreInteractions(mockEventProbe);
 
         assertNotNull(graphQLServiceResult);
-        assertNotNull(graphQLServiceResult.getGraphQLAPIResponse());
+        assertNotNull(graphQLServiceResult.graphQLAPIResponse());
         assertGraphQLQLHeaders(httpRequestCaptor);
     }
 

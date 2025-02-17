@@ -1,11 +1,12 @@
 package uk.gov.di.ipv.cri.passport.library.util;
 
-import lombok.NoArgsConstructor;
-
-@NoArgsConstructor
 public class StopWatch {
 
     private long startTime = 0;
+
+    public StopWatch() {
+        // Intended
+    }
 
     public void start() {
         startTime = System.currentTimeMillis();

@@ -4,5 +4,4 @@ include "lib",
 		"lib-dvad",
 		"lambdas:checkpassport",
 		"lambdas:issuecredential",
-		"lambdas:certexpiryreminder",
-		"acceptance-tests"
+		"lambdas:certexpiryreminder"
