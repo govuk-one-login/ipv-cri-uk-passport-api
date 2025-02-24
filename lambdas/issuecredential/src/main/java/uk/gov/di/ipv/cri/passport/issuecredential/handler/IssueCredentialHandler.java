@@ -17,6 +17,7 @@ import software.amazon.awssdk.http.HttpStatusCode;
 import software.amazon.lambda.powertools.logging.CorrelationIdPathConstants;
 import software.amazon.lambda.powertools.logging.Logging;
 import software.amazon.lambda.powertools.metrics.Metrics;
+import uk.gov.di.ipv.cri.common.library.annotations.ExcludeFromGeneratedCoverageReport;
 import uk.gov.di.ipv.cri.common.library.domain.AuditEventContext;
 import uk.gov.di.ipv.cri.common.library.domain.AuditEventType;
 import uk.gov.di.ipv.cri.common.library.error.ErrorResponse;
@@ -26,7 +27,6 @@ import uk.gov.di.ipv.cri.common.library.exception.SessionExpiredException;
 import uk.gov.di.ipv.cri.common.library.exception.SessionNotFoundException;
 import uk.gov.di.ipv.cri.common.library.exception.SqsException;
 import uk.gov.di.ipv.cri.common.library.persistence.DataStore;
-import uk.gov.di.ipv.cri.common.library.persistence.item.SessionItem;
 import uk.gov.di.ipv.cri.common.library.service.AuditService;
 import uk.gov.di.ipv.cri.common.library.service.ConfigurationService;
 import uk.gov.di.ipv.cri.common.library.service.PersonIdentityService;
@@ -83,6 +83,7 @@ public class IssueCredentialHandler
     private long functionInitMetricLatchedValue = 0;
     private boolean functionInitMetricCaptured = false;
 
+    @ExcludeFromGeneratedCoverageReport
     public IssueCredentialHandler() {
         // A reference to serviceFactory is not held in this class
         ServiceFactory serviceFactory = new ServiceFactory();
@@ -120,11 +121,6 @@ public class IssueCredentialHandler
         this.documentCheckResultStore = serviceFactory.getDocumentCheckResultStore();
 
         this.verifiableCredentialService = verifiableCredentialService;
-
-        // Prime DynamoDB Client
-        SessionItem primedSessionItem = sessionService.getSession("-1");
-        String loggedValue = String.valueOf(primedSessionItem);
-        LOGGER.info("DynamoDB primed - {}", loggedValue);
 
         // Runtime/SnapStart function init duration
         functionInitMetricLatchedValue =

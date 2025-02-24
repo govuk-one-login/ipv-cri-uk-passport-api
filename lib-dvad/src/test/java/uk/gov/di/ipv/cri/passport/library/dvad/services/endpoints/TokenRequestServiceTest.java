@@ -155,8 +155,8 @@ class TokenRequestServiceTest {
         verifyNoMoreInteractions(mockEventProbe);
 
         assertNotNull(accessTokenResponse);
-        assertEquals(TEST_TOKEN_TYPE, accessTokenResponse.getTokenType());
-        assertEquals(TEST_TOKEN_EXPIRES_IN, accessTokenResponse.getExpiresIn());
+        assertEquals(TEST_TOKEN_TYPE, accessTokenResponse.tokenType());
+        assertEquals(TEST_TOKEN_EXPIRES_IN, accessTokenResponse.expiresIn());
 
         // Check Headers
         assertTokenHeaders(httpRequestCaptor);
@@ -400,8 +400,7 @@ class TokenRequestServiceTest {
         AccessTokenResponse accessTokenResponseTwo =
                 tokenRequestService.requestAccessToken(realDvadAPIHeaderValues, false);
 
-        assertEquals(
-                accessTokenResponseOne.getAccessToken(), accessTokenResponseTwo.getAccessToken());
+        assertEquals(accessTokenResponseOne.accessToken(), accessTokenResponseTwo.accessToken());
 
         // (Post) Token
         InOrder inOrderMockCloseableHttpClientSequence = inOrder(mockCloseableHttpClient);
@@ -462,8 +461,7 @@ class TokenRequestServiceTest {
         AccessTokenResponse accessTokenResponseTwo =
                 tokenRequestService.requestAccessToken(realDvadAPIHeaderValues, false);
 
-        assertNotEquals(
-                accessTokenResponseOne.getAccessToken(), accessTokenResponseTwo.getAccessToken());
+        assertNotEquals(accessTokenResponseOne.accessToken(), accessTokenResponseTwo.accessToken());
 
         // (Post) Token
         InOrder inOrderMockCloseableHttpClientSequence = inOrder(mockCloseableHttpClient);

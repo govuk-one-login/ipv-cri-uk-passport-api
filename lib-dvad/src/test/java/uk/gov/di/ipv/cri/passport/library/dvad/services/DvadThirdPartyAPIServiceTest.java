@@ -53,6 +53,7 @@ import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.inOrder;
 import static org.mockito.Mockito.verifyNoMoreInteractions;
 import static org.mockito.Mockito.when;
+import static uk.gov.di.ipv.cri.passport.library.domain.result.fields.APIResultSource.DVAD;
 
 @ExtendWith(MockitoExtension.class)
 class DvadThirdPartyAPIServiceTest {
@@ -201,6 +202,7 @@ class DvadThirdPartyAPIServiceTest {
         assertNotNull(result.getFlags());
 
         Assertions.assertEquals(expectedIsValid, result.isValid());
+        Assertions.assertEquals(DVAD, result.getApiResultSource());
     }
 
     @ParameterizedTest

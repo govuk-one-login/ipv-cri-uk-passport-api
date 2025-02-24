@@ -36,7 +36,10 @@ public class CertExpiryReminderHandler implements RequestHandler<Object, Object>
 
     @ExcludeFromGeneratedCoverageReport
     public CertExpiryReminderHandler() {
-        ClientProviderFactory clientProviderFactory = new ClientProviderFactory();
+        // Note avoidExecutionInterceptorsOnClientsUsedByPowerTools being false is safe as long as
+        // no
+        // ssm secrets/parameters are read in the constructor
+        ClientProviderFactory clientProviderFactory = new ClientProviderFactory(true, false);
 
         this.parameterStoreService =
                 new ParameterStoreService(clientProviderFactory.getSSMProvider());

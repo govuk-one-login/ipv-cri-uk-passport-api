@@ -21,10 +21,16 @@ class AccessTokenResponseCacheTest {
     void shouldTokenCalculateExpiryCorrectly(long tokenExpiresIn) {
 
         AccessTokenResponse accessTokenResponse =
-                AccessTokenResponse.builder().expiresIn(tokenExpiresIn).build();
+                AccessTokenResponse.builder()
+                        .accessToken("TOKEN")
+                        .expiresIn(tokenExpiresIn)
+                        .refreshToken(null)
+                        .refreshExpiresIn(0)
+                        .scope("NA")
+                        .build();
 
         AccessTokenResponseCache accessTokenResponseCache =
-                new AccessTokenResponseCache(accessTokenResponse);
+                new AccessTokenResponseCache(accessTokenResponse, 1800L);
 
         long expectedExpires = Instant.now().plusSeconds(tokenExpiresIn).toEpochMilli();
         long actualExpires = accessTokenResponseCache.getExpiresTime();
@@ -48,7 +54,7 @@ class AccessTokenResponseCacheTest {
                 AccessTokenResponse.builder().expiresIn(tokenExpiresIn).build();
 
         AccessTokenResponseCache accessTokenResponseCache =
-                new AccessTokenResponseCache(accessTokenResponse);
+                new AccessTokenResponseCache(accessTokenResponse, 1800L);
 
         assertEquals(expired, accessTokenResponseCache.isNearExpiration(expiryWindow));
     }
@@ -61,7 +67,7 @@ class AccessTokenResponseCacheTest {
                 AccessTokenResponse.builder().expiresIn(1800).build();
 
         AccessTokenResponseCache accessTokenResponseCache =
-                new AccessTokenResponseCache(accessTokenResponse);
+                new AccessTokenResponseCache(accessTokenResponse, 1800L);
 
         AccessTokenResponseCacheExpiryWindowException expectedReturnedException =
                 new AccessTokenResponseCacheExpiryWindowException(

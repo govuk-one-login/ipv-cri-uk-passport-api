@@ -1,8 +1,5 @@
 package uk.gov.di.ipv.cri.passport.checkpassport.services;
 
-import lombok.Data;
-
-@Data
 public final class ContraIndicatorComplexMapping {
 
     private static final String ERROR_FORMAT = "Flag %s not in the expected camel case format";
@@ -45,6 +42,18 @@ public final class ContraIndicatorComplexMapping {
 
     private String titleToSnakeCase(String flag) {
         return flag.replaceAll("([a-z])([A-Z])", "$1_$2").toLowerCase();
+    }
+
+    public String getCi() {
+        return ci;
+    }
+
+    public String getReason() {
+        return reason;
+    }
+
+    public String getCheck() {
+        return check;
     }
 
     public String getRequiredFlagValue() {

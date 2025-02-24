@@ -1,24 +1,15 @@
 package uk.gov.di.ipv.cri.passport.library.dvad.domain.request;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
-import lombok.Data;
-import lombok.NoArgsConstructor;
 import uk.gov.di.ipv.cri.passport.library.domain.PassportFormData;
 
-@NoArgsConstructor
-@Data
 @JsonInclude(JsonInclude.Include.NON_NULL)
-public class Input {
-
-    private int passportNumber;
-    private String forenames;
-    private String surname;
-    private String dateOfBirth;
-
+public record Input(int passportNumber, String forenames, String surname, String dateOfBirth) {
     public Input(PassportFormData formData) {
-        passportNumber = Integer.parseInt(formData.getPassportNumber());
-        forenames = String.join(" ", formData.getForenames());
-        surname = formData.getSurname();
-        dateOfBirth = formData.getDateOfBirth().toString();
+        this(
+                Integer.parseInt(formData.getPassportNumber()),
+                String.join(" ", formData.getForenames()),
+                formData.getSurname(),
+                formData.getDateOfBirth().toString());
     }
 }

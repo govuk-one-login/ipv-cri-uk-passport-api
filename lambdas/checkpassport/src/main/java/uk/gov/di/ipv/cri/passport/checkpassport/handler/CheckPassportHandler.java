@@ -13,6 +13,7 @@ import software.amazon.awssdk.http.HttpStatusCode;
 import software.amazon.lambda.powertools.logging.CorrelationIdPathConstants;
 import software.amazon.lambda.powertools.logging.Logging;
 import software.amazon.lambda.powertools.metrics.Metrics;
+import uk.gov.di.ipv.cri.common.library.annotations.ExcludeFromGeneratedCoverageReport;
 import uk.gov.di.ipv.cri.common.library.domain.personidentity.BirthDate;
 import uk.gov.di.ipv.cri.common.library.domain.personidentity.SharedClaims;
 import uk.gov.di.ipv.cri.common.library.exception.SessionExpiredException;
@@ -91,6 +92,7 @@ public class CheckPassportHandler
     private long functionInitMetricLatchedValue = 0;
     private boolean functionInitMetricCaptured = false;
 
+    @ExcludeFromGeneratedCoverageReport
     public CheckPassportHandler() throws JsonProcessingException {
         // A reference to serviceFactory is not held in this class
         ServiceFactory serviceFactory = new ServiceFactory();

@@ -1,23 +1,18 @@
 package uk.gov.di.ipv.cri.passport.library.dvad.services;
 
-import lombok.Data;
 import uk.gov.di.ipv.cri.passport.library.dvad.domain.response.AccessTokenResponse;
 import uk.gov.di.ipv.cri.passport.library.exceptions.AccessTokenResponseCacheExpiryWindowException;
 
 import java.time.Instant;
 
-import static uk.gov.di.ipv.cri.passport.library.dvad.services.endpoints.TokenRequestService.MAX_ALLOWED_ACCESS_TOKEN_LIFETIME_SECONDS;
-
-@Data
-public class AccessTokenResponseCache {
+public record AccessTokenResponseCache(
+        AccessTokenResponse cachedAccessTokenResponse, long maxAllowedAccessTokenLifetimeSeconds) {
     public static final String INVALID_EXPIRY_WINDOW_ERROR_MESSAGE =
             "AccessTokenResponseCache expiry window not valid";
 
-    private final AccessTokenResponse cachedAccessTokenResponse;
-
     public boolean isNearExpiration(long expiryWindow) {
 
-        if (expiryWindow <= 0 || expiryWindow >= MAX_ALLOWED_ACCESS_TOKEN_LIFETIME_SECONDS) {
+        if (expiryWindow <= 0 || expiryWindow >= maxAllowedAccessTokenLifetimeSeconds) {
             throw new AccessTokenResponseCacheExpiryWindowException(
                     INVALID_EXPIRY_WINDOW_ERROR_MESSAGE);
         }
@@ -33,7 +28,7 @@ public class AccessTokenResponseCache {
     }
 
     public long getExpiresTime() {
-        long expiresIn = cachedAccessTokenResponse.getExpiresIn();
+        long expiresIn = cachedAccessTokenResponse.expiresIn();
 
         return Instant.now().plusSeconds(expiresIn).toEpochMilli();
     }

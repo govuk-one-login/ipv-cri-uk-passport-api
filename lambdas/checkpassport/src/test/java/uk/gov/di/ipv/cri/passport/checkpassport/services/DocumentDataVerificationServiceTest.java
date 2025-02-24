@@ -23,7 +23,6 @@ import uk.gov.di.ipv.cri.passport.library.PassportFormTestDataGenerator;
 import uk.gov.di.ipv.cri.passport.library.domain.PassportFormData;
 import uk.gov.di.ipv.cri.passport.library.domain.Strategy;
 import uk.gov.di.ipv.cri.passport.library.domain.result.ThirdPartyAPIResult;
-import uk.gov.di.ipv.cri.passport.library.domain.result.fields.APIResultSource;
 import uk.gov.di.ipv.cri.passport.library.error.ErrorResponse;
 import uk.gov.di.ipv.cri.passport.library.exceptions.OAuthErrorResponseException;
 import uk.gov.di.ipv.cri.passport.library.service.ServiceFactory;
@@ -48,6 +47,7 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.verifyNoMoreInteractions;
 import static org.mockito.Mockito.when;
+import static uk.gov.di.ipv.cri.passport.library.domain.result.fields.APIResultSource.DVAD;
 import static uk.gov.di.ipv.cri.passport.library.metrics.Definitions.DOCUMENT_DATA_VERIFICATION_REQUEST_FAILED;
 import static uk.gov.di.ipv.cri.passport.library.metrics.Definitions.DOCUMENT_DATA_VERIFICATION_REQUEST_SUCCEEDED;
 import static uk.gov.di.ipv.cri.passport.library.metrics.Definitions.FORM_DATA_VALIDATION_FAIL;
@@ -91,7 +91,7 @@ class DocumentDataVerificationServiceTest {
 
         PassportFormData passportFormData = PassportFormTestDataGenerator.generate();
         ThirdPartyAPIResult thirdPartyAPIResult = new ThirdPartyAPIResult();
-        thirdPartyAPIResult.setApiResultSource(APIResultSource.DVAD);
+        thirdPartyAPIResult.setApiResultSource(DVAD);
         thirdPartyAPIResult.setValid(documentVerified);
         thirdPartyAPIResult.setTransactionId("12345");
         thirdPartyAPIResult.setFlags(Map.of("testFlag", "true"));
@@ -182,6 +182,8 @@ class DocumentDataVerificationServiceTest {
             assertTrue(documentDataVerificationResult.getChecksFailed().contains("record_check"));
             assertFalse(documentDataVerificationResult.getChecksFailed().contains("test_flag"));
         }
+
+        assertEquals(DVAD, documentDataVerificationResult.getApiResultSource());
     }
 
     @Test

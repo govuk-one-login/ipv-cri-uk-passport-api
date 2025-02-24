@@ -1,25 +1,31 @@
 package uk.gov.di.ipv.cri.passport.library.dvad.domain.response.fields.errors;
 
-import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonProperty;
-import lombok.Builder;
-import lombok.Data;
 
-@Builder
-@Data
-public class Locations {
+public record Locations(
+        @JsonProperty(value = "line", required = true) String line,
+        @JsonProperty(value = "column", required = true) String column) {
 
-    @JsonProperty("line")
-    private final String line;
+    public static LocationsBuilder builder() {
+        return new LocationsBuilder();
+    }
 
-    @JsonProperty("column")
-    private final String column;
+    public static class LocationsBuilder {
+        private String line;
+        private String column;
 
-    @JsonCreator
-    public Locations(
-            @JsonProperty(value = "line", required = true) String line,
-            @JsonProperty(value = "column", required = true) String column) {
-        this.line = line;
-        this.column = column;
+        public LocationsBuilder line(String line) {
+            this.line = line;
+            return this;
+        }
+
+        public LocationsBuilder column(String column) {
+            this.column = column;
+            return this;
+        }
+
+        public Locations build() {
+            return new Locations(line, column);
+        }
     }
 }

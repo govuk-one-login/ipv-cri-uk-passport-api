@@ -1,47 +1,66 @@
 package uk.gov.di.ipv.cri.passport.library.dvad.domain.response;
 
-import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonProperty;
-import lombok.Builder;
-import lombok.Data;
 
 @JsonIgnoreProperties(ignoreUnknown = true)
-@Data
-@Builder
-public class AccessTokenResponse {
+public record AccessTokenResponse(
+        @JsonProperty(value = "access_token", required = true) String accessToken,
+        @JsonProperty(value = "token_type", required = true) String tokenType,
+        @JsonProperty(value = "expires_in", required = true) long expiresIn,
+        @JsonProperty(value = "refresh_token", required = false) String refreshToken,
+        @JsonProperty(value = "refresh_expires_in", required = false) long refreshExpiresIn,
+        @JsonProperty(value = "scope", required = false) String scope) {
 
-    @JsonProperty("access_token")
-    private String accessToken;
+    public static AccessTokenResponseBuilder builder() {
+        return new AccessTokenResponseBuilder();
+    }
 
-    @JsonProperty("token_type")
-    private String tokenType;
+    public static class AccessTokenResponseBuilder {
+        private String accessToken;
+        private String tokenType;
+        private long expiresIn;
+        private String refreshToken;
+        private long refreshExpiresIn;
+        private String scope;
 
-    @JsonProperty("expires_in")
-    private long expiresIn;
+        private AccessTokenResponseBuilder() {
+            // Intended
+        }
 
-    @JsonProperty("refresh_token")
-    private String refreshToken;
+        public AccessTokenResponseBuilder accessToken(String accessToken) {
+            this.accessToken = accessToken;
+            return this;
+        }
 
-    @JsonProperty("refresh_expires_in")
-    private long refreshExpiresIn;
+        public AccessTokenResponseBuilder tokenType(String tokenType) {
+            this.tokenType = tokenType;
+            return this;
+        }
 
-    @JsonProperty("scope")
-    private String scope;
+        public AccessTokenResponseBuilder expiresIn(long expiresIn) {
+            this.expiresIn = expiresIn;
+            return this;
+        }
 
-    @JsonCreator
-    public AccessTokenResponse(
-            @JsonProperty(value = "access_token", required = true) String accessToken,
-            @JsonProperty(value = "token_type", required = true) String tokenType,
-            @JsonProperty(value = "expires_in", required = true) long expiresIn,
-            @JsonProperty(value = "refresh_token", required = false) String refreshToken,
-            @JsonProperty(value = "refresh_expires_in", required = false) long refreshExpiresIn,
-            @JsonProperty(value = "scope", required = false) String scope) {
-        this.accessToken = accessToken;
-        this.tokenType = tokenType;
-        this.expiresIn = expiresIn;
-        this.refreshToken = refreshToken;
-        this.refreshExpiresIn = refreshExpiresIn;
-        this.scope = scope;
+        public AccessTokenResponseBuilder refreshToken(String refreshToken) {
+            this.refreshToken = refreshToken;
+            return this;
+        }
+
+        public AccessTokenResponseBuilder refreshExpiresIn(long refreshExpiresIn) {
+            this.refreshExpiresIn = refreshExpiresIn;
+            return this;
+        }
+
+        public AccessTokenResponseBuilder scope(String scope) {
+            this.scope = scope;
+            return this;
+        }
+
+        public AccessTokenResponse build() {
+            return new AccessTokenResponse(
+                    accessToken, tokenType, expiresIn, refreshToken, refreshExpiresIn, scope);
+        }
     }
 }

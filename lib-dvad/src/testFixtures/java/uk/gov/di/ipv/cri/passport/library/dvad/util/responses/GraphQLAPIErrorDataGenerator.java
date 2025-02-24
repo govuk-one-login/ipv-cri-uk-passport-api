@@ -1,14 +1,16 @@
 package uk.gov.di.ipv.cri.passport.library.dvad.util.responses;
 
-import lombok.experimental.UtilityClass;
 import uk.gov.di.ipv.cri.passport.library.dvad.domain.response.fields.errors.Errors;
 import uk.gov.di.ipv.cri.passport.library.dvad.domain.response.fields.errors.Extensions;
 import uk.gov.di.ipv.cri.passport.library.dvad.domain.response.fields.errors.Locations;
 
 import java.util.List;
 
-@UtilityClass
 public class GraphQLAPIErrorDataGenerator {
+
+    private GraphQLAPIErrorDataGenerator() {
+        // Intended
+    }
 
     public static Errors createAPIErrorScenario(String scenario) {
         switch (scenario) {

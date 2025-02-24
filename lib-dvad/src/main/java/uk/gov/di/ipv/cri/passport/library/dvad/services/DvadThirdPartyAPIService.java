@@ -129,22 +129,22 @@ public class DvadThirdPartyAPIService implements ThirdPartyAPIService {
                 graphQLRequestService.performGraphQLQuery(
                         accessTokenResponse, dvadAPIHeaderValues, queryString, passportFormData);
 
-        GraphQLAPIResponse graphQLAPIResponse = graphQLServiceResult.getGraphQLAPIResponse();
-        String graphQLRequestId = graphQLServiceResult.getRequestId();
+        GraphQLAPIResponse graphQLAPIResponse = graphQLServiceResult.graphQLAPIResponse();
+        String graphQLRequestId = graphQLServiceResult.requestId();
 
-        // Fatal - if errors found - Throws OAuthErrorResponseException
+        // Fatal - if errors found - Throws OAuthErrorResponseExceptions
         assertNoErrorsSetInGraphQLResponse(graphQLAPIResponse);
 
         // Checks the response has the required fields for mapping
         GraphQLAPIResponseValidationResult graphQLAPIResponseValidationResult =
                 validateAPISuccessResponse(graphQLAPIResponse);
 
-        if (!graphQLAPIResponseValidationResult.valid) {
+        if (!graphQLAPIResponseValidationResult.valid()) {
 
             // We got an API response, but it's not valid for the CRI to process
             LOGGER.error(
                     "API Response Failed validation - {}",
-                    graphQLAPIResponseValidationResult.failureReason);
+                    graphQLAPIResponseValidationResult.failureReason());
 
             eventProbe.counterMetric(DVAD_GRAPHQL_RESPONSE_TYPE_INVALID.withEndpointPrefix());
 
@@ -197,13 +197,13 @@ public class DvadThirdPartyAPIService implements ThirdPartyAPIService {
 
         // There are multiple Error response formats with optional fields and overloaded types
 
-        String messageSegment = String.format("message %s, ", error.getMessage());
+        String messageSegment = String.format("message %s, ", error.message());
 
-        List<String> path = error.getPath();
+        List<String> path = error.path();
         String pathSegment =
                 (path == null || path.isEmpty()) ? "" : String.format("path %s, ", path);
 
-        List<Locations> locations = error.getLocations();
+        List<Locations> locations = error.locations();
         // Replace used here to remove the space after the comma in locations - ", " to ","
         // so ", " delimiter be used for validating errorLine segment handling
         String locationsSegment =
@@ -211,9 +211,9 @@ public class DvadThirdPartyAPIService implements ThirdPartyAPIService {
                         ? ""
                         : String.format("locations %s, ", locations.toString().replace(" ", ""));
 
-        Extensions extensions = error.getExtensions();
+        Extensions extensions = error.extensions();
 
-        String errorCode = extensions.getErrorCode();
+        String errorCode = extensions.errorCode();
         String errorCodeSegment =
                 (errorCode == null || errorCode.isEmpty())
                         ? ""
@@ -221,7 +221,7 @@ public class DvadThirdPartyAPIService implements ThirdPartyAPIService {
 
         // Classification displayed last as its value may single string
         // or a complex object (as a string)
-        String classification = extensions.getClassification();
+        String classification = extensions.classification();
         String classificationSegment = String.format("classification %s", classification);
 
         // ", " delimiter added in segments to avoid adding when segment not present
