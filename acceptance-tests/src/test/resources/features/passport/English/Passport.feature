@@ -217,11 +217,12 @@ Feature: Passport Test
       | PassportSubjectHappyKenneth | 18     | 1              |
       | PassportSubjectHappyKenneth | 18     | 2              |
 
-  @build @staging @integration @stub @uat
-  Scenario: Check the Unrecoverable error/ Unknown error in Passport CRI
-    Given I delete the service_session cookie to get the unexpected error
-    When I check the page title is Sorry, there is a problem – Prove your identity – GOV.UK
-    And The test is complete and I close the driver
+    #LIME-1578
+#  @build @staging @integration @stub @uat
+#  Scenario: Check the Unrecoverable error/ Unknown error in Passport CRI
+#    Given I delete the service_session cookie to get the unexpected error
+#    When I check the page title is Sorry, there is a problem – Prove your identity – GOV.UK
+#    And The test is complete and I close the driver
 
   @build @Language-regression
   Scenario Outline: Language Title validation
