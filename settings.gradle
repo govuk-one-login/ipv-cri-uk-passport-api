@@ -1,7 +1,3 @@
 rootProject.name = 'di-ipv-cri-uk-passport-api'
 
-include "lib",
-		"lib-dvad",
-		"lambdas:checkpassport",
-		"lambdas:issuecredential",
-		"lambdas:certexpiryreminder"
+include "lambdas:testlambda"

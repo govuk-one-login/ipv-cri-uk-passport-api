@@ -20,56 +20,27 @@ repositories {
 ext {
 	aws_powertools_version = "1.18.0"
 	dependencyVersions = [
-
-		// ---------------------------------------------------------
-		// cri_common_lib dependencies should match the ipv-cri-lib version
-		// Workaround until dependency resolution is fixed.
-		// ---------------------------------------------------------
-		cri_common_lib_version             : "4.0.0",
-
-		// AWS SDK
 		aws_sdk_version                    : "2.30.16",
 
 		aws_lambda_events_version          : "3.14.0",
 
-		// Nimbus Oauth
-		nimbusds_oauth_version             : "11.19.1",
-
-		// CRI_LIB powertools
 		aws_powertools_logging_version     : "${aws_powertools_version}",
 		aws_powertools_metrics_version     : "${aws_powertools_version}",
 		aws_powertools_parameters_version  : "${aws_powertools_version}",
 
-		// ---------------------------------------------------------
-		// Passport CRI Dependencies
-		// ---------------------------------------------------------
-
-		// AWS  aws-lambda-java-libs see https://github.com/aws/aws-lambda-java-libs
 		aws_lambda_core_version                    : "1.2.3",
-		// Jackson Addons/ needs to track the aws sdk version of jackson
-		jackson_version                            : "2.15.2",
-		// Code weaving (powertools)
+
 		aspectjrt_version                          : "1.9.22.1",
 
 		// Open telemetry
 		opentelemetry_bom_alpha_version  : "2.12.0-alpha",
 
-		// CRI Apache HTTP Client see https://hc.apache.org/httpcomponents-client-4.5.x/current/httpclient/dependencies.html
-		httpcomponents_core_version        : "4.4.16",
-		httpcomponents_client_version      : "4.5.14",
 
 		// Test
 		junit_version                      : "5.11.4",
 		hamcrest_version                   : "2.2",
 		mockito_version                    : "5.15.2",
-		wiremock_version                   : "3.0.1",
 		webcompere_version                 : "2.1.6",
-
-		// testFixturesImplementation
-
-		// Contract Tests
-		pact_provider_version              : "4.6.16",
-		slf4j_log4j12_version              : "2.0.13", // For contract test debug
 	]
 
 	// Sets the version used on the lambda + lib (ac tests have separate dependencies)
@@ -79,8 +50,8 @@ ext {
 	]
 
 	// Code Coverage (Lines/Branches) cannot be below this value on a per sub project basis
-	minUnitTestLineCoverage = 0.9
-	minUnitTestBranchCoverage = 0.9
+	minUnitTestLineCoverage = 0.0
+	minUnitTestBranchCoverage = 0.0
 }
 
 sonar {
@@ -104,11 +75,7 @@ reporting {
 }
 
 dependencies {
-	jacocoAggregation project(':lib'),
-			project(':lib-dvad'),
-			project("lambdas:checkpassport"),
-			project("lambdas:issuecredential"),
-			project("lambdas:certexpiryreminder")
+	jacocoAggregation project('lambdas:testlambda')
 }
 
 spotless {

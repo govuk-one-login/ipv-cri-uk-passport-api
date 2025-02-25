@@ -1,0 +1,22 @@
+openapi: "3.0.2"
+info:
+  title: TestLambda Proxy API
+  version: "1.0"
+servers:
+  - description: Local
+    url: http://localhost:8080
+paths:
+  /{proxy+}:
+    x-amazon-apigateway-any-method:
+      parameters:
+        - name: proxy
+          in: path
+          required: true
+          schema:
+            type: string
+      x-amazon-apigateway-integration:
+        type: "aws_proxy"
+        httpMethod: "POST"
+        uri:
+          Fn::Sub: arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${TestLambdaFunction.Arn}:live/invocations
+        passthroughBehavior: "when_no_match"
