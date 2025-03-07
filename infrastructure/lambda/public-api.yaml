@@ -70,7 +70,7 @@ paths:
         type: "aws_proxy"
 
   /credential/issue:
-    summary: Resource for the Fraud API
+    summary: Resource for the Passport API
     description: >-
       This API is expected to be called by the IPV core backend directly as the
       final part of the OpenId/Oauth Flow
@@ -118,6 +118,89 @@ paths:
         passthroughBehavior: "when_no_match"
         contentHandling: "CONVERT_TO_TEXT"
         type: "aws_proxy"
+
+  /.well-known/jwks.json:
+    get:
+      operationId: getWellKnownJwksJson
+      summary: Retrieve the signing public keys for JWTs issued by `POST /userinfo`.
+      description: >-
+        Return the current valid public keys used to sign JWTs issued by the service as a JSON Web Key Set
+      tags:
+        - Backend - Passport CRI specific
+      responses:
+        "200":
+          description: >-
+            OK - key ring returned
+          headers:
+            Cache-Control:
+              schema:
+                type: "string"
+            Content-Type:
+              schema:
+                type: "string"
+            Strict-Transport-Security:
+              schema:
+                type: "string"
+            X-Content-Type-Options:
+              schema:
+                type: "string"
+            X-Frame-Options:
+              schema:
+                type: "string"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/JWKSFile"
+        "400":
+          description: 400 response
+          headers:
+            Cache-Control:
+              schema:
+                type: "string"
+            Content-Type:
+              schema:
+                type: "string"
+            Strict-Transport-Security:
+              schema:
+                type: "string"
+            X-Content-Type-Options:
+              schema:
+                type: "string"
+            X-Frame-Options:
+              schema:
+                type: "string"
+        "500":
+          description: Internal Server Error
+          headers:
+            Cache-Control:
+              schema:
+                type: "string"
+            Content-Type:
+              schema:
+                type: "string"
+            Strict-Transport-Security:
+              schema:
+                type: "string"
+            X-Content-Type-Options:
+              schema:
+                type: "string"
+            X-Frame-Options:
+              schema:
+                type: "string"
+      x-amazon-apigateway-request-validator: "both"
+      x-amazon-apigateway-integration:
+        httpMethod: "GET"
+        credentials:
+          Fn::GetAtt: [ "JWKSBucketRole", "Arn" ]
+        uri:
+          Fn::Sub: "arn:aws:apigateway:${AWS::Region}:s3:path/${JsonWebKeysBucket}/.well-known/jwks.json"
+        responses:
+          default:
+            statusCode: "200"
+        passthroughBehavior: "when_no_match"
+        contentHandling: "CONVERT_TO_TEXT"
+        type: "aws"
+
 
 x-amazon-apigateway-request-validators:
   Validate both:
