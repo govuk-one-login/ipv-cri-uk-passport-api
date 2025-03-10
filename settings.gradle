@@ -5,3 +5,10 @@ include "lib",
 		"lambdas:checkpassport",
 		"lambdas:issuecredential",
 		"lambdas:certexpiryreminder"
+
+// Workaround to ensure ide's enable the correct plugins
+// for the acceptance tests when repo is access at the root level.
+// But avoid building acceptance test when not needed.
+if(file('.idea').exists() || file('.vscode').exists()) {
+	include "acceptance-tests"
+}
