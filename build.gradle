@@ -98,7 +98,7 @@ sonar {
 reporting {
 	reports {
 		reports(JacocoCoverageReport) {
-			testType = TestSuiteType.UNIT_TEST
+			testSuiteName = "test"
 		}
 	}
 }
