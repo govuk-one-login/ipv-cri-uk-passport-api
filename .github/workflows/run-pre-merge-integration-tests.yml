@@ -124,10 +124,12 @@ jobs:
             !*/build/reports
             !*/build/jacoco
           key: ${{ runner.os }}-build-${{ github.sha }}
+
       - name: Setup SAM
         uses: aws-actions/setup-sam@v2
         with:
           use-installer: true
+          version: "1.134.0"
 
       - name: Assume temporary AWS role
         uses: aws-actions/configure-aws-credentials@v4
