@@ -21,6 +21,7 @@ import java.util.Set;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.fail;
+import static uk.gov.di.ipv.cri.passport.acceptance_tests.pages.UniversalSteps.MAX_WAIT_SEC;
 
 public class BrowserUtils {
 
@@ -166,6 +167,127 @@ public class BrowserUtils {
         } catch (Throwable error) {
             error.printStackTrace();
         }
+    }
+
+    /**
+     * Waits for a page with the provided title to fully load. Optionally can be an exact or fuzzy
+     * title match.
+     *
+     * @param timeOutInSeconds
+     */
+    public static boolean waitForSpecificPageWithTitleToFullyLoad(
+            String expectedTitle, boolean exactTitleMatchRequired, long timeOutInSeconds) {
+
+        ExpectedCondition<Boolean> pageLoadedExpectation =
+                new ExpectedCondition<Boolean>() {
+                    public Boolean apply(WebDriver driver) {
+                        return ((JavascriptExecutor) driver)
+                                .executeScript("return document.readyState")
+                                .equals("complete");
+                    }
+                };
+
+        try {
+            WebDriverWait wait =
+                    new WebDriverWait(Driver.get(), Duration.ofSeconds(timeOutInSeconds));
+            wait.until(pageLoadedExpectation);
+        } catch (Throwable error) {
+            error.printStackTrace();
+            return false;
+        }
+
+        ExpectedCondition<Boolean> titleExpectation =
+                new ExpectedCondition<Boolean>() {
+                    public Boolean apply(WebDriver driver) {
+                        String title = driver.getTitle();
+
+                        if (title == null || expectedTitle == null) {
+                            return false;
+                        }
+
+                        System.out.println(
+                                "title: "
+                                        + title
+                                        + " "
+                                        + expectedTitle
+                                        + " "
+                                        + title.contains(expectedTitle));
+
+                        return exactTitleMatchRequired
+                                ? title.equals(expectedTitle)
+                                : title.contains(expectedTitle);
+                    }
+                };
+
+        try {
+            WebDriverWait wait =
+                    new WebDriverWait(Driver.get(), Duration.ofSeconds(timeOutInSeconds));
+            wait.until(titleExpectation);
+        } catch (Throwable error) {
+            error.printStackTrace();
+            return false;
+        }
+
+        return true;
+    }
+
+    /**
+     * Waits for a page with the provided title to fully load. Optionally can be an exact or fuzzy
+     * title match.
+     *
+     * @param timeOutInSeconds
+     */
+    public static boolean waitForUrlToContain(String expectedText, long timeOutInSeconds) {
+
+        ExpectedCondition<Boolean> pageLoadedExpectation =
+                new ExpectedCondition<Boolean>() {
+                    public Boolean apply(WebDriver driver) {
+                        return ((JavascriptExecutor) driver)
+                                .executeScript("return document.readyState")
+                                .equals("complete");
+                    }
+                };
+
+        try {
+            WebDriverWait wait =
+                    new WebDriverWait(Driver.get(), Duration.ofSeconds(timeOutInSeconds));
+            wait.until(pageLoadedExpectation);
+        } catch (Throwable error) {
+            error.printStackTrace();
+            return false;
+        }
+
+        ExpectedCondition<Boolean> urlCheckExpectation =
+                new ExpectedCondition<Boolean>() {
+                    public Boolean apply(WebDriver driver) {
+                        String url = driver.getCurrentUrl();
+
+                        if (url == null) {
+                            return false;
+                        }
+
+                        System.out.println(
+                                "URL: "
+                                        + url
+                                        + " "
+                                        + expectedText
+                                        + " "
+                                        + url.contains(expectedText));
+
+                        return url.contains(expectedText);
+                    }
+                };
+
+        try {
+            WebDriverWait wait =
+                    new WebDriverWait(Driver.get(), Duration.ofSeconds(timeOutInSeconds));
+            wait.until(urlCheckExpectation);
+        } catch (Throwable error) {
+            error.printStackTrace();
+            return false;
+        }
+
+        return true;
     }
 
     /**
@@ -415,8 +537,9 @@ public class BrowserUtils {
         Driver.get().navigate().refresh();
     }
 
-    public static void changeLanguageTo(final String language) {
-        String languageCode = "eng";
+    public static String changeLanguageTo(final String language) {
+
+        String languageCode = "en";
         switch (language) {
             case "Welsh":
                 {
@@ -427,6 +550,10 @@ public class BrowserUtils {
         String currentURL = Driver.get().getCurrentUrl();
         String newURL = currentURL + "/?lng=" + languageCode;
         Driver.get().get(newURL);
+
+        waitForPageToLoad(MAX_WAIT_SEC);
+
+        return languageCode;
     }
 
     public static void setFeatureSet(final String featureSet) {
@@ -450,6 +577,10 @@ public class BrowserUtils {
         Driver.get().get(newURL);
     }
 
+    public static void logFeatureSetTag(final String featureSet) {
+        LOGGER.info("Feature set tag was : {}", featureSet);
+    }
+
     public static HttpResponse<String> sendHttpRequest(HttpRequest request)
             throws IOException, InterruptedException {
         HttpClient client = HttpClient.newBuilder().build();
@@ -463,7 +594,7 @@ public class BrowserUtils {
         try {
             httpResponse = sendHttpRequest(request);
             int statusCode = httpResponse.statusCode();
-            assertEquals(200, statusCode);
+            assertEquals(statusCode, 200);
         } catch (IOException | InterruptedException e) {
             fail("Failed to get 200 back on request to url");
         }

@@ -268,9 +268,11 @@ public class PassportPageObject extends UniversalSteps {
 
     // Should be in stub page
     public void navigateToIPVCoreStub() {
+        Driver.get().manage().deleteAllCookies();
+
         String coreStubUrl = configurationService.getCoreStubUrl(true);
         Driver.get().get(coreStubUrl);
-        assertPageTitle(IPV_CORE_STUB, true);
+        assertExpectedPage(IPV_CORE_STUB, false);
     }
 
     public void navigateToPassportCRIOnTestEnv() {
@@ -318,13 +320,15 @@ public class PassportPageObject extends UniversalSteps {
     }
 
     public void navigateToPassportResponse(String validOrInvalid) {
+        assertURLContains("callback");
+
         if ("Invalid".equalsIgnoreCase(validOrInvalid)) {
-            assertPageTitle(STUB_ERROR_PAGE_TITLE, false);
+            assertExpectedPage(STUB_ERROR_PAGE_TITLE, true);
             assertURLContains("callback");
             BrowserUtils.waitForVisibility(errorResponse, 10);
             errorResponse.click();
         } else {
-            assertPageTitle(STUB_VC_PAGE_TITLE, false);
+            assertExpectedPage(STUB_VC_PAGE_TITLE, true);
             assertURLContains("callback");
             BrowserUtils.waitForVisibility(viewResponse, 10);
             viewResponse.click();
@@ -369,21 +373,6 @@ public class PassportPageObject extends UniversalSteps {
 
     public void passportPageURLValidation(String path) {
         assertURLContains(path);
-    }
-
-    public void assertUserRoutedToIpvCore() {
-        assertPageTitle("IPV Core Stub - GOV.UK", false);
-    }
-
-    public void assertUserRoutedToIpvCoreErrorPage() {
-        String coreStubUrl = configurationService.getCoreStubUrl(false);
-        String expUrl =
-                coreStubUrl
-                        + "/callback?error=access_denied&error_description=Authorization+permission+denied";
-        String actUrl = Driver.get().getCurrentUrl();
-        LOGGER.info("expectedUrl = " + expUrl);
-        LOGGER.info("actualUrl = " + actUrl);
-        Assert.assertEquals(actUrl, expUrl);
     }
 
     public void jsonErrorResponse(String expectedErrorDescription, String expectedErrorStatusCode)
@@ -525,7 +514,7 @@ public class PassportPageObject extends UniversalSteps {
         passportPage.validToMonth.sendKeys("01");
         passportPage.validToYear.sendKeys("2030");
 
-        BrowserUtils.waitForPageToLoad(10);
+        //        BrowserUtils.waitForPageToLoad(10);
     }
 
     public void enterInvalidLastAndFirstName() {

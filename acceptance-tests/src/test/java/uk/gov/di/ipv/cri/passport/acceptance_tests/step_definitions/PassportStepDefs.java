@@ -85,27 +85,12 @@ public class PassportStepDefs extends PassportPageObject {
 
     @Given("^I check the page title is (.*)$")
     public void i_check_the_page_titled(String pageTitle) {
-        assertPageTitle(pageTitle, false);
+        assertExpectedPage(pageTitle, false);
     }
 
     @Then("I can see CTA {string}")
     public void i_can_see_cta(String string) {
         assertCTATextAs(string);
-    }
-
-    @Then("^I should on the page Enter your details exactly as they appear on your UK passport$")
-    public void i_should_be_on_the_page() {
-        assertPageTitle("hello", false);
-    }
-
-    @When("I am directed to the IPV Core routing page")
-    public void i_am_directed_to_the_ipv_core_routing_page() {
-        assertUserRoutedToIpvCore();
-    }
-
-    @And("I validate the URL having access denied")
-    public void iValidateTheURLHavingAccessDenied() {
-        assertUserRoutedToIpvCoreErrorPage();
     }
 
     @Then("^I navigate to the passport verifiable issuer to check for a (.*) response$")
