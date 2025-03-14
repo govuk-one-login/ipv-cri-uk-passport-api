@@ -20,7 +20,6 @@ import java.util.List;
 import java.util.Map;
 
 import static org.junit.Assert.assertEquals;
-import static uk.gov.di.ipv.cri.passport.acceptance_tests.pages.Headers.CHECKING_YOUR_DETAILS;
 
 public class OrchestratorStubPage extends UniversalSteps {
 
@@ -167,10 +166,6 @@ public class OrchestratorStubPage extends UniversalSteps {
 
     public void confirmClick() {
         IConfirmMyDetailsAreCorrect.click();
-    }
-
-    public void assertCurrentPageIsFraudCheckPage() {
-        assertPageTitle(CHECKING_YOUR_DETAILS, false);
     }
 
     public void clickContinue() {

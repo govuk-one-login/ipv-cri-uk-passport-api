@@ -5,6 +5,7 @@ Feature: Passport Test
     Given I navigate to the IPV Core Stub
     And I click the passport CRI for the testEnvironment
     And I search for passport user number 5 in the Experian table
+    And I assert the url path contains details
     Then I check the page title is Enter your details exactly as they appear on your UK passport – GOV.UK One Login
     And I assert the url path contains details
     And I set the document checking route
@@ -17,12 +18,10 @@ Feature: Passport Test
     And JSON payload should contain validity score 2 and strength score 4
     And JSON response should contain documentNumber 321654987 same as given passport
     And Passport VC should contain JTI field
-#    And exp should be absent in the JSON payload
     And The test is complete and I close the driver
     Examples:
       | PassportSubject             |
       | PassportSubjectHappyKenneth |
-
 
   @build @staging @integration @smoke @stub @uat
   Scenario Outline: Passport test
@@ -33,7 +32,6 @@ Feature: Passport Test
       | PassportSubject             | InvalidLastName |
       | PassportSubjectHappyKenneth | KYLE123         |
 
-
   @build @staging @integration @smoke @stub @uat
   Scenario: Beta Banner Reject Analytics
     When I view the Beta banner
@@ -43,18 +41,6 @@ Feature: Passport Test
     And  I select the link change your cookie settings
     Then I check the page to change cookie preferences opens
     Then The test is complete and I close the driver
-
-# No longer a valid test as front end form validation prevents the invalid passport number being sent
-#  @Passport_test
-#  Scenario Outline: Passport details page unhappy path with InvalidPassportDetails
-#    Given User enters data as a <PassportSubject>
-#    Then User clicks on continue
-#    Then I navigate to the passport verifiable issuer to check for a Invalid response
-#    And JSON response should contain error description Authorization permission denied and status code as 302
-#    And The test is complete and I close the driver
-#    Examples:
-#      |PassportSubject      |
-#      |PassportSubjectUnhappySelina |
 
   @build @staging @integration @stub @uat
   Scenario Outline: Passport details page unhappy path with IncorrectPassportNumber
@@ -115,20 +101,6 @@ Feature: Passport Test
       | PassportSubject             | InvalidLastName |
       | PassportSubjectHappyKenneth | KYLE            |
 
-# # Invalid test - expiry date not checked in DCS stub
-#  @Passport_test @build @staging @integration
-#  Scenario Outline: Passport details page unhappy path with IncorrectValidToDate
-#    Given User enters data as a <PassportSubject>
-#    When User clicks on continue
-#    Then Proper error message for Could not find your details is displayed
-#    When User clicks on continue
-#    Then I navigate to the Passport verifiable issuer to check for a Valid response
-#    And JSON payload should contain ci D02, validity score 0 and strength score 3
-#    And The test is complete and I close the driver
-#    Examples:
-#      |PassportSubject |
-#      |IncorrectValidToDate|
-
   @build @staging @integration @smoke @stub @uat
   Scenario Outline: Passport Retry Test Happy Path
     Given User enters invalid passport details
@@ -147,6 +119,7 @@ Feature: Passport Test
   Scenario Outline: Passport User failed second attempt
     Given User enters invalid passport details
     When User clicks on continue
+    And I assert the url path contains details
     Then Proper error message for Could not find your details is displayed
     When User Re-enters data as a <PassportSubject>
     And User re-enters passport number as <InvalidPassportNumber>
@@ -181,6 +154,7 @@ Feature: Passport Test
     Given User enters data as a <PassportSubject>
     And User re-enters passport number as <InvalidPassportNumber>
     When User clicks on continue
+    And I assert the url path contains details
     When User click on ‘prove your identity another way' Link
     Then I navigate to the passport verifiable issuer to check for a Valid response
     And JSON response should contain documentNumber 887766551 same as given passport
@@ -197,7 +171,6 @@ Feature: Passport Test
     Then I navigate to the passport verifiable issuer to check for a Valid response
     And JSON payload should contain validity score 2 and strength score 4
     And JSON response should contain documentNumber 321654987 same as given passport
-#    And exp should be absent in the JSON payload
     And The test is complete and I close the driver
     Examples:
       | PassportSubject             | months | daysToSubtract |
@@ -208,6 +181,7 @@ Feature: Passport Test
     Given User enters data as a <PassportSubject>
     Then User enters expiry date as current date minus <months> months and minus <daysToSubtract> days
     When User clicks on continue
+    And I assert the url path contains details
     Then I can see the valid to date error in the error summary as Your passport must not have expired more than 18 months ago
     And I can see the Valid to date field error as Error:Your passport must not have expired more than 18 months ago
     And The test is complete and I close the driver

@@ -1,6 +1,6 @@
 package uk.gov.di.ipv.cri.passport.acceptance_tests.step_definitions;
 
-import io.cucumber.java.After;
+import io.cucumber.java.AfterAll;
 import io.cucumber.java.en.And;
 import uk.gov.di.ipv.cri.passport.acceptance_tests.pages.UniversalSteps;
 
@@ -13,7 +13,8 @@ public class UniversalStepDefs extends UniversalSteps {
 
     @And("The test is complete and I close the driver")
     public void closeDriver() {
-        driverClose();
+        // Intended
+        System.out.println("closeDriver() ignored");
     }
 
     @And("^I add a cookie to change the language to (.*)$")
@@ -36,9 +37,9 @@ public class UniversalStepDefs extends UniversalSteps {
         return Objects.requireNonNullElse(property, "");
     }
 
-    @After
-    public void cleanUp() {
-        System.out.println("CleanUp after test");
+    @AfterAll
+    public static void cleanUp() {
+        System.out.println("CleanUp after tests");
         driverClose();
     }
 }
