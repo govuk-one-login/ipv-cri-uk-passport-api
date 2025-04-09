@@ -122,9 +122,9 @@ paths:
   /.well-known/jwks.json:
     get:
       operationId: getWellKnownJwksJson
-      summary: Retrieve the encryption public keys for JWTs issued by `POST /userinfo`.
+      summary: Get using a valid api key to request the JWKSet
       description: >-
-        Return the current valid public keys used to encrypt JWTs issued by the service as a JSON Web Key Set
+        Returns the current valid public keys used to encrypt JWTs issued by the service as a JSON Web Key Set
       tags:
         - Backend - Passport CRI specific
       responses:
