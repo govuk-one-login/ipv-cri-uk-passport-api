@@ -11,6 +11,7 @@ Metadata:
         - E3020
         - W8003
         - E3031
+        - E3033
 
 Parameters:
   VpcStackName:
@@ -830,6 +831,31 @@ Resources:
     Properties:
       AliasName: !Sub alias/${AWS::StackName}/auditEventQueueEncryptionKey
       TargetKeyId: !Ref MockAuditEventQueueEncryptionKey
+
+  JWKSBucketRole:
+    Type: "AWS::IAM::Role"
+    Properties:
+      AssumeRolePolicyDocument:
+        Statement:
+          - Action: "sts:AssumeRole"
+            Effect: Allow
+            Principal:
+              Service: apigateway.amazonaws.com
+        Version: 2012-10-17
+      Policies:
+        - PolicyName: AccessJWKSjson
+          PolicyDocument:
+            Version: "2012-10-17"
+            Statement:
+              - Effect: Allow
+                Action:
+                  - "s3:Get*"
+                Resource:
+                  - !Sub "arn:aws:s3:::passport-${Environment}-key-rotation-bucket/jwks.json"
+      PermissionsBoundary: !If
+        - UsePermissionsBoundary
+        - !Ref PermissionsBoundary
+        - !Ref AWS::NoValue
 
 ####################################################################
 #                                                                  #
