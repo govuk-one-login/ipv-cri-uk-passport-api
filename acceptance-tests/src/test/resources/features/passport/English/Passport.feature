@@ -197,22 +197,6 @@ Feature: Passport Test
     When I check the page title is Sorry, there is a problem – GOV.UK One Login
     And The test is complete and I close the driver
 
-  @build @Language-regression
-  Scenario Outline: Language Title validation
-    Given User clicks on language toggle and switches to Welsh
-    Then I check the page title is Rhowch eich manylion yn union fel maent yn ymddangos ar eich pasbort y DU – GOV.UK One Login
-    Then User enters data as a <PassportSubject>
-    When User clicks on continue
-    Then I navigate to the passport verifiable issuer to check for a Valid response
-    And JSON payload should contain validity score 2 and strength score 4
-    And JSON response should contain documentNumber 321654987 same as given passport
-    And Passport VC should contain JTI field
-    And exp should be absent in the JSON payload
-    And The test is complete and I close the driver
-    Examples:
-      | PassportSubject             |
-      | PassportSubjectHappyKenneth |
-
   @build @stub
   Scenario Outline: Error tab title validation
     And I check the page title is Enter your details exactly as they appear on your UK passport – GOV.UK One Login
@@ -244,3 +228,20 @@ Feature: Passport Test
       | PassportSubjectHappyKenneth | 321654987             | DECERQUEIRA     | KENNETH          | 08              | 07                | 1965             | !@                | £$                  | %^ *               | ValidToDateWithSpecialCharacters      |
       | PassportSubjectHappyKenneth | 321654987             | DECERQUEIRA     | KENNETH          | 08              | 07                | 1965             | 10                | 01                  | 2010               | ValidToDateInPast                     |
       | PassportSubjectHappyKenneth | 555667^&*             | DECERQUEIRA     | KENNETH          | 08              | 07                | 1965             | 01                | 10                  | 2042               | PassportNumberWithSpecialChar         |
+
+  @build @Language-regression
+  Scenario Outline: Language Title validation
+    Given User clicks on language toggle and switches to Welsh
+    Then I check the page title is Rhowch eich manylion yn union fel maent yn ymddangos ar eich pasbort y DU – GOV.UK One Login
+    And User clicks language toggle and switches to English
+    Then User enters data as a <PassportSubject>
+    When User clicks on continue
+    Then I navigate to the passport verifiable issuer to check for a Valid response
+    And JSON payload should contain validity score 2 and strength score 4
+    And JSON response should contain documentNumber 321654987 same as given passport
+    And Passport VC should contain JTI field
+    And exp should be absent in the JSON payload
+    And The test is complete and I close the driver
+    Examples:
+      | PassportSubject             |
+      | PassportSubjectHappyKenneth |
