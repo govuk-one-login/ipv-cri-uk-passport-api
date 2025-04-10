@@ -17,6 +17,7 @@ public enum Strategy {
             case "ipv-core-stub-aws-build_3rdparty" -> UAT;
             case "ipv-core-stub-aws-prod_3rdparty" -> UAT;
             case "ipv-core-stub-pre-prod-aws-build" -> LIVE;
+            case "ipv-core-3rd-party-stubs" -> STUB; // Real ipv-core
             case "ipv-core" -> LIVE;
             default -> NO_CHANGE;
         };
