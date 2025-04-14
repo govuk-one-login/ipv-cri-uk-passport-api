@@ -856,6 +856,9 @@ Resources:
         - UsePermissionsBoundary
         - !Ref PermissionsBoundary
         - !Ref AWS::NoValue
+      Tags:
+        - Key: "key_consumer_type"
+          Value: "use"
 
 ####################################################################
 #                                                                  #
