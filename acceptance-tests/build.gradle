@@ -26,7 +26,7 @@ dependencies {
 		cri_common_lib_version             : "4.0.0",
 
 		// CRI_LIB aws
-		aws_sdk_version                    : "2.30.13",
+		aws_sdk_version                    : "2.31.24",
 		aws_lambda_events_version          : "3.11.0",
 
 		// CRI_LIB nimbus
