@@ -1034,6 +1034,30 @@ Resources:
       ComparisonOperator: GreaterThanOrEqualToThreshold
       TreatMissingData: notBreaching
 
+  CommonAPISessionLambdaAliasBasedDecryptionFailure:
+    Type: AWS::CloudWatch::Alarm
+    Properties:
+      AlarmName: !Sub ${AWS::StackName}-${Environment} - Passport - Session lambda alias-based decryption failure
+      AlarmDescription: !Sub Passport ${Environment} - Common API Session Lambda all aliases unavailable for decryption
+      ActionsEnabled: true
+      AlarmActions:
+        - !If [ IsProdEnvironment, !Ref AlarmTopicPassport, !ImportValue platform-alarm-critical-alert-topic ]
+      OKActions:
+        - !If [ IsProdEnvironment, !Ref AlarmTopicPassport, !ImportValue platform-alarm-critical-alert-topic ]
+      InsufficientDataActions: [ ]
+      MetricName: all_aliases_unavailable_for_decryption
+      Namespace: !Sub "${CriIdentifier}"
+      Statistic: Sum
+      Dimensions:
+        - Name: Service
+          Value: !Sub "${CriIdentifier}-session"
+      Period: 60
+      EvaluationPeriods: 1
+      DatapointsToAlarm: 1
+      Threshold: 1
+      ComparisonOperator: GreaterThanOrEqualToThreshold
+      TreatMissingData: notBreaching
+
   CommonAPIAuthorizationLambdaConcurrencyThresholdReached:
     Type: AWS::CloudWatch::Alarm
     Properties:
