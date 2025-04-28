@@ -851,7 +851,7 @@ Resources:
                 Action:
                   - "s3:Get*"
                 Resource:
-                  - !Sub "arn:aws:s3:::passport-${Environment}-key-rotation-bucket/jwks.json"
+                  - !Sub "arn:aws:s3:::govuk-one-login-passport-published-keys-${Environment}/jwks.json"
       PermissionsBoundary: !If
         - UsePermissionsBoundary
         - !Ref PermissionsBoundary
