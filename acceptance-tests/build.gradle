@@ -50,7 +50,7 @@ dependencies {
 		// Test
 		junit_version                      : "5.11.4",
 		hamcrest_version                   : "2.2",
-		mockito_version                    : "5.15.2",
+		mockito_version                    : "5.17.0",
 		// testFixturesImplementation
 
 		// acceptance tests Implementation
