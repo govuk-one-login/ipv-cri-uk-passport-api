@@ -49,7 +49,7 @@ ext {
 		// Jackson Addons/ needs to track the aws sdk version of jackson
 		jackson_version                            : "2.15.2",
 		// Code weaving (powertools)
-		aspectjrt_version                          : "1.9.22.1",
+		aspectjrt_version                          : "1.9.24",
 
 		// Open telemetry
 		opentelemetry_bom_alpha_version  : "2.12.0-alpha",
