@@ -48,14 +48,6 @@ public class PassportAPIStepDefs extends PassportAPIPage {
                 invalidHeaderValue, passportJsonRequestBody);
     }
 
-    @When(
-            "Passport user sends a editable POST request to Passport endpoint using jsonRequest (.*) with edited fields (.*)$")
-    public void passport_user_sends_a_post_request_to_passport_end_point(
-            String passportJsonRequestBody, String jsonEdits)
-            throws IOException, InterruptedException, NoSuchFieldException, IllegalAccessException {
-        postRequestToPassportEndpoint(passportJsonRequestBody, jsonEdits);
-    }
-
     @And("Passport check response should contain Retry value as (.*)$")
     public void passport_check_response_should_contain_Retry_value(Boolean retry) {
         retryValueInPassportCheckResponse(retry);
@@ -112,6 +104,7 @@ public class PassportAPIStepDefs extends PassportAPIPage {
         assertJtiIsPresent();
     }
 
+    // unused step but keeping incase we need it for future scenario
     @And("Check response contains unexpected server error exception")
     public void passport_check_fails_and_returns_unexpected_exception() {
         checkPassportResponseContainsException();
