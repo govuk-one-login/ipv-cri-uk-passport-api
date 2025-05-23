@@ -5,7 +5,7 @@ plugins {
 	id 'io.freefair.aspectj.post-compile-weaving' version '8.12.1'
 	id "jacoco"
 	id "jacoco-report-aggregation"
-	id "com.diffplug.spotless" version "7.0.2"
+	id "com.diffplug.spotless" version "7.0.3"
 	id "org.owasp.dependencycheck" version "8.4.0"
 }
 
