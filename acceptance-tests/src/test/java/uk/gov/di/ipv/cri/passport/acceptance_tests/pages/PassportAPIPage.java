@@ -375,7 +375,7 @@ public class PassportAPIPage extends PassportPageObject {
         LOGGER.info("requestPassportVCResponse = {}", requestPassportVCResponse);
 
         String expectedResponseForInvalidAuthCode =
-                "{\"oauth_error\":{\"error_description\":\"Session not found\",\"error\":\"access_denied\"}}";
+                "{\"oauth_error\":{\"error_description\":\"Access denied by resource owner or authorization server\",\"error\":\"access_denied\"}}";
         assertEquals(expectedResponseForInvalidAuthCode, requestPassportVCResponse);
     }
 

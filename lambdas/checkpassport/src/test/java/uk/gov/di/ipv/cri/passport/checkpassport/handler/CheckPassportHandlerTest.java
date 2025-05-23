@@ -421,9 +421,7 @@ class CheckPassportHandlerTest {
         assertEquals(HttpStatusCode.FORBIDDEN, responseEvent.getStatusCode());
 
         // Assert CommonExpress OAuth error format
-        assertEquals(
-                "oauth_error",
-                responseTreeRootNode.fieldNames().next().toString()); // Root Node Name
+        assertEquals("oauth_error", responseTreeRootNode.fieldNames().next()); // Root Node Name
         assertEquals(
                 expectedObject.getError().get("error"),
                 oauthErrorNode.get("error").textValue()); // error
@@ -494,9 +492,7 @@ class CheckPassportHandlerTest {
         assertEquals(HttpStatusCode.BAD_REQUEST, responseEvent.getStatusCode());
 
         // Assert CommonExpress OAuth error format
-        assertEquals(
-                "oauth_error",
-                responseTreeRootNode.fieldNames().next().toString()); // Root Node Name
+        assertEquals("oauth_error", responseTreeRootNode.fieldNames().next()); // Root Node Name
         assertEquals(
                 expectedObject.getError().get("error"),
                 oauthErrorNode.get("error").textValue()); // error
@@ -577,7 +573,8 @@ class CheckPassportHandlerTest {
     }
 
     @Test
-    void handleResponseShouldThrowExceptionWhenSessionIdMissing() throws JsonProcessingException {
+    void handleResponseShouldReturnForbiddenResponseWhenSessionIdMissing()
+            throws JsonProcessingException {
         APIGatewayProxyRequestEvent mockRequestEvent =
                 Mockito.mock(APIGatewayProxyRequestEvent.class);
 
@@ -612,13 +609,49 @@ class CheckPassportHandlerTest {
     }
 
     @Test
-    void handleResponseShouldThrowExceptionWhenSessionIdIsInvalidUUID()
+    void handleResponseShouldReturnForbiddenResponseWhenSessionIdIsInvalidUUID()
             throws JsonProcessingException {
         APIGatewayProxyRequestEvent mockRequestEvent =
                 Mockito.mock(APIGatewayProxyRequestEvent.class);
 
         Map<String, String> headers = new HashMap<>();
         headers.put("session_id", "invalid");
+
+        when(mockRequestEvent.getHeaders()).thenReturn(headers);
+
+        APIGatewayProxyResponseEvent responseEvent =
+                checkPassportHandler.handleRequest(mockRequestEvent, mockLambdaContext);
+
+        JsonNode responseTreeRootNode = new ObjectMapper().readTree(responseEvent.getBody());
+        JsonNode oauthErrorNode = responseTreeRootNode.get("oauth_error");
+
+        CommonExpressOAuthError expectedObject =
+                new CommonExpressOAuthError(
+                        OAuth2Error.ACCESS_DENIED, SESSION_NOT_FOUND.getMessage());
+
+        assertNotNull(responseEvent);
+        assertNotNull(responseTreeRootNode);
+        assertNotNull(oauthErrorNode);
+        assertEquals(HttpStatusCode.FORBIDDEN, responseEvent.getStatusCode());
+
+        assertEquals(
+                "oauth_error",
+                responseTreeRootNode.fieldNames().next().toString()); // Root Node Name
+        assertEquals(
+                expectedObject.getError().get("error"),
+                oauthErrorNode.get("error").textValue()); // error
+        assertEquals(
+                expectedObject.getError().get("error_description"),
+                oauthErrorNode.get("error_description").textValue()); // error description
+    }
+
+    @Test
+    void handleResponseShouldReturnForbiddenResponseInputHeadersAreMissing()
+            throws JsonProcessingException {
+        APIGatewayProxyRequestEvent mockRequestEvent =
+                Mockito.mock(APIGatewayProxyRequestEvent.class);
+
+        Map<String, String> headers = null;
 
         when(mockRequestEvent.getHeaders()).thenReturn(headers);
 

@@ -35,6 +35,7 @@ import uk.gov.di.ipv.cri.passport.library.error.CommonExpressOAuthError;
 import uk.gov.di.ipv.cri.passport.library.error.ErrorResponse;
 import uk.gov.di.ipv.cri.passport.library.exceptions.OAuthErrorResponseException;
 import uk.gov.di.ipv.cri.passport.library.helpers.PersonIdentityDetailedHelperMapper;
+import uk.gov.di.ipv.cri.passport.library.logging.LoggingSupport;
 import uk.gov.di.ipv.cri.passport.library.metrics.Definitions;
 import uk.gov.di.ipv.cri.passport.library.persistence.DocumentCheckResultItem;
 import uk.gov.di.ipv.cri.passport.library.service.ParameterStoreService;
@@ -143,6 +144,10 @@ public class CheckPassportHandler
     public APIGatewayProxyResponseEvent handleRequest(
             APIGatewayProxyRequestEvent input, Context context) {
         try {
+            // There is logging before the session read which attaches journey keys
+            // We clear these persistent ones now so these not attributed to any previous journey
+            LoggingSupport.clearPersistentJourneyKeys();
+
             LOGGER.info(
                     "Initiating lambda {} version {}",
                     context.getFunctionName(),
@@ -175,14 +180,11 @@ public class CheckPassportHandler
                     runTimeDuration);
 
             Map<String, String> requestHeaders = input.getHeaders();
-            String sessionId = requestHeaders.get("session_id");
-
-            if (sessionId == null || sessionIdIsNotUUID(sessionId)) {
-                throw new SessionNotFoundException("Session ID not found in headers");
-            }
+            String sessionId = retrieveSessionIdFromHeaders(requestHeaders);
 
             LOGGER.info("Extracting session from header ID {}", sessionId);
-            var sessionItem = sessionService.validateSessionId(sessionId);
+            SessionItem sessionItem = sessionService.validateSessionId(sessionId);
+            LOGGER.info("Persistent Logging keys now attached to sessionId {}", sessionId);
 
             String clientId = sessionItem.getClientId();
             Strategy thirdPartyRouting = Strategy.fromClientIdString(clientId);
@@ -245,35 +247,33 @@ public class CheckPassportHandler
             // Use the completed OK exit sequence
             return lambdaCompletedOK(responseEvent);
         } catch (SessionNotFoundException e) {
-
-            String customOAuth2ErrorDescription = SESSION_NOT_FOUND.getMessage();
-            LOGGER.error(customOAuth2ErrorDescription);
-            eventProbe.counterMetric(LAMBDA_CHECK_PASSPORT_COMPLETED_ERROR);
-
-            LOGGER.debug(e.getMessage(), e);
-
+            LOGGER.error(e.getMessage(), e);
+            eventProbe.counterMetric(Definitions.LAMBDA_CHECK_PASSPORT_COMPLETED_ERROR);
             return ApiGatewayResponseGenerator.proxyJsonResponse(
                     HttpStatusCode.FORBIDDEN,
                     new CommonExpressOAuthError(
-                            OAuth2Error.ACCESS_DENIED, customOAuth2ErrorDescription));
+                            OAuth2Error.ACCESS_DENIED, SESSION_NOT_FOUND.getMessage()));
         } catch (SessionExpiredException e) {
-
-            String customOAuth2ErrorDescription = SESSION_EXPIRED.getMessage();
-            LOGGER.error(customOAuth2ErrorDescription);
-            eventProbe.counterMetric(LAMBDA_CHECK_PASSPORT_COMPLETED_ERROR);
-
-            LOGGER.debug(e.getMessage(), e);
-
+            LOGGER.error(e.getMessage(), e);
+            eventProbe.counterMetric(Definitions.LAMBDA_CHECK_PASSPORT_COMPLETED_ERROR);
             return ApiGatewayResponseGenerator.proxyJsonResponse(
                     HttpStatusCode.FORBIDDEN,
                     new CommonExpressOAuthError(
-                            OAuth2Error.ACCESS_DENIED, customOAuth2ErrorDescription));
+                            OAuth2Error.ACCESS_DENIED, SESSION_EXPIRED.getMessage()));
         } catch (NumberFormatException e) {
             LOGGER.error(
                     "Error calling parse on {} to convert to an int,long or double - Exception {}",
                     e.getMessage(),
                     e.getClass());
             eventProbe.counterMetric(LAMBDA_CHECK_PASSPORT_COMPLETED_ERROR);
+            return ApiGatewayResponseGenerator.proxyJsonResponse(
+                    HttpStatusCode.INTERNAL_SERVER_ERROR,
+                    new CommonExpressOAuthError(OAuth2Error.SERVER_ERROR));
+        } catch (IllegalArgumentException e) {
+            // Order important as NumberFormatException is also an IllegalArgumentException
+            LOGGER.error(e.getMessage(), e);
+            eventProbe.counterMetric(Definitions.LAMBDA_CHECK_PASSPORT_COMPLETED_ERROR);
+            // Oauth compliant response
             return ApiGatewayResponseGenerator.proxyJsonResponse(
                     HttpStatusCode.INTERNAL_SERVER_ERROR,
                     new CommonExpressOAuthError(OAuth2Error.SERVER_ERROR));
@@ -417,6 +417,7 @@ public class CheckPassportHandler
                         PersonIdentityDetailedHelperMapper.mapNamesToCanonicalName(
                                 passportFormData.getForenames(), passportFormData.getSurname())));
 
+        LOGGER.info("Saving Person identity");
         personIdentityService.savePersonIdentity(sessionItem.getSessionId(), sharedClaims);
         LOGGER.info("Person identity saved.");
 
@@ -434,7 +435,7 @@ public class CheckPassportHandler
         // There is no need to-do two separate db calls
         LOGGER.info("Generating authorization code...");
         sessionService.createAuthorizationCode(sessionItem);
-        LOGGER.info("Authorization code saved.");
+        LOGGER.info("Authorization code generated...");
     }
 
     private DocumentCheckResultItem mapDocumentDataVerificationResultToDocumentCheckResultItem(
@@ -474,5 +475,24 @@ public class CheckPassportHandler
                 Clock.systemUTC().instant().plus(ttl, ChronoUnit.SECONDS).getEpochSecond());
 
         return documentCheckResultItem;
+    }
+
+    private String retrieveSessionIdFromHeaders(Map<String, String> headers) {
+
+        if (headers == null) {
+            throw new SessionNotFoundException("Request had no headers");
+        }
+
+        String sessionId = headers.get("session_id");
+
+        if (sessionId == null) {
+            throw new SessionNotFoundException("Header session_id not found");
+        }
+
+        if (sessionIdIsNotUUID(sessionId)) {
+            throw new SessionNotFoundException("Header session_id value not a UUID");
+        }
+
+        return sessionId;
     }
 }
