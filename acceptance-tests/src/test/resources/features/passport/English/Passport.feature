@@ -155,6 +155,7 @@ Feature: Passport Test
     And User re-enters passport number as <InvalidPassportNumber>
     When User clicks on continue
     And I assert the url path contains details
+    Then Proper error message for Could not find your details is displayed
     When User click on ‘prove your identity another way' Link
     Then I navigate to the passport verifiable issuer to check for a Valid response
     And JSON response should contain documentNumber 887766551 same as given passport

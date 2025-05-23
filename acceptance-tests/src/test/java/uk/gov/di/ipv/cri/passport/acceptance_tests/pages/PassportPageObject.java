@@ -595,10 +595,12 @@ public class PassportPageObject extends UniversalSteps {
     }
 
     public void assertInvalidValidToDateInErrorSummary(String expectedText) {
+        BrowserUtils.waitForVisibility(InvalidValidToDateErrorInSummary, 10);
         Assert.assertEquals(expectedText, InvalidValidToDateErrorInSummary.getText());
     }
 
     public void assertInvalidValidToDateOnField(String expectedText) {
+        BrowserUtils.waitForVisibility(InvalidValidToDateFieldError, 10);
         Assert.assertEquals(
                 expectedText, InvalidValidToDateFieldError.getText().trim().replace("\n", ""));
     }
