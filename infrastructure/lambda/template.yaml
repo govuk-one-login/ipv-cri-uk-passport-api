@@ -1058,6 +1058,30 @@ Resources:
       ComparisonOperator: GreaterThanOrEqualToThreshold
       TreatMissingData: notBreaching
 
+  CommonAPISessionLambdaFailedToVerifyJWTAlarm:
+    Type: AWS::CloudWatch::Alarm
+    Properties:
+      AlarmName: !Sub ${AWS::StackName}-${Environment} - Passport - Session lambda Error verifying JWT
+      AlarmDescription: !Sub Passport ${Environment} - Common API - Errors verifying JWTs that have been been received by the session lambda.
+      ActionsEnabled: true
+      AlarmActions:
+        - !If [ IsProdEnvironment, !Ref AlarmTopicPassport, !ImportValue platform-alarm-critical-alert-topic ]
+      OKActions:
+        - !If [ IsProdEnvironment, !Ref AlarmTopicPassport, !ImportValue platform-alarm-critical-alert-topic ]
+      InsufficientDataActions: [ ]
+      MetricName: jwt_verification_failed
+      Namespace: !Sub "${CriIdentifier}"
+      Statistic: Sum
+      Dimensions:
+        - Name: Service
+          Value: !Sub "${CriIdentifier}-session"
+      Period: 60
+      DatapointsToAlarm: 3
+      EvaluationPeriods: 15
+      Threshold: 1
+      ComparisonOperator: GreaterThanThreshold
+      TreatMissingData: notBreaching
+
   CommonAPIAuthorizationLambdaConcurrencyThresholdReached:
     Type: AWS::CloudWatch::Alarm
     Properties:
@@ -1102,6 +1126,30 @@ Resources:
       DatapointsToAlarm: 12
       Threshold: 3
       ComparisonOperator: GreaterThanOrEqualToThreshold
+      TreatMissingData: notBreaching
+
+  CommonAPIAccessTokenLambdaFailedToVerifyJWTAlarm:
+    Type: AWS::CloudWatch::Alarm
+    Properties:
+      AlarmName: !Sub ${AWS::StackName}-${Environment} - Passport - Access Token lambda Error verifying JWT
+      AlarmDescription: !Sub Passport ${Environment} - Common API - Errors verifying JWTs that have been been received by the token lambda.
+      ActionsEnabled: true
+      AlarmActions:
+        - !If [ IsProdEnvironment, !Ref AlarmTopicPassport, !ImportValue platform-alarm-critical-alert-topic ]
+      OKActions:
+        - !If [ IsProdEnvironment, !Ref AlarmTopicPassport, !ImportValue platform-alarm-critical-alert-topic ]
+      InsufficientDataActions: [ ]
+      MetricName: jwt_verification_failed
+      Namespace: !Sub "${CriIdentifier}"
+      Statistic: Sum
+      Dimensions:
+        - Name: Service
+          Value: !Sub "${CriIdentifier}-access-token"
+      Period: 60
+      DatapointsToAlarm: 3
+      EvaluationPeriods: 15
+      Threshold: 1
+      ComparisonOperator: GreaterThanThreshold
       TreatMissingData: notBreaching
 
   ## Passport API Alarms
