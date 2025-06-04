@@ -17,11 +17,14 @@ public class UniversalStepDefs extends UniversalSteps {
         System.out.println("closeDriver() ignored");
     }
 
+    // unused step but keeping in case needed to test language cookie manually instead of with
+    // language toggle
     @And("^I add a cookie to change the language to (.*)$")
     public void iAddACookieToChangeTheLanguageToWelsh(String language) {
         changeLanguageTo(language);
     }
 
+    // this is useful for testing FE feature toggles
     @And("^I set the document checking route$")
     public void setDocumentCheckingRoute() {
 
