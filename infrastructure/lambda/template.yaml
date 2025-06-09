@@ -86,6 +86,10 @@ Conditions:
   IsDeployedFromPipeline: !Equals
     - !Ref DeploymentType
     - "pipeline"
+  # Alarms only enabled in pipelines by default
+  AlarmsEnabled: !Equals
+    - !Ref DeploymentType
+    - "pipeline"
 # Don't send logs in dev to avoid overwhelming the destination with debug
   LogSendingEnabled: !And
     - !Not [!Equals [!Ref Environment, "dev"]]
@@ -1013,6 +1017,7 @@ Resources:
   ## Common API Alarms
   CommonAPISessionLambdaConcurrencyThresholdReached:
     Type: AWS::CloudWatch::Alarm
+    Condition: AlarmsEnabled
     Properties:
       AlarmDescription: !Sub Passport ${Environment} - Common API Session Lambda concurrency threshold reached
       ActionsEnabled: true
@@ -1036,6 +1041,7 @@ Resources:
 
   CommonAPISessionLambdaAliasBasedDecryptionFailure:
     Type: AWS::CloudWatch::Alarm
+    Condition: AlarmsEnabled
     Properties:
       AlarmName: !Sub ${AWS::StackName}-${Environment} - Passport - Session lambda alias-based decryption failure
       AlarmDescription: !Sub Passport ${Environment} - Common API Session Lambda all aliases unavailable for decryption
@@ -1060,6 +1066,7 @@ Resources:
 
   CommonAPISessionLambdaFailedToVerifyJWTAlarm:
     Type: AWS::CloudWatch::Alarm
+    Condition: AlarmsEnabled
     Properties:
       AlarmName: !Sub ${AWS::StackName}-${Environment} - Passport - Session lambda Error verifying JWT
       AlarmDescription: !Sub Passport ${Environment} - Common API - Errors verifying JWTs that have been been received by the session lambda.
@@ -1084,6 +1091,7 @@ Resources:
 
   CommonAPIAuthorizationLambdaConcurrencyThresholdReached:
     Type: AWS::CloudWatch::Alarm
+    Condition: AlarmsEnabled
     Properties:
       AlarmDescription: !Sub Passport ${Environment} - Common API Authorization Lambda concurrency threshold reached
       ActionsEnabled: true
@@ -1107,6 +1115,7 @@ Resources:
 
   CommonAPIAccessTokenLambdaConcurrencyThresholdReached:
     Type: AWS::CloudWatch::Alarm
+    Condition: AlarmsEnabled
     Properties:
       AlarmDescription: !Sub Passport ${Environment} - Common API AccessToken Lambda concurrency threshold reached
       ActionsEnabled: true
@@ -1130,6 +1139,7 @@ Resources:
 
   CommonAPIAccessTokenLambdaFailedToVerifyJWTAlarm:
     Type: AWS::CloudWatch::Alarm
+    Condition: AlarmsEnabled
     Properties:
       AlarmName: !Sub ${AWS::StackName}-${Environment} - Passport - Access Token lambda Error verifying JWT
       AlarmDescription: !Sub Passport ${Environment} - Common API - Errors verifying JWTs that have been been received by the token lambda.
@@ -1155,6 +1165,7 @@ Resources:
   ## Passport API Alarms
   PassportCheckPassportLambdaConcurrencyThresholdReached:
     Type: AWS::CloudWatch::Alarm
+    Condition: AlarmsEnabled
     Properties:
       AlarmDescription: !Sub Passport ${Environment} - CheckPassportFunction Lambda concurrency threshold reached
       ActionsEnabled: true
@@ -1178,6 +1189,7 @@ Resources:
 
   PassportIssueCredentialLambdaConcurrencyThresholdReached:
     Type: AWS::CloudWatch::Alarm
+    Condition: AlarmsEnabled
     Properties:
       AlarmDescription: !Sub Passport ${Environment} - IssueCredential Lambda concurrency threshold reached
       ActionsEnabled: true
@@ -1201,6 +1213,7 @@ Resources:
 
   PassportLambdaErrors:
     Type: AWS::CloudWatch::Alarm
+    Condition: AlarmsEnabled
     Properties:
       AlarmDescription: !Sub Passport ${Environment} lambda errors
       ActionsEnabled: true
@@ -1222,6 +1235,7 @@ Resources:
 
   PassportAPIGW5XXErrors:
     Type: AWS::CloudWatch::Alarm
+    Condition: AlarmsEnabled
     Properties:
       AlarmDescription: !Sub Passport ${Environment} API Gateway 5XX errors
       ActionsEnabled: true
@@ -1266,6 +1280,7 @@ Resources:
 
   CertificateExpiryAlarm:
     Type: AWS::CloudWatch::Alarm
+    Condition: AlarmsEnabled
     Properties:
       AlarmName: !Sub "${AWS::StackName}-${Environment} - Passport - Certificate expiry Alarm"
       AlarmDescription: !Sub Passport ${Environment} HMPO certificate is close to expiry (expires within 28 days) see certificate catalogue in confluence for expiries and certificate names
