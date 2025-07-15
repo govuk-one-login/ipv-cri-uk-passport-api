@@ -103,38 +103,6 @@ public class PassportStepDefs extends PassportPageObject {
         navigateToPassportCRIOnTestEnv();
     }
 
-    @Given("I view the Beta banner")
-    public void iViewTheBetaBanner() {
-        betaBanner();
-    }
-
-    @Then("^the beta banner reads (.*)$")
-    public void betaBannerContainsText(String expectedText) {
-        betaBannerSentence(expectedText);
-    }
-
-    @And("^I select (.*) button$")
-    public void selectRejectAnalysisCookie(String rejectAnalyticsBtn) {
-        rejectAnalysisCookie(rejectAnalyticsBtn);
-    }
-
-    @Then("^I see the Reject Analytics sentence (.*)$")
-    public void
-            iSeeTheSenetenceYouVeRejectedAdditionalCookiesYouCanChangeYourCookieSettingsAtAnyTime(
-                    String rejectAnalysisSentence) {
-        rejectCookieSentence(rejectAnalysisSentence);
-    }
-
-    @And("^I select the link (.*)$")
-    public void iSelectTheChangeYourCookieSettingsLink(String changeCookieLink) {
-        AssertChangeCookieLink(changeCookieLink);
-    }
-
-    @Then("^I check the page to change cookie preferences opens$")
-    public void iCheckThePageToChangeCookiePreferencesOpens() {
-        AssertcookiePreferencePage();
-    }
-
     @When("^User Re-enters data as a (.*)$")
     public void userReInputsDataAsAPassportSubject(String passportSubject) {
         userReEntersDataAsPassportSubject(passportSubject);

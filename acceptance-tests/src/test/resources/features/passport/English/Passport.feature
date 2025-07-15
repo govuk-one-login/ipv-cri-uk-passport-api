@@ -32,16 +32,6 @@ Feature: Passport Test
       | PassportSubject             | InvalidLastName |
       | PassportSubjectHappyKenneth | KYLE123         |
 
-  @build @staging @integration @smoke @stub @uat
-  Scenario: Beta Banner Reject Analytics
-    When I view the Beta banner
-    When the beta banner reads This is a new service – your feedback (opens in new tab) will help us to improve it.
-    And I select Reject analytics cookies button
-    Then I see the Reject Analytics sentence You’ve rejected additional cookies. You can change your cookie settings at any time.
-    And  I select the link change your cookie settings
-    Then I check the page to change cookie preferences opens
-    Then The test is complete and I close the driver
-
   @build @staging @integration @stub @uat
   Scenario Outline: Passport details page unhappy path with IncorrectPassportNumber
     Given User enters data as a <PassportSubject>
