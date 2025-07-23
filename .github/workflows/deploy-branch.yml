@@ -87,7 +87,6 @@ jobs:
             cri:deployment-source=github-actions
           parameters: |
             DeploymentType=pre-merge-integration
-            UseApiKey=" "
             ParameterPrefix=${{ secrets.PREMERGE_PARAMETER_PREFIX_STACK_NAME }}
             Environment=dev
             CommonStackName=passport-common-cri-api-local
