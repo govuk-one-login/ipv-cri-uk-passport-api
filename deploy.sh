@@ -50,5 +50,4 @@ sam deploy --stack-name "$stack_name" \
   CreateMockTxmaResourcesOverride=true \
   CriIdentifier=$cri_identifier \
   ParameterPrefix="ipv-cri-passport-api" \
-  UseApiKey="' '" \
   DeploymentType="not-pipeline"
