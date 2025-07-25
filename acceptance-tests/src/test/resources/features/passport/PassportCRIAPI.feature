@@ -1,5 +1,20 @@
 Feature: Passport CRI API
 
+
+  @hmpoDVAD @dev @pre-merge
+  Scenario: GET request to well-known/jwks endpoint
+    Given User sends a GET request to the well-known jwks endpoint in Dev using a invalid API Key
+
+  @hmpoDVAD @dev
+#  @dev
+  Scenario Outline: Passport Journey Happy Path credential issuer/ token
+    Given User sends a new POST request to <endpoint_name> endpoint passport-v1-cri-dev
+    Examples:
+      | endpoint_name     |
+      | /token            |
+      | /credential/issue |
+
+
   @hmpoDVAD @pre-merge @dev
   Scenario: Passport Journey Happy Path
     Given Passport user has the user identity in the form of a signed JWT string for CRI Id passport-v1-cri-dev and row number 6
@@ -52,9 +67,9 @@ Feature: Passport CRI API
     And Passport VC should contain ci <CI>, validityScore 0 and strengthScore 4
     And Passport VC Evidence contains expected values for scenario <Scenario>
     Examples:
-      |PassportJsonPayload              | CI  |  Scenario |
-      |PassportInvalidCI1JsonPayload    | D01 |  3        |
-      |PassportInvalidCI2JsonPayload    | D01 |  4        |
+      | PassportJsonPayload           | CI  | Scenario |
+      | PassportInvalidCI1JsonPayload | D01 | 3        |
+      | PassportInvalidCI2JsonPayload | D01 | 4        |
 
   @hmpoDVAD @pre-merge @dev
   Scenario Outline: Passport Journey Un-Happy path with invalid sessionId on Passport Endpoint
@@ -63,11 +78,11 @@ Feature: Passport CRI API
     And Passport user gets a session-id
     When Passport user sends a POST request to Passport endpoint with a invalid <invalidHeaderValue> using jsonRequest PassportValidKennethJsonPayload
     Examples:
-      |invalidHeaderValue              |
-      | mismatchSessionId               |
-      | malformedSessionId             |
-      | missingSessionId               |
-      | noSessionHeader                |
+      | invalidHeaderValue |
+      | mismatchSessionId  |
+      | malformedSessionId |
+      | missingSessionId   |
+      | noSessionHeader    |
 
   @hmpoDVAD @pre-merge @dev
   Scenario: Passport Journey Un-Happy path with invalid authCode on Credential Issuer Endpoint
