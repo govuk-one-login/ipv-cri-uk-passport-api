@@ -148,6 +148,11 @@ public class PassportStepDefs extends PassportPageObject {
         Continue.click();
     }
 
+    @When("User intercepts the call to the core stub")
+    public void user_intercepts_response_from_auth_code() {
+        Continue.click();
+    }
+
     @And("^JSON payload should contain ci (.*), validity score (.*) and strength score (.*)$")
     public void contraIndicatorInVerifiableCredential(
             String ci, String validityScore, String strengthScore) throws IOException {
