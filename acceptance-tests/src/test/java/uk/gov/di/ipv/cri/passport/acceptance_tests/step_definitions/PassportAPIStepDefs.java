@@ -27,6 +27,12 @@ public class PassportAPIStepDefs extends PassportAPIPage {
         postRequestToSessionEndpoint();
     }
 
+    @Given("User sends a GET request to the well-known jwks endpoint")
+    public void user_sends_a_get_request_to_well_known_jwks_end_point()
+            throws IOException, InterruptedException {
+        getRequestToJwksEndpoint();
+    }
+
     @And("Passport user gets a session-id")
     public void passport_user_gets_a_session_id() {
         getSessionIdForPassport();
@@ -62,6 +68,12 @@ public class PassportAPIStepDefs extends PassportAPIPage {
     public void passport_user_requests_access_token(String CRIId)
             throws IOException, InterruptedException {
         postRequestToAccessTokenEndpoint(CRIId);
+    }
+
+    @And("User sends a new POST request to (.*) endpoint$")
+    public void user_requests_new_access_token(String endpoint)
+            throws IOException, InterruptedException {
+        postRequestToApiKeyEndpointTest(endpoint);
     }
 
     @Then("User requests Passport CRI VC")

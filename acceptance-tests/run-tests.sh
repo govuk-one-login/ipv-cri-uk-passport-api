@@ -36,7 +36,7 @@ echo "STACK_NAME ${STACK_NAME}"
 if [ "${STACK_NAME}" != "local" ]; then
   export JOURNEY_TAG=$(aws ssm get-parameter --name "/tests/${STACK_NAME}/TestTag" | jq -r ".Parameter.Value")
 
-  PARAMETERS_NAMES=(coreStubPassword coreStubUrl coreStubUsername passportCriUrl apiBaseUrl orchestratorStubUrl)
+  PARAMETERS_NAMES=(coreStubPassword coreStubUrl coreStubUsername passportCriUrl apiBaseUrl orchestratorStubUrl API_GATEWAY_ID_PUBLIC)
   tLen=${#PARAMETERS_NAMES[@]}
    for (( i=0; i<${tLen}; i++ ));
   do
