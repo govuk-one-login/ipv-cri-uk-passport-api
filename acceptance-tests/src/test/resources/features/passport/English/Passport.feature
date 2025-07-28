@@ -10,6 +10,18 @@ Feature: Passport Test
     And I assert the url path contains details
     And I set the document checking route
 
+  @build @staging @stub @uat
+  Scenario: GET request to well-known/jwks endpoint
+    Given User sends a GET request to the well-known jwks endpoint
+
+  @build @staging @stub @uat
+  Scenario Outline: Passport Journey Happy Path credential issuer/ token
+    Given User sends a new POST request to <endpoint_name> endpoint
+    Examples:
+      | endpoint_name     |
+      | /token            |
+      | /credential/issue |
+
   @build @staging @integration @smoke @stub @uat
   Scenario Outline: Passport details page happy path
     Given User enters data as a <PassportSubject>

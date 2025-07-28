@@ -13,6 +13,7 @@ import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.json.JSONObject;
 import org.junit.Assert;
+import org.junit.jupiter.api.Assertions;
 import uk.gov.di.ipv.cri.passport.acceptance_tests.model.AuthorisationResponse;
 import uk.gov.di.ipv.cri.passport.acceptance_tests.model.CheckPassportSuccessResponse;
 import uk.gov.di.ipv.cri.passport.acceptance_tests.model.PassportFormData;
@@ -49,6 +50,7 @@ public class PassportAPIPage extends PassportPageObject {
     private static String vcBody;
     private static final String KID_PREFIX = "did:web:review-p.dev.account.gov.uk#";
     private static String RETRY;
+    private static String extractedKeyValues;
     private final ObjectMapper objectMapper =
             new ObjectMapper().registerModule(new JavaTimeModule());
 
@@ -78,6 +80,55 @@ public class PassportAPIPage extends PassportPageObject {
                 objectMapper.readValue(SESSION_REQUEST_BODY, new TypeReference<>() {});
         CLIENT_ID = deserialisedSessionResponse.get("client_id");
         LOGGER.info("CLIENT_ID = {}", CLIENT_ID);
+    }
+
+    public void getRequestToJwksEndpoint() throws IOException, InterruptedException {
+        String publicApiGatewayUrl = configurationService.getPublicAPIEndpoint();
+        LOGGER.info("getPrivateAPIEndpoint() ==> {}", publicApiGatewayUrl);
+        HttpRequest request =
+                HttpRequest.newBuilder()
+                        .uri(URI.create(publicApiGatewayUrl + "/.well-known/jwks.json"))
+                        .setHeader("Accept", "application/json")
+                        .setHeader("Content-Type", "application/json")
+                        .setHeader(
+                                "Authorization",
+                                getBasicAuthenticationHeader(
+                                        configurationService.getCoreStubUsername(),
+                                        configurationService.getCoreStubPassword()))
+                        .GET()
+                        .build();
+        String wellKnownJWKSResponse = sendHttpRequest(request).body();
+        LOGGER.info("wellKnownJWKSResponse = {}", wellKnownJWKSResponse);
+        LOGGER.info(
+                "wellKnownJWKSResponse endpoint and headers() ==> {}, {}",
+                request,
+                request.headers());
+
+        try {
+            JsonNode rootNode = objectMapper.readTree(wellKnownJWKSResponse);
+            JsonNode keysNode = rootNode.path("keys").get(0);
+
+            // Assertions for each key-value pair
+            Assertions.assertTrue(keysNode.has("kty"), "kty field is missing");
+            Assertions.assertEquals("RSA", keysNode.path("kty").asText(), "kty value is incorrect");
+            Assertions.assertTrue(keysNode.has("n"), "n field is missing");
+            Assertions.assertTrue(keysNode.has("e"), "e field is missing");
+            Assertions.assertEquals("AQAB", keysNode.path("e").asText(), "e value is incorrect");
+            Assertions.assertTrue(keysNode.has("use"), "use field is missing");
+            Assertions.assertEquals("enc", keysNode.path("use").asText(), "use value is incorrect");
+            Assertions.assertTrue(keysNode.has("kid"), "kid field is missing");
+            Assertions.assertTrue(keysNode.has("alg"), "alg field is missing");
+            Assertions.assertEquals(
+                    "RSA_OAEP_256", keysNode.path("alg").asText(), "alg value is incorrect");
+
+        } catch (IOException e) {
+            LOGGER.error("Error parsing JSON response: {}", e.getMessage());
+            // Handle the exception appropriately, e.g., throw a custom exception or fail the test
+            Assertions.fail("Error parsing JSON response: " + e.getMessage()); // Fail the test
+        } catch (NullPointerException e) {
+            LOGGER.error("Error accessing JSON node: {}", e.getMessage());
+            Assertions.fail("Error accessing JSON node: " + e.getMessage()); // Fail the test
+        }
     }
 
     public void userIdentityAsJwtStringForupdatedUser(
@@ -308,6 +359,44 @@ public class PassportAPIPage extends PassportPageObject {
         Map<String, String> deserialisedResponse =
                 objectMapper.readValue(accessTokenPostCallResponse, new TypeReference<>() {});
         ACCESS_TOKEN = deserialisedResponse.get("access_token");
+    }
+
+    public void postRequestToApiKeyEndpointTest(String endpoint)
+            throws IOException, InterruptedException {
+        String publicApiGatewayUrl = configurationService.getPublicAPIEndpoint();
+        LOGGER.info("getPublicAPIEndpoint() ==> " + publicApiGatewayUrl);
+        HttpRequest request =
+                HttpRequest.newBuilder()
+                        .uri(URI.create(publicApiGatewayUrl + endpoint))
+                        .setHeader("Accept", "application/json")
+                        .setHeader("Content-Type", "application/json")
+                        //                        .setHeader("x-api-key", "")
+                        .POST(HttpRequest.BodyPublishers.ofString(""))
+                        .build();
+        String accessTokenPostCallResponse = sendHttpRequest(request).body();
+        LOGGER.info("accessTokenPostCallResponse = " + accessTokenPostCallResponse);
+        try {
+            ObjectMapper objectMapper =
+                    new ObjectMapper(); // Assuming you have ObjectMapper defined elsewhere
+            JsonNode rootNode = objectMapper.readTree(accessTokenPostCallResponse);
+
+            // Assertion for the expected error message
+            Assertions.assertEquals(
+                    "Forbidden",
+                    rootNode.path("message").asText(),
+                    "Unexpected error message received");
+
+        } catch (IOException e) {
+            LOGGER.error("Error parsing JSON response: {}", e.getMessage());
+            Assertions.fail(
+                    "Error parsing JSON response: "
+                            + e.getMessage()); // Fail the test if parsing fails
+        } catch (NullPointerException e) {
+            LOGGER.error("Error accessing JSON node: {}", e.getMessage());
+            Assertions.fail(
+                    "Error accessing JSON node: "
+                            + e.getMessage()); // Fail the test if node is missing
+        }
     }
 
     public void postRequestToPassportVCEndpoint()
