@@ -84,25 +84,16 @@ public class PassportAPIPage extends PassportPageObject {
 
     public void getRequestToJwksEndpoint() throws IOException, InterruptedException {
         String publicApiGatewayUrl = configurationService.getPublicAPIEndpoint();
-        LOGGER.info("getPrivateAPIEndpoint() ==> {}", publicApiGatewayUrl);
+        LOGGER.info("getPublicAPIEndpoint() ==> {}", publicApiGatewayUrl);
         HttpRequest request =
                 HttpRequest.newBuilder()
                         .uri(URI.create(publicApiGatewayUrl + "/.well-known/jwks.json"))
                         .setHeader("Accept", "application/json")
                         .setHeader("Content-Type", "application/json")
-                        .setHeader(
-                                "Authorization",
-                                getBasicAuthenticationHeader(
-                                        configurationService.getCoreStubUsername(),
-                                        configurationService.getCoreStubPassword()))
                         .GET()
                         .build();
         String wellKnownJWKSResponse = sendHttpRequest(request).body();
         LOGGER.info("wellKnownJWKSResponse = {}", wellKnownJWKSResponse);
-        LOGGER.info(
-                "wellKnownJWKSResponse endpoint and headers() ==> {}, {}",
-                request,
-                request.headers());
 
         try {
             JsonNode rootNode = objectMapper.readTree(wellKnownJWKSResponse);
@@ -361,7 +352,7 @@ public class PassportAPIPage extends PassportPageObject {
         ACCESS_TOKEN = deserialisedResponse.get("access_token");
     }
 
-    public void postRequestToApiKeyEndpointTest(String endpoint)
+    public void postRequestToPublicApiEndpointWithoutApiKey(String endpoint)
             throws IOException, InterruptedException {
         String publicApiGatewayUrl = configurationService.getPublicAPIEndpoint();
         LOGGER.info("getPublicAPIEndpoint() ==> " + publicApiGatewayUrl);
@@ -370,15 +361,15 @@ public class PassportAPIPage extends PassportPageObject {
                         .uri(URI.create(publicApiGatewayUrl + endpoint))
                         .setHeader("Accept", "application/json")
                         .setHeader("Content-Type", "application/json")
-                        //                        .setHeader("x-api-key", "")
                         .POST(HttpRequest.BodyPublishers.ofString(""))
                         .build();
-        String accessTokenPostCallResponse = sendHttpRequest(request).body();
-        LOGGER.info("accessTokenPostCallResponse = " + accessTokenPostCallResponse);
+        String publicAPIGatewayEndpointPostResponse = sendHttpRequest(request).body();
+        LOGGER.info(
+                "publicAPIGatewayEndpointPostResponse = " + publicAPIGatewayEndpointPostResponse);
         try {
             ObjectMapper objectMapper =
                     new ObjectMapper(); // Assuming you have ObjectMapper defined elsewhere
-            JsonNode rootNode = objectMapper.readTree(accessTokenPostCallResponse);
+            JsonNode rootNode = objectMapper.readTree(publicAPIGatewayEndpointPostResponse);
 
             // Assertion for the expected error message
             Assertions.assertEquals(
