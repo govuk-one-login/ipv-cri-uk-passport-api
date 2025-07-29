@@ -70,10 +70,11 @@ public class PassportAPIStepDefs extends PassportAPIPage {
         postRequestToAccessTokenEndpoint(CRIId);
     }
 
-    @And("User sends a new POST request to (.*) endpoint$")
-    public void user_requests_new_access_token(String endpoint)
+    @And(
+            "User sends a basic POST request to public (.*) endpoint without apiKey they get a forbidden error$")
+    public void user_sends_basic_post_to_public_endpoint(String endpoint)
             throws IOException, InterruptedException {
-        postRequestToApiKeyEndpointTest(endpoint);
+        postRequestToPublicApiEndpointWithoutApiKey(endpoint);
     }
 
     @Then("User requests Passport CRI VC")

@@ -290,59 +290,6 @@ public class BrowserUtils {
         return true;
     }
 
-    public static boolean waitForUrlToContainState(String expectedText, long timeOutInSeconds) {
-
-        ExpectedCondition<Boolean> pageLoadedExpectation =
-                new ExpectedCondition<Boolean>() {
-                    public Boolean apply(WebDriver driver) {
-                        return ((JavascriptExecutor) driver)
-                                .executeScript("return document.readyState")
-                                .equals("complete");
-                    }
-                };
-
-        try {
-            WebDriverWait wait =
-                    new WebDriverWait(Driver.get(), Duration.ofSeconds(timeOutInSeconds));
-            wait.until(pageLoadedExpectation);
-        } catch (Throwable error) {
-            error.printStackTrace();
-            return false;
-        }
-
-        ExpectedCondition<Boolean> urlCheckExpectation =
-                new ExpectedCondition<Boolean>() {
-                    public Boolean apply(WebDriver driver) {
-                        String url = driver.getCurrentUrl();
-
-                        if (url == null) {
-                            return false;
-                        }
-
-                        System.out.println(
-                                "URL: "
-                                        + url
-                                        + " "
-                                        + expectedText
-                                        + " "
-                                        + url.contains(expectedText));
-
-                        return url.contains(expectedText);
-                    }
-                };
-
-        try {
-            WebDriverWait wait =
-                    new WebDriverWait(Driver.get(), Duration.ofSeconds(timeOutInSeconds));
-            wait.until(urlCheckExpectation);
-        } catch (Throwable error) {
-            error.printStackTrace();
-            return false;
-        }
-
-        return true;
-    }
-
     /**
      * Verifies whether the element matching the provided locator is displayed on page
      *
