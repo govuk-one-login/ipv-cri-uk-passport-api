@@ -1014,8 +1014,8 @@ Resources:
         - Name: Service
           Value: !Sub "${CriIdentifier}-session"
       Period: 60
-      EvaluationPeriods: 1
-      DatapointsToAlarm: 1
+      EvaluationPeriods: 3
+      DatapointsToAlarm: 3
       Threshold: 1
       ComparisonOperator: GreaterThanOrEqualToThreshold
       TreatMissingData: notBreaching
