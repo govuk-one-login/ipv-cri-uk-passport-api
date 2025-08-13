@@ -1,6 +1,8 @@
 #!/usr/bin/env bash
 set -e
 
+CURRENT_PATH="${PWD}"
+
 RED="\033[1;31m"
 GREEN="\033[1;32m"
 NOCOLOR="\033[0m"
@@ -29,7 +31,7 @@ echo -e "\tCriIdentifier SSM key ${GREEN}$cri_identifier${NOCOLOR}"
 
 ./gradlew clean
 sam validate -t infrastructure/lambda/template.yaml --config-env dev --lint
-sam build -t infrastructure/lambda/template.yaml --config-env dev
+sam build -s "$CURRENT_PATH" -t infrastructure/lambda/template.yaml --config-env dev
 sam deploy --stack-name "$stack_name" \
   --no-fail-on-empty-changeset \
   --no-confirm-changeset \
@@ -37,7 +39,7 @@ sam deploy --stack-name "$stack_name" \
   --region eu-west-2 \
   --capabilities CAPABILITY_IAM \
   --tags \
-  cri:component=ipv-cri-passport-api \
+  cri:component=ipv-cri-uk-passport-api \
   cri:stack-type=dev \
   cri:application=Lime \
   cri:deployment-source=manual \
