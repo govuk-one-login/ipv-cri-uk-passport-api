@@ -1,11 +1,11 @@
-name: Clean up stale preview deployments
-run-name: Delete stale preview deployments
+name: Clean up stale pre-merge deployments
+run-name: Delete stale pre-merge deployments
 
 on:
   workflow_dispatch:
   schedule:
-    # Every weekday at 10am (9am is used by pre-merge-cleanup - deletion rate limits)
-    - cron: "0 10 * * 1-5"
+    # Every weekday at 9am (10am is used by preview-cleanup - deletion rate limits)
+    - cron: "0 9 * * 1-5"
 
 permissions:
   id-token: write
@@ -25,15 +25,16 @@ jobs:
           role-to-assume: ${{ secrets.AWS_PRE_MERGE_ROLE_ARN }}
           aws-region: eu-west-2
 
-      - name: Get stale preview stacks
+      - name: Get stale pre-merge stacks
         uses: govuk-one-login/github-actions/sam/get-stale-stacks@main
         with:
-          threshold-days: 14
-          stack-name-filter: preview-ipv-cri-uk-passport-api
+          threshold-days: 1 # Pre-merge are short-lived test stacks
+          stack-name-filter: pre-merge
           stack-tag-filters: |
+            cri:component=ipv-cri-uk-passport-api
+            cri:stack-type=pre-merge
+            cri:application=Lime
             cri:deployment-source=github-actions
-            cri:stack-type=preview
-          description: preview
           env-var-name: STACKS
 
       - name: Delete stacks
