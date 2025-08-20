@@ -59,7 +59,7 @@ ext {
 		httpcomponents_client_version      : "4.5.14",
 
 		// Test
-		junit_version                      : "5.11.4",
+		junit_version                      : "5.13.4",
 		hamcrest_version                   : "2.2",
 		mockito_version                    : "5.17.0",
 		wiremock_version                   : "3.0.1",
