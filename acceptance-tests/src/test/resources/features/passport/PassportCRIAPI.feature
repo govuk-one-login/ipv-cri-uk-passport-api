@@ -1,5 +1,4 @@
-Feature: Passport CRI API
-
+Feature: Passport CRI - API Tests
 
   @hmpoDVAD @pre-merge @dev
   Scenario: Passport Journey Happy Path

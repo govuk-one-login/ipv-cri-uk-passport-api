@@ -38,7 +38,7 @@ import java.util.UUID;
 
 import static org.junit.jupiter.api.Assertions.*;
 
-public class PassportAPIPage extends PassportPageObject {
+public class PassportAPIPage extends CommonPageObject {
 
     private static String CLIENT_ID;
     private static String SESSION_REQUEST_BODY;
@@ -122,6 +122,7 @@ public class PassportAPIPage extends PassportPageObject {
         }
     }
 
+    // this method is not currently used, saved for reuse in future
     public void userIdentityAsJwtStringForupdatedUser(
             String givenName, String familyName, String criId, int userDataRowNumber)
             throws URISyntaxException, IOException, InterruptedException {
