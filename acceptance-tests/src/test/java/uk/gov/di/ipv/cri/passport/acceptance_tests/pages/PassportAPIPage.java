@@ -38,7 +38,7 @@ import java.util.UUID;
 
 import static org.junit.jupiter.api.Assertions.*;
 
-public class PassportAPIPage extends PassportPageObject {
+public class PassportAPIPage extends CommonPageObject {
 
     private static String CLIENT_ID;
     private static String SESSION_REQUEST_BODY;
