@@ -1,5 +1,5 @@
 @hmpoDVAD
-Feature: Passport Test
+Feature: Passport CRI - UI Tests
 
   Background:
     Given I navigate to the IPV Core Stub
@@ -9,18 +9,6 @@ Feature: Passport Test
     Then I check the page title is Enter your details exactly as they appear on your UK passport – GOV.UK One Login
     And I assert the url path contains details
     And I set the document checking route
-
-  @build @staging @stub @uat
-  Scenario: GET request to well-known/jwks endpoint returns single public key
-    Given User sends a GET request to the well-known jwks endpoint
-
-  @build @staging @stub @uat
-  Scenario Outline: Public API endpoints that are not well known cannot be accessed (issuer/token)
-    Given User sends a basic POST request to public <endpoint_name> endpoint without apiKey they get a forbidden error
-    Examples:
-      | endpoint_name     |
-      | /token            |
-      | /credential/issue |
 
   @build @staging @integration @smoke @stub @uat
   Scenario Outline: Passport details page happy path
@@ -34,15 +22,6 @@ Feature: Passport Test
     Examples:
       | PassportSubject             |
       | PassportSubjectHappyKenneth |
-
-  @build @staging @integration @smoke @stub @uat
-  Scenario Outline: Passport test
-    Given User enters data as a <PassportSubject>
-    And User re-enters last name as <InvalidLastName>
-    When User clicks on continue
-    Examples:
-      | PassportSubject             | InvalidLastName |
-      | PassportSubjectHappyKenneth | KYLE123         |
 
   @build @staging @integration @stub @uat
   Scenario Outline: Passport details page unhappy path with IncorrectPassportNumber
