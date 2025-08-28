@@ -1241,9 +1241,9 @@ Resources:
       AlarmDescription: !Sub Passport ${Environment} HMPO certificate is close to expiry (expires within 28 days) see certificate catalogue in confluence for expiries and certificate names
       ActionsEnabled: true
       AlarmActions:
-        - !If [ IsProdEnvironment, !Ref AlarmTopicPassport, !ImportValue platform-alarm-critical-alert-topic ]
+        - !ImportValue platform-alarm-critical-alert-topic
       OKActions:
-        - !If [ IsProdEnvironment, !Ref AlarmTopicPassport, !ImportValue platform-alarm-critical-alert-topic ]
+        - !ImportValue platform-alarm-critical-alert-topic
       InsufficientDataActions: [ ]
       MetricName: hmpo_cert_expiry_metric
       Namespace: !Sub "${CriIdentifier}"
