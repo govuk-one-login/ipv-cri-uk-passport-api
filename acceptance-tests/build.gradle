@@ -62,7 +62,7 @@ dependencies {
 
 		// acceptance tests testImplementation
 		rest_assured_version               : "5.4.0",
-		cucumber_junit_version             : "7.20.1"
+		cucumber_junit_version             : "7.28.2"
 	]
 
 	implementation platform("software.amazon.awssdk:bom:${dependencyVersions.aws_sdk_version}"),
