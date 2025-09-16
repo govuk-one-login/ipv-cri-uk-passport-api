@@ -39,7 +39,7 @@ jobs:
           version: "1.134.0"
 
       - name: Assume temporary AWS role
-        uses: aws-actions/configure-aws-credentials@v4
+        uses: aws-actions/configure-aws-credentials@v5
         with:
           role-to-assume: ${{ secrets.GH_ACTIONS_ROLE_ARN }}
           aws-region: ${{ env.AWS_REGION }}
