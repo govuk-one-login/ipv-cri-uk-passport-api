@@ -1,0 +1,44 @@
+name: Clean up stale manual deployments in dev
+run-name: Delete stale manual deployments in dev
+
+on:
+  workflow_dispatch:
+  schedule:
+    # Every weekday at 11am (9am & 10am are used by pre-merge and preview-cleanup respectively - deletion rate limits)
+    - cron: "0 11 * * 1-5"
+
+permissions:
+  id-token: write
+  contents: read
+
+concurrency: cleanup-dev-${{ github.head_ref || github.ref_name }}
+
+jobs:
+  delete-stacks:
+    name: Delete stale stacks
+    runs-on: ubuntu-latest
+    environment: development
+    steps:
+      - name: Assume AWS Role
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          role-to-assume: ${{ secrets.AWS_PRE_MERGE_ROLE_ARN }}
+          aws-region: eu-west-2
+
+      - name: Get stale manually deployed stacks
+        uses: govuk-one-login/github-actions/sam/get-stale-stacks@main
+        with:
+          threshold-days: 90
+          stack-tag-filters: |
+            cri:component=ipv-cri-uk-passport-api
+            cri:stack-type=dev
+            cri:application=Lime
+            cri:deployment-source=manual
+          env-var-name: STACKS
+
+      - name: Delete stacks
+        if: ${{ env.STACKS != null }}
+        uses: govuk-one-login/github-actions/sam/delete-stacks@main
+        with:
+          stack-names: ${{ env.STACKS }}
+          verbose: true
