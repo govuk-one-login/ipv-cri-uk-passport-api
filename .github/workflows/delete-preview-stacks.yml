@@ -20,7 +20,7 @@ jobs:
 
     steps:
       - name: Get stack name
-        uses: govuk-one-login/github-actions/beautify-branch-name@main
+        uses: govuk-one-login/github-actions/beautify-branch-name@a531d6d1728c39ebc292abf2cf1738d4e43ebd44
         id: get-stack-name
         with:
           usage: Stack name
@@ -29,7 +29,7 @@ jobs:
           verbose: false
 
       - name: Delete stack
-        uses: govuk-one-login/github-actions/sam/delete-stacks@main
+        uses: govuk-one-login/github-actions/sam/delete-stacks@a531d6d1728c39ebc292abf2cf1738d4e43ebd44
         with:
           stack-names: ${{ steps.get-stack-name.outputs.pretty-branch-name }}
           aws-role-arn: ${{ secrets.AWS_PRE_MERGE_ROLE_ARN }}

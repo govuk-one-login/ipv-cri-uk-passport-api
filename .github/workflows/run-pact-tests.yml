@@ -35,7 +35,7 @@ jobs:
           java-version: 17
           distribution: zulu
           cache: gradle
-      - uses: gradle/actions/setup-gradle@v4
+      - uses: gradle/actions/setup-gradle@af1da67850ed9a4cedd57bfd976089dd991e2582
         with:
           gradle-version: wrapper
           cache-overwrite-existing: true
