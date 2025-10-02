@@ -29,7 +29,7 @@ jobs:
           java-version: 17
           distribution: zulu
           cache: gradle
-      - uses: gradle/actions/setup-gradle@v4
+      - uses: gradle/actions/setup-gradle@af1da67850ed9a4cedd57bfd976089dd991e2582
         with:
           gradle-version: wrapper
           cache-overwrite-existing: true
@@ -63,7 +63,7 @@ jobs:
           path: LIME-Cucumber-gh-pages
 
       - name: Cucumber HTML Report action
-        uses: PavanMudigonda/html-reporter-github-pages@v1.1
+        uses: PavanMudigonda/html-reporter-github-pages@54c76f16127af1800cbc0187ac458a9e347addd4
         id: test-report
         if: always()
         with:
@@ -73,7 +73,7 @@ jobs:
 
       - name: Publish Github Pages
         if: always() && ${{ github.actor != 'dependabot[bot]' }}
-        uses: peaceiris/actions-gh-pages@v4.0.0
+        uses: peaceiris/actions-gh-pages@4f9cc6602d3f66b9c108549d475ec49e8ef4d45e
         with:
           github_token: ${{ secrets.GITHUB_TOKEN }}
           publish_branch: LIME-Cucumber-gh-pages

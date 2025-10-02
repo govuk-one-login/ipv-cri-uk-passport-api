@@ -33,7 +33,7 @@ jobs:
           java-version: 17
           distribution: zulu
 
-      - uses: gradle/actions/setup-gradle@v4
+      - uses: gradle/actions/setup-gradle@af1da67850ed9a4cedd57bfd976089dd991e2582
         with:
           gradle-version: wrapper
           cache-overwrite-existing: true
@@ -50,7 +50,7 @@ jobs:
           echo "repo_base_dir=$(pwd)" >> $GITHUB_OUTPUT
 
       - name: Build SAM application
-        uses: govuk-one-login/github-actions/sam/build-application@main
+        uses: govuk-one-login/github-actions/sam/build-application@a531d6d1728c39ebc292abf2cf1738d4e43ebd44
         id: build
         with:
           sam-version: "1.134.0"
@@ -76,7 +76,7 @@ jobs:
       contents: read
     steps:
       - name: Deploy stack
-        uses: govuk-one-login/github-actions/sam/deploy-stack@main
+        uses: govuk-one-login/github-actions/sam/deploy-stack@a531d6d1728c39ebc292abf2cf1738d4e43ebd44
         id: deploy
         with:
           sam-deployment-bucket: ${{ secrets.AWS_PRE_MERGE_S3_BUCKET_NAME }}
@@ -117,7 +117,7 @@ jobs:
           java-version: 17
           distribution: zulu
           cache: gradle
-      - uses: gradle/actions/setup-gradle@v4
+      - uses: gradle/actions/setup-gradle@af1da67850ed9a4cedd57bfd976089dd991e2582
         with:
           gradle-version: wrapper
           cache-overwrite-existing: true
@@ -133,13 +133,13 @@ jobs:
           key: ${{ runner.os }}-build-${{ github.sha }}
 
       - name: Setup SAM
-        uses: aws-actions/setup-sam@v2
+        uses: aws-actions/setup-sam@f664fad9e12492edfc187a31f575537dfbb0ff63
         with:
           use-installer: true
           version: "1.134.0"
 
       - name: Assume temporary AWS role
-        uses: aws-actions/configure-aws-credentials@v4
+        uses: aws-actions/configure-aws-credentials@8c3f20df09ac63af7b3ae3d7c91f105f857d8497
         with:
           role-to-assume: ${{ secrets.AWS_PRE_MERGE_ROLE_ARN }}
           aws-region: eu-west-2
