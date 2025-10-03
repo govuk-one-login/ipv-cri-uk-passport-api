@@ -59,7 +59,7 @@ ext {
 
 		// Test
 		junit_platform                     : "1.13.4",
-		junit_version                      : "5.13.4",
+		junit_version                      : "6.0.0",
 		hamcrest_version                   : "2.2",
 		mockito_version                    : "5.17.0",
 		wiremock_version                   : "3.13.1",
