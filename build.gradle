@@ -17,7 +17,7 @@ repositories {
 }
 
 ext {
-	aws_powertools_version = "1.20.1"
+	aws_powertools_version = "1.18.0"
 	dependencyVersions = [
 
 		// ---------------------------------------------------------

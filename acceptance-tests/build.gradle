@@ -20,7 +20,7 @@ configurations {
 
 dependencies {
 
-	var aws_powertools_version = "1.20.1"
+	var aws_powertools_version = "1.18.0"
 	var dependencyVersions = [
 
 		cri_common_lib_version             : "6.6.0",
