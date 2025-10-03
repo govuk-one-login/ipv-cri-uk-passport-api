@@ -48,7 +48,7 @@ dependencies {
 		aspectjrt_version                  : "1.9.22.1",
 
 		// Test
-		junit_platform                     : "1.13.4",
+		junit_platform                     : "6.0.0",
 		junit_version                      : "5.13.4",
 		hamcrest_version                   : "2.2",
 		mockito_version                    : "5.17.0",
