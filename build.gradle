@@ -2,7 +2,7 @@ plugins {
 	id "java"
 	id "idea"
 	id "org.sonarqube" version "6.3.1.5724"
-	id 'io.freefair.aspectj.post-compile-weaving' version '8.12.1'
+	id 'io.freefair.aspectj.post-compile-weaving' version '9.0.0'
 	id "jacoco"
 	id "jacoco-report-aggregation"
 	id "com.diffplug.spotless" version "8.0.0"
