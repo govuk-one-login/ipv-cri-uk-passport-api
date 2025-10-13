@@ -98,10 +98,6 @@ Conditions:
       - Fn::Equals:
         - !Ref DevEnvironment
         - "cri-dev"
-  IsDevOrBuildOrStaging: !Or
-    - !Equals [ !Ref Environment, dev ]
-    - !Equals [ !Ref Environment, build ]
-    - !Equals [ !Ref Environment, staging ]
   UsingCodeSigning:
     Fn::Not:
       - Fn::Equals:
@@ -324,8 +320,8 @@ Resources:
       EndpointConfiguration:
         Type: REGIONAL
       Tags:
-        FMSRegionalPolicy: !If [ IsDevOrBuildOrStaging, "false", "none" ]
-        CustomPolicy: !If [ IsDevOrBuildOrStaging, "true", "none" ]
+        FMSRegionalPolicy: "false"
+        CustomPolicy: "true"
 
   PublicUKPassportAPILogGroup:
     Type: AWS::Logs::LogGroup
@@ -408,8 +404,8 @@ Resources:
                           !Sub "${VpcStackName}-ExecuteApiGatewayEndpointId"
               - !Ref AWS::NoValue
       Tags:
-        FMSRegionalPolicy: !If [ IsDevOrBuildOrStaging, "false", "none" ]
-        CustomPolicy: !If [ IsDevOrBuildOrStaging, "true", "none" ]
+        FMSRegionalPolicy: "false"
+        CustomPolicy: "true"
 
   PrivateUKPassportAPILogGroup:
     Type: AWS::Logs::LogGroup
