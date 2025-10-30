@@ -1,0 +1,25 @@
+name: "Delete stale log groups"
+on:
+  workflow_dispatch:
+  schedule:
+    - cron: '0 06 * * 1-5' # 06:00 monday to friday
+
+permissions:
+  id-token: write
+
+concurrency: delete-stale-log-groups-${{ github.head_ref || github.ref_name }}
+
+jobs:
+  delete-stale-log-groups:
+    name: Delete stale log groups
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: govuk-one-login/github-actions/sam/delete-stale-log-groups@d0ad650db678eea445ef523eb2206cb66187de6e
+        with:
+          aws-role-arn: ${{ secrets.AWS_PRE_MERGE_ROLE_ARN }}
+          cutoff-days: "30"
+          limit: "300"
+          safe-patterns: "/pre-merge-|^API-Gateway-Execution-Logs_"
+          destructive: true
+          verbose: true
