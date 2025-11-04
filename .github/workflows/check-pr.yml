@@ -53,6 +53,11 @@ jobs:
       id-token: write
       contents: read
 
+  infra-tests:
+    name: Run Infra tests
+    needs: java-build-check
+    uses: ./.github/workflows/run-infra-tests.yml
+
   pre-merge-integration-tests:
     name: Run pre-merge integration tests
     needs: java-build-check

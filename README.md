@@ -166,6 +166,14 @@ Acceptance tests
 - build/staging test can be run against the environments.
 - Using a locally running stub and front, with a manually deployed api stack configured to match the environments.
 
+## Infrastructure Test
+
+In a terminal, change to the rootdirectory
+
+`./gradlew :acceptance-tests:infra-test -x spotlessApply -x spotlessCheck`
+
+This will execute the TemplateTest to validate the CloudFormation Lambda template.yaml.
+
 ## TestData Strategy
 
 For testing purposes, this CRI has the ability to route users requests to either

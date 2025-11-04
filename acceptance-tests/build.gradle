@@ -21,6 +21,7 @@ configurations {
 dependencies {
 
 	var aws_powertools_version = "1.18.0"
+	var aws_cdk_version = "2.120.0"
 	var dependencyVersions = [
 
 		cri_common_lib_version             : "6.6.0",
@@ -63,7 +64,8 @@ dependencies {
 
 		// acceptance tests testImplementation
 		rest_assured_version               : "5.5.6",
-		cucumber_junit_version             : "7.20.1"
+		cucumber_junit_version             : "7.20.1",
+		aws_cdk_version                    : "${aws_cdk_version}"
 	]
 
 	implementation platform("software.amazon.awssdk:bom:${dependencyVersions.aws_sdk_version}"),
@@ -96,7 +98,9 @@ dependencies {
 			"software.amazon.lambda:powertools-parameters:${dependencyVersions.aws_powertools_parameters_version}"
 
 	testImplementation "io.rest-assured:rest-assured:${dependencyVersions.rest_assured_version}",
-			"io.cucumber:cucumber-junit:${dependencyVersions.cucumber_junit_version}"
+			"io.cucumber:cucumber-junit:${dependencyVersions.cucumber_junit_version}",
+			"com.fasterxml.jackson.dataformat:jackson-dataformat-yaml:${dependencyVersions.jackson_version}",
+			"software.amazon.awscdk:aws-cdk-lib:${dependencyVersions.aws_cdk_version}"
 }
 
 java {
@@ -105,8 +109,16 @@ java {
 }
 
 test {
-	useJUnitPlatform()
+	useJUnitPlatform {
+		excludeTags "InfraTest"
+	}
 	systemProperty "cucumber.filter.tags", System.getProperty("cucumber.filter.tags")
+}
+
+tasks.register("infra-test", Test) {
+	useJUnitPlatform {
+		includeTags "InfraTest"
+	}
 }
 
 //*************************************//
