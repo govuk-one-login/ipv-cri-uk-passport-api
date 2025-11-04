@@ -283,7 +283,7 @@ Resources:
       Description: Public UK Passport CRI API
       StageName: !Ref Environment
       MethodSettings:
-        - LoggingLevel: INFO
+        - LoggingLevel: !If [IsProdEnvironment, "OFF", "INFO"]
           ResourcePath: '/*'
           HttpMethod: '*'
           # Disable data trace in production to avoid logging customer sensitive information
@@ -345,7 +345,7 @@ Resources:
       Name: !Sub ${AWS::StackName}-PrivateUKPassportApi
       Description: Private UK Passport CRI API
       MethodSettings:
-        - LoggingLevel: INFO
+        - LoggingLevel: !If [IsProdEnvironment, "OFF", "INFO"]
           ResourcePath: '/*'
           HttpMethod: '*'
           # Disable data trace in production to avoid logging customer sensitive information
