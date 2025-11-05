@@ -1,6 +1,7 @@
 rootProject.name = 'di-ipv-cri-uk-passport-api'
 
-include "lib",
+include "acceptance-tests",
+		"lib",
 		"lib-dvad",
 		"lambdas:checkpassport",
 		"lambdas:issuecredential",
@@ -9,6 +10,6 @@ include "lib",
 // Workaround to ensure ide's enable the correct plugins
 // for the acceptance tests when repo is access at the root level.
 // But avoid building acceptance test when not needed.
-if(file('.idea').exists() || file('.vscode').exists()) {
-	include "acceptance-tests"
-}
+//if(file('.idea').exists() || file('.vscode').exists()) {
+//	include "acceptance-tests"
+//}
