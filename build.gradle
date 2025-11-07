@@ -61,7 +61,7 @@ ext {
 		junit_platform                     : "1.13.4",
 		junit_version                      : "5.13.4",
 		hamcrest_version                   : "2.2",
-		mockito_version                    : "5.17.0",
+		mockito_version                    : "5.20.0",
 		wiremock_version                   : "3.13.1",
 		webcompere_version                 : "2.1.8",
 
