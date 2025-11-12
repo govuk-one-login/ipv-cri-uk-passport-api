@@ -110,7 +110,9 @@ class VerifiableCredentialServiceTest implements VerifiableCredentialServiceTest
     })
     void shouldGenerateSignedVerifiableCredentialJWTWithMaxTTL(
             String maxJwtTtl, String maxJwtTtlUnit, boolean verified, boolean includeKidInVC)
-            throws JOSEException, JsonProcessingException, ParseException,
+            throws JOSEException,
+                    JsonProcessingException,
+                    ParseException,
                     NoSuchAlgorithmException {
 
         environmentVariables.set("INCLUDE_VC_KID", includeKidInVC);

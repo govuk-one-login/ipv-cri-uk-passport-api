@@ -7,8 +7,8 @@ This folder has be created as a central location for any work related to Passpor
 Build with `./gradlew`
 
 ### Run tests
-When running locally the following environment variables must be set
 
+When running locally the following environment variables must be set
 
 ENVIRONMENT \
 AWS_STACK_NAME \
@@ -19,7 +19,6 @@ coreStubUsername \
 coreStubPassword \
 passportCriUrl  \
 orchestratorStubUrl
-
 
 Speak to a member of the test team for these values
 When running in the pipeline these will be taken from AWS

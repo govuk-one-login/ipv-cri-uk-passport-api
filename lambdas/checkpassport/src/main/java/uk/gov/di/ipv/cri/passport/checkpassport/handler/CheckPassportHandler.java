@@ -52,7 +52,14 @@ import java.util.regex.Pattern;
 import static uk.gov.di.ipv.cri.common.library.error.ErrorResponse.SESSION_EXPIRED;
 import static uk.gov.di.ipv.cri.common.library.error.ErrorResponse.SESSION_NOT_FOUND;
 import static uk.gov.di.ipv.cri.passport.library.config.ParameterStoreParameters.DOCUMENT_CHECK_RESULT_TTL_PARAMETER;
-import static uk.gov.di.ipv.cri.passport.library.metrics.Definitions.*;
+import static uk.gov.di.ipv.cri.passport.library.metrics.Definitions.FORM_DATA_PARSE_FAIL;
+import static uk.gov.di.ipv.cri.passport.library.metrics.Definitions.FORM_DATA_PARSE_PASS;
+import static uk.gov.di.ipv.cri.passport.library.metrics.Definitions.LAMBDA_CHECK_PASSPORT_ATTEMPT_STATUS_RETRY;
+import static uk.gov.di.ipv.cri.passport.library.metrics.Definitions.LAMBDA_CHECK_PASSPORT_ATTEMPT_STATUS_UNVERIFIED;
+import static uk.gov.di.ipv.cri.passport.library.metrics.Definitions.LAMBDA_CHECK_PASSPORT_ATTEMPT_STATUS_VERIFIED_PREFIX;
+import static uk.gov.di.ipv.cri.passport.library.metrics.Definitions.LAMBDA_CHECK_PASSPORT_COMPLETED_ERROR;
+import static uk.gov.di.ipv.cri.passport.library.metrics.Definitions.LAMBDA_CHECK_PASSPORT_COMPLETED_OK;
+import static uk.gov.di.ipv.cri.passport.library.metrics.Definitions.LAMBDA_CHECK_PASSPORT_USER_REDIRECTED_ATTEMPTS_OVER_MAX;
 
 public class CheckPassportHandler
         implements RequestHandler<APIGatewayProxyRequestEvent, APIGatewayProxyResponseEvent> {
@@ -248,14 +255,14 @@ public class CheckPassportHandler
             return lambdaCompletedOK(responseEvent);
         } catch (SessionNotFoundException e) {
             LOGGER.error(e.getMessage(), e);
-            eventProbe.counterMetric(Definitions.LAMBDA_CHECK_PASSPORT_COMPLETED_ERROR);
+            eventProbe.counterMetric(LAMBDA_CHECK_PASSPORT_COMPLETED_ERROR);
             return ApiGatewayResponseGenerator.proxyJsonResponse(
                     HttpStatusCode.FORBIDDEN,
                     new CommonExpressOAuthError(
                             OAuth2Error.ACCESS_DENIED, SESSION_NOT_FOUND.getMessage()));
         } catch (SessionExpiredException e) {
             LOGGER.error(e.getMessage(), e);
-            eventProbe.counterMetric(Definitions.LAMBDA_CHECK_PASSPORT_COMPLETED_ERROR);
+            eventProbe.counterMetric(LAMBDA_CHECK_PASSPORT_COMPLETED_ERROR);
             return ApiGatewayResponseGenerator.proxyJsonResponse(
                     HttpStatusCode.FORBIDDEN,
                     new CommonExpressOAuthError(
@@ -272,7 +279,7 @@ public class CheckPassportHandler
         } catch (IllegalArgumentException e) {
             // Order important as NumberFormatException is also an IllegalArgumentException
             LOGGER.error(e.getMessage(), e);
-            eventProbe.counterMetric(Definitions.LAMBDA_CHECK_PASSPORT_COMPLETED_ERROR);
+            eventProbe.counterMetric(LAMBDA_CHECK_PASSPORT_COMPLETED_ERROR);
             // Oauth compliant response
             return ApiGatewayResponseGenerator.proxyJsonResponse(
                     HttpStatusCode.INTERNAL_SERVER_ERROR,
