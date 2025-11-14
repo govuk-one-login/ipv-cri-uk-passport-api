@@ -13,7 +13,6 @@ import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.json.JSONObject;
 import org.junit.Assert;
-import org.junit.jupiter.api.Assertions;
 import uk.gov.di.ipv.cri.passport.acceptance_tests.model.AuthorisationResponse;
 import uk.gov.di.ipv.cri.passport.acceptance_tests.model.CheckPassportSuccessResponse;
 import uk.gov.di.ipv.cri.passport.acceptance_tests.model.PassportFormData;
@@ -36,7 +35,10 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.UUID;
 
-import static org.junit.jupiter.api.Assertions.*;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.junit.jupiter.api.Assertions.fail;
 
 public class PassportAPIPage extends CommonPageObject {
 
@@ -100,25 +102,24 @@ public class PassportAPIPage extends CommonPageObject {
             JsonNode keysNode = rootNode.path("keys").get(0);
 
             // Assertions for each key-value pair
-            Assertions.assertTrue(keysNode.has("kty"), "kty field is missing");
-            Assertions.assertEquals("RSA", keysNode.path("kty").asText(), "kty value is incorrect");
-            Assertions.assertTrue(keysNode.has("n"), "n field is missing");
-            Assertions.assertTrue(keysNode.has("e"), "e field is missing");
-            Assertions.assertEquals("AQAB", keysNode.path("e").asText(), "e value is incorrect");
-            Assertions.assertTrue(keysNode.has("use"), "use field is missing");
-            Assertions.assertEquals("enc", keysNode.path("use").asText(), "use value is incorrect");
-            Assertions.assertTrue(keysNode.has("kid"), "kid field is missing");
-            Assertions.assertTrue(keysNode.has("alg"), "alg field is missing");
-            Assertions.assertEquals(
-                    "RSA-OAEP-256", keysNode.path("alg").asText(), "alg value is incorrect");
+            assertTrue(keysNode.has("kty"), "kty field is missing");
+            assertEquals("RSA", keysNode.path("kty").asText(), "kty value is incorrect");
+            assertTrue(keysNode.has("n"), "n field is missing");
+            assertTrue(keysNode.has("e"), "e field is missing");
+            assertEquals("AQAB", keysNode.path("e").asText(), "e value is incorrect");
+            assertTrue(keysNode.has("use"), "use field is missing");
+            assertEquals("enc", keysNode.path("use").asText(), "use value is incorrect");
+            assertTrue(keysNode.has("kid"), "kid field is missing");
+            assertTrue(keysNode.has("alg"), "alg field is missing");
+            assertEquals("RSA-OAEP-256", keysNode.path("alg").asText(), "alg value is incorrect");
 
         } catch (IOException e) {
             LOGGER.error("Error parsing JSON response: {}", e.getMessage());
             // Handle the exception appropriately, e.g., throw a custom exception or fail the test
-            Assertions.fail("Error parsing JSON response: " + e.getMessage()); // Fail the test
+            fail("Error parsing JSON response: " + e.getMessage()); // Fail the test
         } catch (NullPointerException e) {
             LOGGER.error("Error accessing JSON node: {}", e.getMessage());
-            Assertions.fail("Error accessing JSON node: " + e.getMessage()); // Fail the test
+            fail("Error accessing JSON node: " + e.getMessage()); // Fail the test
         }
     }
 
@@ -260,8 +261,8 @@ public class PassportAPIPage extends CommonPageObject {
                 .POST(HttpRequest.BodyPublishers.ofString(passportInputJsonString));
 
         switch (invalidHeaderValue) {
-            case "mismatchSessionId" -> builder.setHeader(
-                    "session_id", UUID.randomUUID().toString());
+            case "mismatchSessionId" ->
+                    builder.setHeader("session_id", UUID.randomUUID().toString());
             case "malformedSessionId" -> builder.setHeader("session_id", "&%^$£$%");
             case "missingSessionId" -> builder.setHeader("session_id", "");
             default -> {
@@ -373,19 +374,19 @@ public class PassportAPIPage extends CommonPageObject {
             JsonNode rootNode = objectMapper.readTree(publicAPIGatewayEndpointPostResponse);
 
             // Assertion for the expected error message
-            Assertions.assertEquals(
+            assertEquals(
                     "Forbidden",
                     rootNode.path("message").asText(),
                     "Unexpected error message received");
 
         } catch (IOException e) {
             LOGGER.error("Error parsing JSON response: {}", e.getMessage());
-            Assertions.fail(
+            fail(
                     "Error parsing JSON response: "
                             + e.getMessage()); // Fail the test if parsing fails
         } catch (NullPointerException e) {
             LOGGER.error("Error accessing JSON node: {}", e.getMessage());
-            Assertions.fail(
+            fail(
                     "Error accessing JSON node: "
                             + e.getMessage()); // Fail the test if node is missing
         }

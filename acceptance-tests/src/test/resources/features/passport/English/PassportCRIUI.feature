@@ -19,6 +19,7 @@ Feature: Passport CRI - UI Tests
     And JSON response should contain documentNumber 321654987 same as given passport
     And Passport VC should contain JTI field
     And The test is complete and I close the driver
+
     Examples:
       | PassportSubject             |
       | PassportSubjectHappyKenneth |
@@ -34,6 +35,7 @@ Feature: Passport CRI - UI Tests
     And JSON payload should contain ci D02, validity score 0 and strength score 4
     And JSON response should contain documentNumber 887766551 same as given passport
     And The test is complete and I close the driver
+
     Examples:
       | PassportSubject             | InvalidPassportNumber |
       | PassportSubjectHappyKenneth | 887766551             |
@@ -50,6 +52,7 @@ Feature: Passport CRI - UI Tests
     Then I navigate to the passport verifiable issuer to check for a Valid response
     And JSON payload should contain ci D02, validity score 0 and strength score 4
     And The test is complete and I close the driver
+
     Examples:
       | PassportSubject             | InvalidBirthDay | InvalidBirthMonth | InvalidBirthYear |
       | PassportSubjectHappyKenneth | 12              | 08                | 1985             |
@@ -64,6 +67,7 @@ Feature: Passport CRI - UI Tests
     Then I navigate to the passport verifiable issuer to check for a Valid response
     And JSON payload should contain ci D02, validity score 0 and strength score 4
     And The test is complete and I close the driver
+
     Examples:
       | PassportSubject             | InvalidFirstName |
       | PassportSubjectHappyKenneth | SELINA           |
@@ -78,6 +82,7 @@ Feature: Passport CRI - UI Tests
     Then I navigate to the passport verifiable issuer to check for a Valid response
     And JSON payload should contain ci D02, validity score 0 and strength score 4
     And The test is complete and I close the driver
+
     Examples:
       | PassportSubject             | InvalidLastName |
       | PassportSubjectHappyKenneth | KYLE            |
@@ -92,6 +97,7 @@ Feature: Passport CRI - UI Tests
     Then I navigate to the passport verifiable issuer to check for a Valid response
     And JSON payload should contain validity score 2 and strength score 4
     And The test is complete and I close the driver
+
     Examples:
       | PassportSubject             |
       | PassportSubjectHappyKenneth |
@@ -108,6 +114,7 @@ Feature: Passport CRI - UI Tests
     Then I navigate to the passport verifiable issuer to check for a Valid response
     And JSON payload should contain ci D02, validity score 0 and strength score 4
     And The test is complete and I close the driver
+
     Examples:
       | PassportSubject             | InvalidPassportNumber |
       | PassportSubjectHappyKenneth | 887766551             |
@@ -128,8 +135,8 @@ Feature: Passport CRI - UI Tests
     Then I navigate to the passport verifiable issuer to check for a Invalid response
     And JSON response should contain error description Authorization permission denied and status code as 302
     And The test is complete and I close the driver
+# ##########   Field Validations ##########
 
-###########   Field Validations ##########
   @build @staging @integration @smoke @stub @uat
   Scenario Outline: Passport Generate VC with invalid Passport number and prove in another way unhappy path
     Given User enters data as a <PassportSubject>
@@ -141,6 +148,7 @@ Feature: Passport CRI - UI Tests
     Then I navigate to the passport verifiable issuer to check for a Valid response
     And JSON response should contain documentNumber 887766551 same as given passport
     And The test is complete and I close the driver
+
     Examples:
       | PassportSubject             | InvalidPassportNumber |
       | PassportSubjectHappyKenneth | 887766551             |
@@ -154,6 +162,7 @@ Feature: Passport CRI - UI Tests
     And JSON payload should contain validity score 2 and strength score 4
     And JSON response should contain documentNumber 321654987 same as given passport
     And The test is complete and I close the driver
+
     Examples:
       | PassportSubject             | months | daysToSubtract |
       | PassportSubjectHappyKenneth | 18     | 0              |
@@ -195,6 +204,7 @@ Feature: Passport CRI - UI Tests
     And User clicks on continue
     Then I check the page title is Error: Enter your details exactly as they appear on your UK passport – GOV.UK One Login
     And The test is complete and I close the driver
+
     Examples:
       | PassportSubject             | InvalidPassportNumber | InvalidLastName | InvalidFirstName | InvalidBirthDay | InvalidBirthMonth | InvalidBirthYear | InvalidValidToDay | InvalidValidToMonth | InvalidValidToYear | Scenario                              |
       | PassportSubjectHappyKenneth | 321654987             |                 | KENNETH          | 08              | 07                | 1965             | 01                | 10                  | 2042               | NoLastName                            |
@@ -224,6 +234,7 @@ Feature: Passport CRI - UI Tests
     And Passport VC should contain JTI field
     And exp should be absent in the JSON payload
     And The test is complete and I close the driver
+
     Examples:
       | PassportSubject             |
       | PassportSubjectHappyKenneth |

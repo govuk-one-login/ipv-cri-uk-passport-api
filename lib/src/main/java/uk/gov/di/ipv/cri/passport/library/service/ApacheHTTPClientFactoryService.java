@@ -35,8 +35,12 @@ public class ApacheHTTPClientFactoryService {
             String base64TLSKeyString,
             String base64TLSRootCertString,
             String base64TLSIntCertString)
-            throws NoSuchAlgorithmException, InvalidKeySpecException, CertificateException,
-                    KeyStoreException, IOException, UnrecoverableKeyException,
+            throws NoSuchAlgorithmException,
+                    InvalidKeySpecException,
+                    CertificateException,
+                    KeyStoreException,
+                    IOException,
+                    UnrecoverableKeyException,
                     KeyManagementException {
 
         Certificate tlsCert = KeyCertHelper.getDecodedX509Certificate(base64TLSCertString);
@@ -57,7 +61,9 @@ public class ApacheHTTPClientFactoryService {
     }
 
     private SSLContext sslContextSetup(KeyStore clientTls, KeyStore caBundle)
-            throws UnrecoverableKeyException, NoSuchAlgorithmException, KeyStoreException,
+            throws UnrecoverableKeyException,
+                    NoSuchAlgorithmException,
+                    KeyStoreException,
                     KeyManagementException {
         return SSLContexts.custom()
                 .loadKeyMaterial(clientTls, RANDOM_RUN_TIME_KEYSTORE_PASSWORD)

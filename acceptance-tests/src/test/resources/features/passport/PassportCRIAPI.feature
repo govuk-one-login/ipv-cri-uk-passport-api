@@ -51,6 +51,7 @@ Feature: Passport CRI - API Tests
     Then User requests Passport CRI VC
     And Passport VC should contain ci <CI>, validityScore 0 and strengthScore 4
     And Passport VC Evidence contains expected values for scenario <Scenario>
+
     Examples:
       | PassportJsonPayload           | CI  | Scenario |
       | PassportInvalidCI1JsonPayload | D01 | 3        |
@@ -62,6 +63,7 @@ Feature: Passport CRI - API Tests
     And Passport user sends a POST request to session endpoint
     And Passport user gets a session-id
     When Passport user sends a POST request to Passport endpoint with a invalid <invalidHeaderValue> using jsonRequest PassportValidKennethJsonPayload
+
     Examples:
       | invalidHeaderValue |
       | mismatchSessionId  |

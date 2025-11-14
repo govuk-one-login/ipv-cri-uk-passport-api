@@ -16,6 +16,7 @@ Completely optional, there is a `.pre-commit-config.yaml` configuration setup in
 * runs checkov and checks for any issues.
 
 ### Dependency Installation
+
 To use this locally you will first need to install the dependencies, this can be done in 2 ways:
 
 #### Method 1 - Python pip
@@ -39,7 +40,9 @@ brew install checkov
 ```
 
 ### Post Installation Configuration
+
 once installed run:
+
 ```
 pre-commit install
 ```
@@ -71,11 +74,13 @@ Checkov..............................................(no files to check)Skipped
 ```
 
 To remove the pre-commit hooks should there be an issue
+
 ```
 pre-commit uninstall
 ```
 
 ## SDKMan
+
 This project has an `.sdkmanrc` file
 
 Install SDKMan via the instructions on `https://sdkman.io/install`
@@ -121,6 +126,7 @@ See onboarding guide for instructions on how to setup the following command line
 `aws-vault exec pa-dev -- ./deploy.sh ipv-cri-passport-MyUsernameOrTicketNumber`
 
 ### Delete stack from passport dev account
+
 > The stack name *must* be unique to you and created by you in the deploy step above.
 > Type `y`es when prompted to delete the stack and the folders in the S3 bucket
 
@@ -142,11 +148,12 @@ Can also be used with the following limitations in development.
 - Existing stack if deleted will cause errors in the deployed stack.
 
 ## Testing with self deployed stub
+
 If testing against a self deployed stub in the passporta dev environment.
 The domain used by the stubs lambda function url will need added to
 - The dns firewall allowed domains list
 - A new rule added to the network firewall suricata rules config
-  This will enable your deployed stack to connect to your deployed stub.
+This will enable your deployed stack to connect to your deployed stub.
 
 ## Acceptance Test
 
@@ -192,8 +199,8 @@ core stub url - https://cri-3rdparty.core.stubs.account.gov.uk/
 Additional details on these stubs can be found in the Lime  confluence pages -
 https://govukverify.atlassian.net/wiki/spaces/Lime/pages/3296690177/5.+Lime+Testing
 
-
 ## Canaries
+
 When deploying using sam deploy, canary deployment strategy will be used which is set in LambdaDeploymentPreference in template.yaml file.
 
 When deploying using the pipeline, canary deployment strategy set in the pipeline will be used and override the default set in template.yaml.

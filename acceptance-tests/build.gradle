@@ -64,7 +64,7 @@ dependencies {
 
 		// acceptance tests testImplementation
 		rest_assured_version               : "5.5.6",
-		cucumber_junit_version             : "7.20.1",
+		cucumber_junit_version             : "7.23.0",
 		aws_cdk_version                    : "${aws_cdk_version}"
 	]
 

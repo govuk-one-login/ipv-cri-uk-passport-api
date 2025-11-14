@@ -29,7 +29,15 @@ echo -e "\tstack name: ${GREEN}$stack_name${NOCOLOR}"
 echo -e "\tAuditEventNamePrefix SSM key ${GREEN}$audit_event_name_prefix${NOCOLOR}"
 echo -e "\tCriIdentifier SSM key ${GREEN}$cri_identifier${NOCOLOR}"
 
+echo -e "🧹 Starting a clean build"
 ./gradlew clean
+echo -e "🔎 Checking with cfn-lint"
+cfn-lint infrastructure/lambda/template.yaml -f pretty
+echo -e "🔎 Checking with sam validate --lint"
+sam validate -t infrastructure/lambda/template.yaml --config-env dev --lint
+echo -e "🧱 Building with sam build"
+sam build -s "$CURRENT_PATH" -t infrastructure/lambda/template.yaml --config-env dev
+echo -e "🚀 Deploying..."
 sam validate -t infrastructure/lambda/template.yaml --config-env dev --lint
 sam build -s "$CURRENT_PATH" -t infrastructure/lambda/template.yaml --config-env dev
 sam deploy --stack-name "$stack_name" \
