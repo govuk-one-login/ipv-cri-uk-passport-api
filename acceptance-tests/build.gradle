@@ -52,7 +52,7 @@ dependencies {
 		junit_platform                     : "1.13.4",
 		junit_version                      : "5.13.4",
 		hamcrest_version                   : "2.2",
-		mockito_version                    : "5.17.0",
+		mockito_version                    : "5.20.0",
 		// testFixturesImplementation
 
 		// acceptance tests Implementation
