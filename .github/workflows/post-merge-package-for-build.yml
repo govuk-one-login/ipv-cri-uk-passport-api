@@ -96,7 +96,7 @@ jobs:
           sam build -s "${GITHUB_WORKSPACE}" -t infrastructure/lambda/template.yaml -b out
 
       - name: Deploy SAM app
-        uses: govuk-one-login/devplatform-upload-action@dc8158079d3976d613515180e543930cdbe73f5f
+        uses: govuk-one-login/devplatform-upload-action@fda75612a1b0e5a8c84ae7c44a23340e50e5bbde
         with:
           artifact-bucket-name: "${{ secrets.ARTIFACT_BUCKET_NAME }}"
           signing-profile-name: "${{ secrets.SIGNING_PROFILE_NAME }}"
