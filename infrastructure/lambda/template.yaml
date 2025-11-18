@@ -93,11 +93,6 @@ Conditions:
   IsProdEnvironment: !Equals
     - !Ref Environment
     - production
-  IsNotCRIDevEnv:
-    Fn::Not:
-      - Fn::Equals:
-        - !Ref DevEnvironment
-        - "cri-dev"
   UsingCodeSigning:
     Fn::Not:
       - Fn::Equals:
@@ -433,29 +428,18 @@ Resources:
     Properties:
       # checkov:skip=CKV_AWS_115: We do not have enough data to allocate the concurrent execution allowance per function.
       # checkov:skip=CKV_AWS_116: Lambdas invoked via API Gateway do not support Dead Letter Queues.
-      # checkov:skip=CKV_AWS_117: Lambdas will migrate to our own VPC in future work.
       # CheckPassport uses ProtectedSubnets as it needs to reach a third party api
       VpcConfig:
-        !If
-        - IsNotCRIDevEnv
-        - SecurityGroupIds:
-            - Fn::ImportValue:
-                !Sub "${VpcStackName}-AWSServicesEndpointSecurityGroupId"
-          SubnetIds:
-            - Fn::ImportValue:
-                !Sub "${VpcStackName}-ProtectedSubnetIdA"
-            - Fn::ImportValue:
-                !Sub "${VpcStackName}-ProtectedSubnetIdB"
-            - Fn::ImportValue:
-                !Sub "${VpcStackName}-ProtectedSubnetIdC"
-        - SecurityGroupIds:
-            - Fn::ImportValue:
-                !Sub "${VpcStackName}-LambdaSecurityGroup"
-          SubnetIds:
-            - Fn::ImportValue:
-                !Sub "${VpcStackName}-PrivateSubnetIdA"
-            - Fn::ImportValue:
-                !Sub "${VpcStackName}-PrivateSubnetIdB"
+        SecurityGroupIds:
+          - Fn::ImportValue:
+              !Sub "${VpcStackName}-AWSServicesEndpointSecurityGroupId"
+        SubnetIds:
+          - Fn::ImportValue:
+              !Sub "${VpcStackName}-ProtectedSubnetIdA"
+          - Fn::ImportValue:
+              !Sub "${VpcStackName}-ProtectedSubnetIdB"
+          - Fn::ImportValue:
+              !Sub "${VpcStackName}-ProtectedSubnetIdC"
       Handler: uk.gov.di.ipv.cri.passport.checkpassport.handler.CheckPassportHandler::handleRequest
       DeploymentPreference:
         Enabled: true
@@ -584,7 +568,17 @@ Resources:
     Properties:
       # checkov:skip=CKV_AWS_115: We do not have enough data to allocate the concurrent execution allowance per function.
       # checkov:skip=CKV_AWS_116: Lambdas invoked via API Gateway do not support Dead Letter Queues.
-      # checkov:skip=CKV_AWS_117: Lambdas will migrate to our own VPC in future work.
+      VpcConfig:
+        SecurityGroupIds:
+          - Fn::ImportValue:
+              !Sub "${VpcStackName}-AWSServicesEndpointSecurityGroupId"
+        SubnetIds:
+          - Fn::ImportValue:
+              !Sub "${VpcStackName}-PrivateSubnetIdA"
+          - Fn::ImportValue:
+              !Sub "${VpcStackName}-PrivateSubnetIdB"
+          - Fn::ImportValue:
+              !Sub "${VpcStackName}-PrivateSubnetIdC"
       Handler: uk.gov.di.ipv.cri.passport.issuecredential.handler.IssueCredentialHandler::handleRequest
       DeploymentPreference:
         Enabled: true
@@ -694,6 +688,17 @@ Resources:
   CertExpiryReminderFunction:
     Type: AWS::Serverless::Function
     Properties:
+      VpcConfig:
+        SecurityGroupIds:
+          - Fn::ImportValue:
+              !Sub "${VpcStackName}-AWSServicesEndpointSecurityGroupId"
+        SubnetIds:
+          - Fn::ImportValue:
+              !Sub "${VpcStackName}-PrivateSubnetIdA"
+          - Fn::ImportValue:
+              !Sub "${VpcStackName}-PrivateSubnetIdB"
+          - Fn::ImportValue:
+              !Sub "${VpcStackName}-PrivateSubnetIdC"
       Handler: uk.gov.di.ipv.cri.passport.certexpiryreminder.handler.CertExpiryReminderHandler::handleRequest
       Runtime: java17
       CodeUri: lambdas/certexpiryreminder
