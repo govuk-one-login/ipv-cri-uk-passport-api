@@ -140,12 +140,10 @@ class VerifiableCredentialServiceTest implements VerifiableCredentialServiceTest
         }
 
         if (includeKidInVC) {
-            when(mockCommonLibConfigurationService.getCommonParameterValue(
-                            "verifiableCredentialKmsSigningKeyId"))
+            when(mockCommonLibConfigurationService.getVerifiableCredentialKmsSigningKeyId())
                     .thenReturn(UNIT_TEST_VC_KEYID);
 
-            when(mockCommonLibConfigurationService.getCommonParameterValue(
-                            "verifiable-credential/issuer"))
+            when(mockCommonLibConfigurationService.getVerifiableCredentialIssuer())
                     .thenReturn(UNIT_TEST_VC_ISSUER);
         }
 
