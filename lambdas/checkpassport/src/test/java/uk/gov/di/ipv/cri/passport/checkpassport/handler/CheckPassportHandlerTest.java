@@ -63,7 +63,6 @@ import static uk.gov.di.ipv.cri.common.library.error.ErrorResponse.SESSION_EXPIR
 import static uk.gov.di.ipv.cri.common.library.error.ErrorResponse.SESSION_NOT_FOUND;
 import static uk.gov.di.ipv.cri.passport.checkpassport.handler.CheckPassportHandler.RESULT;
 import static uk.gov.di.ipv.cri.passport.checkpassport.handler.CheckPassportHandler.RESULT_RETRY;
-import static uk.gov.di.ipv.cri.passport.library.config.ParameterStoreParameters.DOCUMENT_CHECK_RESULT_TTL_PARAMETER;
 import static uk.gov.di.ipv.cri.passport.library.metrics.Definitions.FORM_DATA_PARSE_FAIL;
 import static uk.gov.di.ipv.cri.passport.library.metrics.Definitions.FORM_DATA_PARSE_PASS;
 import static uk.gov.di.ipv.cri.passport.library.metrics.Definitions.LAMBDA_CHECK_PASSPORT_ATTEMPT_STATUS_RETRY;
@@ -113,6 +112,7 @@ class CheckPassportHandlerTest {
         environmentVariables.set("AWS_STACK_NAME", "TEST_STACK");
         environmentVariables.set("DVAD_PERFORMANCE_STUB_IN_USE", "false");
         environmentVariables.set("DEV_ENVIRONMENT_ONLY_ENHANCED_DEBUG", "false");
+        environmentVariables.set("SESSION_TTL", 7200L);
 
         when(mockParameterStoreService.getParameterValue("HMPODVAD/API/EndpointUrl"))
                 .thenReturn("http://localhost");
@@ -170,9 +170,6 @@ class CheckPassportHandlerTest {
                         eq(requestHeaders),
                         eq(Strategy.NO_CHANGE)))
                 .thenReturn(testDocumentDataVerificationResult);
-
-        when(mockParameterStoreService.getCommonParameterValue(DOCUMENT_CHECK_RESULT_TTL_PARAMETER))
-                .thenReturn("7200");
 
         mockLambdaContext();
 
@@ -267,10 +264,6 @@ class CheckPassportHandlerTest {
                             eq(requestHeaders),
                             eq(Strategy.NO_CHANGE)))
                     .thenReturn(testDocumentDataVerificationResult);
-
-            when(mockParameterStoreService.getCommonParameterValue(
-                            DOCUMENT_CHECK_RESULT_TTL_PARAMETER))
-                    .thenReturn("7200");
         }
 
         mockLambdaContext();

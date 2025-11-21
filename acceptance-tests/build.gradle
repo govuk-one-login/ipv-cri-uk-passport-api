@@ -24,7 +24,7 @@ dependencies {
 	var aws_cdk_version = "2.120.0"
 	var dependencyVersions = [
 
-		cri_common_lib_version             : "6.6.0",
+		cri_common_lib_version             : "7.0.0",
 
 		// CRI_LIB aws
 		aws_sdk_version                    : "2.34.3",
