@@ -38,7 +38,6 @@ import uk.gov.di.ipv.cri.passport.library.helpers.PersonIdentityDetailedHelperMa
 import uk.gov.di.ipv.cri.passport.library.logging.LoggingSupport;
 import uk.gov.di.ipv.cri.passport.library.metrics.Definitions;
 import uk.gov.di.ipv.cri.passport.library.persistence.DocumentCheckResultItem;
-import uk.gov.di.ipv.cri.passport.library.service.ParameterStoreService;
 import uk.gov.di.ipv.cri.passport.library.service.ServiceFactory;
 import uk.gov.di.ipv.cri.passport.library.service.ThirdPartyAPIService;
 
@@ -51,7 +50,6 @@ import java.util.regex.Pattern;
 
 import static uk.gov.di.ipv.cri.common.library.error.ErrorResponse.SESSION_EXPIRED;
 import static uk.gov.di.ipv.cri.common.library.error.ErrorResponse.SESSION_NOT_FOUND;
-import static uk.gov.di.ipv.cri.passport.library.config.ParameterStoreParameters.DOCUMENT_CHECK_RESULT_TTL_PARAMETER;
 import static uk.gov.di.ipv.cri.passport.library.metrics.Definitions.FORM_DATA_PARSE_FAIL;
 import static uk.gov.di.ipv.cri.passport.library.metrics.Definitions.FORM_DATA_PARSE_PASS;
 import static uk.gov.di.ipv.cri.passport.library.metrics.Definitions.LAMBDA_CHECK_PASSPORT_ATTEMPT_STATUS_RETRY;
@@ -78,8 +76,6 @@ public class CheckPassportHandler
     // Return values for retry scenario
     public static final String RESULT = "result";
     public static final String RESULT_RETRY = "retry";
-
-    private ParameterStoreService parameterStoreService;
 
     // CRI-Lib Common Services and objects
     private EventProbe eventProbe;
@@ -128,7 +124,6 @@ public class CheckPassportHandler
             DocumentDataVerificationService documentDataVerificationService)
             throws JsonProcessingException {
         this.objectMapper = serviceFactory.getObjectMapper();
-        this.parameterStoreService = serviceFactory.getParameterStoreService();
 
         this.eventProbe = serviceFactory.getEventProbe();
         this.sessionService = serviceFactory.getSessionService();
@@ -473,10 +468,7 @@ public class CheckPassportHandler
         documentCheckResultItem.setFailedCheckDetails(
                 documentDataVerificationResult.getChecksFailed());
 
-        final long ttl =
-                Long.parseLong(
-                        parameterStoreService.getCommonParameterValue(
-                                DOCUMENT_CHECK_RESULT_TTL_PARAMETER));
+        final long ttl = Long.parseLong(System.getenv("SESSION_TTL"));
 
         documentCheckResultItem.setTtl(
                 Clock.systemUTC().instant().plus(ttl, ChronoUnit.SECONDS).getEpochSecond());
