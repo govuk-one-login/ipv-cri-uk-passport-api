@@ -72,16 +72,6 @@ class ParameterStoreServiceTest {
     }
 
     @Test
-    void shouldGetCommonParameterValueValueByParameterName() {
-        String fullParamName =
-                String.format("/%s/%s", COMMON_PARAMETER_NAME_PREFIX, TEST_PARAM_NAME);
-        when(mockSSMProvider.get(fullParamName)).thenReturn(TEST_PARAM_VALUE);
-        assertEquals(
-                TEST_PARAM_VALUE, parameterStoreService.getCommonParameterValue(TEST_PARAM_NAME));
-        verify(mockSSMProvider).get(fullParamName);
-    }
-
-    @Test
     void shouldGetAllParametersFromPath() {
 
         Map<String, String> testParameterMap = Map.of("KEY1", "TEST_VALUE1", "KEY2", "TEST_VALUE2");

@@ -17,7 +17,6 @@ public class ParameterStoreService {
     // Prefixes
     private final String parameterPrefix; // Parameters that can hava prefix override
     private final String stackParameterPrefix; // Parameters that must always be from the stack
-    private final String commonParameterPrefix; // Parameters from common-api
 
     private final SSMProvider ssmProvider;
 
@@ -29,8 +28,6 @@ public class ParameterStoreService {
                         .orElse(System.getenv("AWS_STACK_NAME"));
 
         this.stackParameterPrefix = System.getenv("AWS_STACK_NAME");
-
-        this.commonParameterPrefix = System.getenv("COMMON_PARAMETER_NAME_PREFIX");
     }
 
     public String getParameterValue(String parameterName) {
@@ -60,16 +57,6 @@ public class ParameterStoreService {
         LOGGER.debug(LOG_MESSAGE_FORMAT, "getStackParameterValue", stackParameterPath);
 
         return ssmProvider.get(stackParameterPath);
-    }
-
-    public String getCommonParameterValue(String parameterName) {
-
-        String commonParameterPath =
-                String.format(PARAMETER_NAME_FORMAT, commonParameterPrefix, parameterName);
-
-        LOGGER.debug(LOG_MESSAGE_FORMAT, "getCommonParameterValue", commonParameterPath);
-
-        return ssmProvider.get(commonParameterPath);
     }
 
     public Map<String, String> getAllParametersFromPath(String path) {
