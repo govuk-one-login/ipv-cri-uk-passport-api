@@ -27,7 +27,7 @@ ext {
 		cri_common_lib_version             : "7.0.0",
 
 		// AWS SDK
-		aws_sdk_version                    : "2.34.3",
+		aws_sdk_version                    : "2.39.4",
 
 		aws_lambda_events_version          : "3.16.0",
 
