@@ -74,15 +74,3 @@ jobs:
     permissions:
       id-token: write
       contents: read
-
-  deploy-preview-stack:
-    name: Preview Stack Deployment
-    needs: pre-merge-integration-tests
-    uses: ./.github/workflows/deploy-branch.yml
-    secrets:
-      AWS_PRE_MERGE_ROLE_ARN: ${{ secrets.AWS_PRE_MERGE_ROLE_ARN }}
-      PREMERGE_PARAMETER_PREFIX_STACK_NAME: ${{ secrets.PREMERGE_PARAMETER_PREFIX_STACK_NAME }}
-      AWS_PRE_MERGE_S3_BUCKET_NAME: ${{ secrets.AWS_PRE_MERGE_S3_BUCKET_NAME }}
-    permissions:
-      id-token: write
-      contents: read
