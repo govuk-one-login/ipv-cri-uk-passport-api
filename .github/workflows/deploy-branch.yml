@@ -82,7 +82,7 @@ jobs:
         with:
           sam-deployment-bucket: ${{ secrets.AWS_PRE_MERGE_S3_BUCKET_NAME }}
           aws-role-arn: ${{ secrets.AWS_PRE_MERGE_ROLE_ARN }}
-          stack-name-prefix: preview-ipv-cri-uk-passport-api
+          stack-name: preview-${{ needs.build.outputs.sha_short}}
           cache-name: ipv-cri-uk-passport-api-${{ needs.build.outputs.sha_short}}
           s3-prefix: preview
           pull-repository: true
