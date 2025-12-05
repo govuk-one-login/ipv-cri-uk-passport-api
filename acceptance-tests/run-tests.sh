@@ -34,7 +34,12 @@ echo "ENVIRONMENT ${ENVIRONMENT}"
 echo "STACK_NAME ${STACK_NAME}"
 
 if [ "${STACK_NAME}" != "local" ]; then
-  export JOURNEY_TAG=$(aws ssm get-parameter --name "/tests/${STACK_NAME}/TestTag" | jq -r ".Parameter.Value")
+#  export JOURNEY_TAG=$(aws ssm get-parameter --name "/tests/${STACK_NAME}/TestTag" | jq -r ".Parameter.Value")
+  export JOURNEY_TAGS=$(aws ssm get-parameter --name "/tests/${STACK_NAME}/JourneyTags" | jq -r ".Parameter.Value")
+#
+#  JOURNEY_TAGS_JSON=$(aws ssm get-parameters-by-path --path "/tests/${STACK_NAME}/Tags/" --recursive --query "Parameters[*].Value" --output json)
+#  # Parse the JSON array into a comma-separated string
+#  export JOURNEY_TAGS=$(echo "${JOURNEY_TAGS_JSON}" | jq -r 'join(",")')
 
   PARAMETERS_NAMES=(coreStubPassword coreStubUrl coreStubUsername passportCriUrl apiBaseUrl orchestratorStubUrl API_GATEWAY_ID_PUBLIC)
   tLen=${#PARAMETERS_NAMES[@]}
