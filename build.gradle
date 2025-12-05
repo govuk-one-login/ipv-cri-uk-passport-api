@@ -69,6 +69,7 @@ ext {
 		// Contract Tests
 		pact_provider_version              : "4.6.18",
 		slf4j_log4j12_version              : "2.0.17", // For contract test debug
+		commons_io_version                 : "2.21.0"
 	]
 
 	// Sets the version used on the lambda + lib (ac tests have separate dependencies)
@@ -164,6 +165,9 @@ subprojects {
 		// Exclude netty in general
 		exclude group: "io.netty", module: "*"
 		exclude group: "io.grpc", module: "grpc-netty"
+
+		// Exclude tika in general
+		exclude group: "org.apache.tika", module: "*"
 	}
 
 	repositories {
