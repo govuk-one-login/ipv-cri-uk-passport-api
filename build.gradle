@@ -155,6 +155,11 @@ subprojects {
 	apply plugin: 'io.freefair.aspectj.post-compile-weaving'
 
 	configurations.configureEach {
+		resolutionStrategy {
+			// Remove once pact pulls in this or a newer version
+			force 'org.apache.tika:tika-core:3.2.3'
+		}
+
 		// These clients are excluded as we are using the aws-crt client exclusively
 		// https://aws.amazon.com/blogs/developer/tuning-the-aws-java-sdk-2-x-to-reduce-startup-time/
 		exclude group:"software.amazon.awssdk", module: "apache-client"
