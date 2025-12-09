@@ -105,10 +105,7 @@ class IssueCredentialHandlerTest {
 
     @au.com.dius.pact.provider.junitsupport.loader.PactBrokerConsumerVersionSelectors
     public static SelectorBuilder consumerVersionSelectors() {
-        return new SelectorBuilder()
-                .tag("PassportVcProvider")
-                .branch("main", "IpvCoreBack")
-                .deployedOrReleased();
+        return new SelectorBuilder().mainBranch();
     }
 
     @BeforeAll
