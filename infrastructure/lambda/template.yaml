@@ -1393,39 +1393,65 @@ Resources:
 #                                                                  #
 ####################################################################
 
+  AlarmSNSTopicKey:
+    Type: AWS::KMS::Key
+    Properties:
+      EnableKeyRotation: true
+      KeyPolicy:
+        Version: "2012-10-17"
+        Statement:
+          - Sid: "Allow Cloudwatch to enqueue encrypted messages"
+            Effect: Allow
+            Resource: "*"
+            Action:
+              - "kms:Decrypt"
+              - "kms:GenerateDataKey"
+            Principal:
+              Service:
+                - "cloudwatch.amazonaws.com"
+                - "sns.amazonaws.com"
+            Condition:
+              StringEquals:
+                aws:SourceAccount: !Ref "AWS::AccountId"
+          - Sid: "Allow the account to manage the key"
+            Effect: Allow
+            Principal:
+              AWS: !Sub "arn:aws:iam::${AWS::AccountId}:root"
+            Action: "kms:*"
+            Resource: "*"
+
   AlarmTopicPassport:
     Type: AWS::SNS::Topic
-    # checkov:skip=CKV_AWS_26: We will update this once basic alerting is available
+    Properties:
+      KmsMasterKeyId: !Ref AlarmSNSTopicKey
     Metadata:
       SamResourceId: AlarmTopicPassport
+
   AlarmTopicSubscriptionPagerDutyPassport:
     Type: AWS::SNS::Subscription
     Properties:
-      TopicArn:
-        Ref: AlarmTopicPassport
-      Endpoint:
-        Fn::Sub: '{{resolve:ssm:/alerting/pagerduty-passport/url}}'
+      TopicArn: !Ref AlarmTopicPassport
+      Endpoint: !Sub "{{resolve:ssm:/alerting/pagerduty-passport/url}}"
       Protocol: https
     Metadata:
       SamResourceId: AlarmTopicSubscriptionPagerDutyPassport
+
   AlarmPublishToTopicPolicyPassport:
     Type: AWS::SNS::TopicPolicy
     Properties:
       Topics:
-        - Ref: AlarmTopicPassport
+        - !Ref AlarmTopicPassport
       PolicyDocument:
-        Version: 2012-10-17
+        Version: "2012-10-17"
         Statement:
           - Effect: Allow
             Action: sns:Publish
-            Resource:
-              Ref: AlarmTopicPassport
+            Resource: !Ref AlarmTopicPassport
             Principal:
               Service: cloudwatch.amazonaws.com
             Condition:
               ArnLike:
-                AWS:SourceArn:
-                  Fn::Sub: arn:aws:cloudwatch:${AWS::Region}:${AWS::AccountId}:alarm:*
+                AWS:SourceArn: !Sub "arn:aws:cloudwatch:${AWS::Region}:${AWS::AccountId}:alarm:*"
     Metadata:
       SamResourceId: AlarmPublishToTopicPolicyPassport
 
