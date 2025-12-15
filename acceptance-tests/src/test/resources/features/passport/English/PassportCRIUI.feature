@@ -10,7 +10,7 @@ Feature: Passport CRI - UI Tests
     And I assert the url path contains details
     And I set the document checking route
 
-  @build @staging @integration @smoke @stub @uat
+  @smoke @stub @uat
   Scenario Outline: Passport details page happy path
     Given User enters data as a <PassportSubject>
     When User clicks on continue
@@ -24,7 +24,7 @@ Feature: Passport CRI - UI Tests
       | PassportSubject             |
       | PassportSubjectHappyKenneth |
 
-  @build @staging @integration @stub @uat
+  @stub @uat
   Scenario Outline: Passport details page unhappy path with IncorrectPassportNumber
     Given User enters data as a <PassportSubject>
     And User re-enters passport number as <InvalidPassportNumber>
@@ -40,7 +40,7 @@ Feature: Passport CRI - UI Tests
       | PassportSubject             | InvalidPassportNumber |
       | PassportSubjectHappyKenneth | 887766551             |
 
-  @build @staging @integration @stub @uat
+  @stub @uat
   Scenario Outline: Passport details page unhappy path with IncorrectDateOfBirth
     Given User enters data as a <PassportSubject>
     And User re-enters birth day as <InvalidBirthDay>
@@ -57,7 +57,7 @@ Feature: Passport CRI - UI Tests
       | PassportSubject             | InvalidBirthDay | InvalidBirthMonth | InvalidBirthYear |
       | PassportSubjectHappyKenneth | 12              | 08                | 1985             |
 
-  @build @staging @integration @stub @uat
+  @stub @uat
   Scenario Outline: Passport details page unhappy path with IncorrectFirstName
     Given User enters data as a <PassportSubject>
     And User re-enters first name as <InvalidFirstName>
@@ -72,7 +72,7 @@ Feature: Passport CRI - UI Tests
       | PassportSubject             | InvalidFirstName |
       | PassportSubjectHappyKenneth | SELINA           |
 
-  @build @staging @integration @stub @uat
+  @stub @uat
   Scenario Outline: Passport details page unhappy path with IncorrectLastName
     Given User enters data as a <PassportSubject>
     And User re-enters last name as <InvalidLastName>
@@ -87,7 +87,7 @@ Feature: Passport CRI - UI Tests
       | PassportSubject             | InvalidLastName |
       | PassportSubjectHappyKenneth | KYLE            |
 
-  @build @staging @integration @smoke @stub @uat
+  @smoke @stub @uat
   Scenario Outline: Passport Retry Test Happy Path
     Given User enters invalid passport details
     When User clicks on continue
@@ -102,7 +102,7 @@ Feature: Passport CRI - UI Tests
       | PassportSubject             |
       | PassportSubjectHappyKenneth |
 
-  @build @staging @integration @smoke @stub @uat
+  @smoke @stub @uat
   Scenario Outline: Passport User failed second attempt
     Given User enters invalid passport details
     When User clicks on continue
@@ -119,7 +119,7 @@ Feature: Passport CRI - UI Tests
       | PassportSubject             | InvalidPassportNumber |
       | PassportSubjectHappyKenneth | 887766551             |
 
-  @build @staging @integration @smoke @stub @uat
+  @smoke @stub @uat
   Scenario: Passport User cancels after failed first attempt
     Given User enters invalid passport details
     When User clicks on continue
@@ -137,7 +137,7 @@ Feature: Passport CRI - UI Tests
     And The test is complete and I close the driver
 # ##########   Field Validations ##########
 
-  @build @staging @integration @smoke @stub @uat
+  @smoke @stub @uat
   Scenario Outline: Passport Generate VC with invalid Passport number and prove in another way unhappy path
     Given User enters data as a <PassportSubject>
     And User re-enters passport number as <InvalidPassportNumber>
@@ -153,7 +153,7 @@ Feature: Passport CRI - UI Tests
       | PassportSubject             | InvalidPassportNumber |
       | PassportSubjectHappyKenneth | 887766551             |
 
-  @build @staging @integration @smoke @stub @uat
+  @smoke @stub @uat
   Scenario Outline: Passport expiry date valid
     Given User enters data as a <PassportSubject>
     Then User enters expiry date as current date minus <months> months and minus <daysToSubtract> days
@@ -167,7 +167,7 @@ Feature: Passport CRI - UI Tests
       | PassportSubject             | months | daysToSubtract |
       | PassportSubjectHappyKenneth | 18     | 0              |
 
-  @build @staging @integration @smoke @stub @uat
+  @smoke @stub @uat
   Scenario Outline: Passport expiry date invalid
     Given User enters data as a <PassportSubject>
     Then User enters expiry date as current date minus <months> months and minus <daysToSubtract> days
@@ -182,13 +182,13 @@ Feature: Passport CRI - UI Tests
       | PassportSubjectHappyKenneth | 18     | 1              |
       | PassportSubjectHappyKenneth | 18     | 2              |
 
-  @build @staging @integration @stub @uat
+  @stub @uat
   Scenario: Check the Unrecoverable error/ Unknown error in Passport CRI
     Given I delete the service_session cookie to get the unexpected error
     When I check the page title is Sorry, there is a problem – GOV.UK One Login
     And The test is complete and I close the driver
 
-  @build @stub
+  @stub
   Scenario Outline: Error tab title validation
     And I check the page title is Enter your details exactly as they appear on your UK passport – GOV.UK One Login
     Then User enters data as a <PassportSubject>
@@ -221,7 +221,7 @@ Feature: Passport CRI - UI Tests
       | PassportSubjectHappyKenneth | 321654987             | DECERQUEIRA     | KENNETH          | 08              | 07                | 1965             | 10                | 01                  | 2010               | ValidToDateInPast                     |
       | PassportSubjectHappyKenneth | 555667^&*             | DECERQUEIRA     | KENNETH          | 08              | 07                | 1965             | 01                | 10                  | 2042               | PassportNumberWithSpecialChar         |
 
-  @build @Language-regression
+  @language-regression
   Scenario Outline: Language Title validation
     Given User clicks on language toggle and switches to Welsh
     Then I check the page title is Rhowch eich manylion yn union fel maent yn ymddangos ar eich pasbort y DU – GOV.UK One Login
