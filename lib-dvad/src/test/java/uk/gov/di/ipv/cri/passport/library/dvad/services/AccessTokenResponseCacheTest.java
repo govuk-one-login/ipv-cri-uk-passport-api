@@ -1,6 +1,7 @@
 package uk.gov.di.ipv.cri.passport.library.dvad.services;
 
 import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.CsvSource;
@@ -13,6 +14,7 @@ import java.time.Instant;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static uk.gov.di.ipv.cri.passport.library.dvad.services.AccessTokenResponseCache.INVALID_EXPIRY_WINDOW_ERROR_MESSAGE;
 
+@Tag("QualityGateUnitTest")
 @ExtendWith(MockitoExtension.class)
 class AccessTokenResponseCacheTest {
 
