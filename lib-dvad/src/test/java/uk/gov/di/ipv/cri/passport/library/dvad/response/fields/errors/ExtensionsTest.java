@@ -2,6 +2,7 @@ package uk.gov.di.ipv.cri.passport.library.dvad.response.fields.errors;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
 import uk.gov.di.ipv.cri.passport.library.dvad.domain.response.fields.errors.Extensions;
 
@@ -11,6 +12,7 @@ import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 
+@Tag("QualityGateUnitTest")
 class ExtensionsTest {
     // Extensions tested to ensure Deserialization can handle
     // incoming classification field as object or string

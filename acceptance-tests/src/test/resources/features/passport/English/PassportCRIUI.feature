@@ -1,4 +1,4 @@
-@hmpoDVAD
+@hmpoDVAD @QualityGateSmokeTest
 Feature: Passport CRI - UI Tests
 
   Background:

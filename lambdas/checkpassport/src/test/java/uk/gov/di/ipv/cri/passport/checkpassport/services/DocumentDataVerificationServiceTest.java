@@ -3,6 +3,7 @@ package uk.gov.di.ipv.cri.passport.checkpassport.services;
 import org.apache.http.HttpStatus;
 import org.apache.logging.log4j.Level;
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.junit.jupiter.params.ParameterizedTest;
@@ -53,6 +54,7 @@ import static uk.gov.di.ipv.cri.passport.library.metrics.Definitions.DOCUMENT_DA
 import static uk.gov.di.ipv.cri.passport.library.metrics.Definitions.FORM_DATA_VALIDATION_FAIL;
 import static uk.gov.di.ipv.cri.passport.library.metrics.Definitions.FORM_DATA_VALIDATION_PASS;
 
+@Tag("QualityGateUnitTest")
 @ExtendWith(MockitoExtension.class)
 class DocumentDataVerificationServiceTest {
 
