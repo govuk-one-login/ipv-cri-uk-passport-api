@@ -21,6 +21,7 @@ configurations {
 dependencies {
 
 	var aws_powertools_version = "1.18.0"
+	var java_cucumber_version = "7.33.0"
 	var aws_cdk_version = "2.120.0"
 	var dependencyVersions = [
 
@@ -57,14 +58,14 @@ dependencies {
 
 		// acceptance tests Implementation
 		// Update these together
-		cucumber_version                   : "7.23.0",
-		selenium_version                   : "4.35.0",
-		axe_core_selenium_version          : "4.10.2",
-		webdrivermanager_version           : "6.3.2",
+		cucumber_version                   : "${java_cucumber_version}",
+		selenium_version                   : "4.40.0",
+		axe_core_selenium_version          : "4.11.0",
+		webdrivermanager_version           : "6.3.3",
 
 		// acceptance tests testImplementation
 		rest_assured_version               : "5.5.6",
-		cucumber_junit_version             : "7.23.0",
+		cucumber_junit_version             : "${java_cucumber_version}",
 		aws_cdk_version                    : "${aws_cdk_version}"
 	]
 
