@@ -93,7 +93,6 @@
         {
           "check-types": [
             "integration",
-            "new feature",
             "regression",
             "stack"
           ],
