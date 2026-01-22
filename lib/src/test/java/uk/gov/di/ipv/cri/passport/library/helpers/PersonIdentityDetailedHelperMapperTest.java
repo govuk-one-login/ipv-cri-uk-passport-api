@@ -1,6 +1,5 @@
 package uk.gov.di.ipv.cri.passport.library.helpers;
 
-import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.junit.jupiter.MockitoExtension;
@@ -21,7 +20,6 @@ import java.util.UUID;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNull;
 
-@Tag("QualityGateUnitTest")
 @ExtendWith(MockitoExtension.class)
 class PersonIdentityDetailedHelperMapperTest {
 

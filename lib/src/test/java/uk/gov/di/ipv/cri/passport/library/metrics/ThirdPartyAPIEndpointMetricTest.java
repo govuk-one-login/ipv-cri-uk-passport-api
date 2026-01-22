@@ -1,6 +1,5 @@
 package uk.gov.di.ipv.cri.passport.library.metrics;
 
-import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.junit.jupiter.MockitoExtension;
@@ -21,7 +20,6 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
 import static uk.gov.di.ipv.cri.passport.library.metrics.ThirdPartyAPIMetricEndpointPrefix.DVAD_THIRD_PARTY_API_HEALTH_ENDPOINT;
 import static uk.gov.di.ipv.cri.passport.library.metrics.ThirdPartyAPIMetricEndpointPrefix.DVAD_THIRD_PARTY_API_TOKEN_ENDPOINT;
 
-@Tag("QualityGateUnitTest")
 @ExtendWith(MockitoExtension.class)
 class ThirdPartyAPIEndpointMetricTest {
 

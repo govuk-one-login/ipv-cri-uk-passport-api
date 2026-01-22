@@ -75,7 +75,6 @@ import static uk.gov.di.ipv.cri.common.library.util.VerifiableCredentialClaimsSe
 import static uk.gov.di.ipv.cri.common.library.util.VerifiableCredentialClaimsSetBuilder.ENV_VAR_FEATURE_FLAG_VC_EXPIRY_REMOVED;
 import static uk.gov.di.ipv.cri.passport.library.config.ParameterStoreParameters.MAX_JWT_TTL_UNIT;
 
-@Tag("QualityGateContractTest")
 @Tag("Pact")
 @Provider("PassportVcProvider")
 @PactBroker(

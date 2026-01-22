@@ -212,3 +212,14 @@ To skip canaries such as when releasing urgent changes to production, set the la
 
 Note: To update LambdaDeploymentPreference, update the LambdaCanaryDeployment pipeline parameter in the [identity-common-infra repository](https://github.com/govuk-one-login/identity-common-infra/tree/main/terraform/lime/passport). To update the LambdaDeploymentPreference for a stack in dev using sam deploy, parameter override needs to be set in the [deploy script](./deploy.sh).
 `--parameter-overrides LambdaDeploymentPreference=<define-strategy> \`
+
+## Quality Gate Tags
+
+All API tests should be tagged with `@QualityGateIntegrationTest`. If a test runs in our pipelines (ie in Build), and tests live features, we should tag them with `@QualityGateRegressionTest`.
+If the test is for an in-development feature, we should tag it with `@QualityGateNewFeatureTest`.
+Tests that run in build and staging environments to verify essential functionality should be tagged with`@QualityGateSmokeTest`.
+Infrastructure and stack validation tests should be tagged with `@QualityGateStackTest`.
+
+Once a feature goes live, `@QualityGateNewFeatureTest` tags need to be updated to `@QualityGateRegressionTest`.
+To facilitate this update, API tests for in-development work should be placed in their own feature files, if possible, so the tests can be tagged at the Feature level rather than the Scenario level.
+Ideally, tests tagged with `@QualityGateNewFeatureTest` should be marked with a TODO and reference a post-go-live clean-up ticket so they can be easily identified and updated.

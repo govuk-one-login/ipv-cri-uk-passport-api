@@ -172,7 +172,7 @@ tasks.register('smokeTestBuild') {
 				'uk/gov/di/ipv/cri/passport/acceptance_tests/step_definitions',
 				'src/test/resources/features/',
 				'--tags',
-				'@smoke'
+				'@smoke-build'
 			]
 		}
 	}
@@ -193,7 +193,7 @@ tasks.register('smokeTestStaging') {
 				'uk/gov/di/ipv/cri/passport/acceptance_tests/step_definitions',
 				'src/test/resources/features/',
 				'--tags',
-				'@staging'
+				'@smoke-staging'
 			]
 		}
 	}
