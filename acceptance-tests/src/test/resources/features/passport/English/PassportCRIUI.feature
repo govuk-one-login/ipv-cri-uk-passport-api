@@ -1,4 +1,4 @@
-@hmpoDVAD @QualityGateSmokeTest
+@hmpoDVAD @QualityGateSmokeTest @QualityGateRegressionTest @QualityGateIntegrationTest
 Feature: Passport CRI - UI Tests
 
   Background:
@@ -10,7 +10,7 @@ Feature: Passport CRI - UI Tests
     And I assert the url path contains details
     And I set the document checking route
 
-  @smoke @stub @uat
+  @smoke-build @stub @uat
   Scenario Outline: Passport details page happy path
     Given User enters data as a <PassportSubject>
     When User clicks on continue
@@ -87,7 +87,7 @@ Feature: Passport CRI - UI Tests
       | PassportSubject             | InvalidLastName |
       | PassportSubjectHappyKenneth | KYLE            |
 
-  @smoke @stub @uat
+  @stub @uat
   Scenario Outline: Passport Retry Test Happy Path
     Given User enters invalid passport details
     When User clicks on continue
@@ -102,7 +102,7 @@ Feature: Passport CRI - UI Tests
       | PassportSubject             |
       | PassportSubjectHappyKenneth |
 
-  @smoke @stub @uat
+  @stub @uat
   Scenario Outline: Passport User failed second attempt
     Given User enters invalid passport details
     When User clicks on continue
@@ -119,7 +119,7 @@ Feature: Passport CRI - UI Tests
       | PassportSubject             | InvalidPassportNumber |
       | PassportSubjectHappyKenneth | 887766551             |
 
-  @smoke @stub @uat
+  @stub @uat
   Scenario: Passport User cancels after failed first attempt
     Given User enters invalid passport details
     When User clicks on continue
@@ -137,7 +137,7 @@ Feature: Passport CRI - UI Tests
     And The test is complete and I close the driver
 # ##########   Field Validations ##########
 
-  @smoke @stub @uat
+  @stub @uat
   Scenario Outline: Passport Generate VC with invalid Passport number and prove in another way unhappy path
     Given User enters data as a <PassportSubject>
     And User re-enters passport number as <InvalidPassportNumber>
@@ -153,7 +153,7 @@ Feature: Passport CRI - UI Tests
       | PassportSubject             | InvalidPassportNumber |
       | PassportSubjectHappyKenneth | 887766551             |
 
-  @smoke @stub @uat
+  @stub @uat
   Scenario Outline: Passport expiry date valid
     Given User enters data as a <PassportSubject>
     Then User enters expiry date as current date minus <months> months and minus <daysToSubtract> days
@@ -167,7 +167,7 @@ Feature: Passport CRI - UI Tests
       | PassportSubject             | months | daysToSubtract |
       | PassportSubjectHappyKenneth | 18     | 0              |
 
-  @smoke @stub @uat
+  @stub @uat
   Scenario Outline: Passport expiry date invalid
     Given User enters data as a <PassportSubject>
     Then User enters expiry date as current date minus <months> months and minus <daysToSubtract> days

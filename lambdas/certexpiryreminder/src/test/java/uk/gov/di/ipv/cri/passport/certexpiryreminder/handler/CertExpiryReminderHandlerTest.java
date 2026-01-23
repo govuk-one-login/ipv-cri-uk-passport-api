@@ -2,7 +2,6 @@ package uk.gov.di.ipv.cri.passport.certexpiryreminder.handler;
 
 import com.amazonaws.services.lambda.runtime.Context;
 import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
@@ -24,7 +23,6 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.when;
 
-@Tag("QualityGateUnitTest")
 @ExtendWith(MockitoExtension.class)
 class CertExpiryReminderHandlerTest {
 

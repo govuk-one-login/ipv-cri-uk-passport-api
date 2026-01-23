@@ -3,7 +3,6 @@ package uk.gov.di.ipv.cri.passport.checkpassport.services;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.junit.jupiter.params.ParameterizedTest;
@@ -33,7 +32,6 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 import static uk.gov.di.ipv.cri.passport.library.config.ParameterStoreParameters.CONTRAINDICATION_MAPPINGS;
 
-@Tag("QualityGateUnitTest")
 @ExtendWith(SystemStubsExtension.class)
 @ExtendWith(MockitoExtension.class)
 class ContraindicationMappingsTest {

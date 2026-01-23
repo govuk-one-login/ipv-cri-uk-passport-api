@@ -1,4 +1,4 @@
-@QualityGateStackTest @QualityGateRegressionTest @QualityGateIntegrationTest @QualityGateNewFeatureTest
+@QualityGateStackTest @QualityGateRegressionTest @QualityGateIntegrationTest
 Feature: Passport CRI - API Tests
 
   @hmpoDVAD @pre-merge @dev

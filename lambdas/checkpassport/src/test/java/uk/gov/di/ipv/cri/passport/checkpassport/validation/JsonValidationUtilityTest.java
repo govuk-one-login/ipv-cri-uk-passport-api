@@ -1,7 +1,6 @@
 package uk.gov.di.ipv.cri.passport.checkpassport.validation;
 
 import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
 
 import java.lang.reflect.Constructor;
@@ -15,7 +14,6 @@ import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
-@Tag("QualityGateUnitTest")
 class JsonValidationUtilityTest {
 
     private static List<String> TEST_LIST;

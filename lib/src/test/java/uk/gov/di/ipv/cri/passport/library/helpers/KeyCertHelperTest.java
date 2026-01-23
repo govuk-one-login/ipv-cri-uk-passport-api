@@ -1,6 +1,5 @@
 package uk.gov.di.ipv.cri.passport.library.helpers;
 
-import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.junit.jupiter.MockitoExtension;
@@ -14,7 +13,6 @@ import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static uk.gov.di.ipv.cri.passport.library.CertAndKeyTestFixtures.TEST_ROOT_CRT;
 import static uk.gov.di.ipv.cri.passport.library.CertAndKeyTestFixtures.TEST_TLS_KEY;
 
-@Tag("QualityGateUnitTest")
 @ExtendWith(MockitoExtension.class)
 class KeyCertHelperTest {
 

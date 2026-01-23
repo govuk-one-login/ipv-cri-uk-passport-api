@@ -1,4 +1,4 @@
-@hmpoDVAD @QualityGateSmokeTest
+@hmpoDVAD @QualityGateRegressionTest @QualityGateIntegrationTest
 Feature: Passport CRI - API Tests (Stub and Uat)
 
   @build-api @staging-api @stub @uat

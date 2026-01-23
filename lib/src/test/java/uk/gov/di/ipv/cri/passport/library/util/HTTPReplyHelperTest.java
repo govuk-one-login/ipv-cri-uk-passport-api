@@ -1,7 +1,6 @@
 package uk.gov.di.ipv.cri.passport.library.util;
 
 import org.apache.http.HttpResponse;
-import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.junit.jupiter.MockitoExtension;
@@ -11,7 +10,6 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static uk.gov.di.ipv.cri.passport.library.HttpResponseFixtures.createHttpResponse;
 
-@Tag("QualityGateUnitTest")
 @ExtendWith(MockitoExtension.class)
 class HTTPReplyHelperTest {
 

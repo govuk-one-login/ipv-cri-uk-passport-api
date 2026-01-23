@@ -1,14 +1,12 @@
 package uk.gov.di.ipv.cri.passport.library.config;
 
 import org.apache.http.client.config.RequestConfig;
-import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.junit.jupiter.MockitoExtension;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
-@Tag("QualityGateUnitTest")
 @ExtendWith(MockitoExtension.class)
 class HttpRequestConfigTest {
 
