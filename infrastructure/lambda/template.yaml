@@ -1002,9 +1002,9 @@ Resources:
       AlarmDescription: !Sub Passport ${Environment} - Common API Session Lambda concurrency threshold reached
       ActionsEnabled: true
       AlarmActions:
-        - !If [ IsProdEnvironment, !Ref AlarmTopicPassport, !ImportValue platform-alarm-critical-alert-topic ]
+        - !ImportValue platform-alarm-critical-alert-topic
       OKActions:
-        - !If [ IsProdEnvironment, !Ref AlarmTopicPassport, !ImportValue platform-alarm-critical-alert-topic ]
+        - !ImportValue platform-alarm-critical-alert-topic
       InsufficientDataActions: []
       MetricName: ConcurrentExecutions
       Namespace: AWS/Lambda
@@ -1027,9 +1027,9 @@ Resources:
       AlarmDescription: !Sub Passport ${Environment} - Common API Session Lambda all aliases unavailable for decryption
       ActionsEnabled: true
       AlarmActions:
-        - !If [ IsProdEnvironment, !Ref AlarmTopicPassport, !ImportValue platform-alarm-critical-alert-topic ]
+        - !ImportValue platform-alarm-critical-alert-topic
       OKActions:
-        - !If [ IsProdEnvironment, !Ref AlarmTopicPassport, !ImportValue platform-alarm-critical-alert-topic ]
+        - !ImportValue platform-alarm-critical-alert-topic
       InsufficientDataActions: [ ]
       MetricName: all_aliases_unavailable_for_decryption
       Namespace: !Sub "${CriIdentifier}"
@@ -1052,9 +1052,9 @@ Resources:
       AlarmDescription: !Sub Passport ${Environment} - Common API - Errors verifying JWTs that have been been received by the session lambda.
       ActionsEnabled: true
       AlarmActions:
-        - !If [ IsProdEnvironment, !Ref AlarmTopicPassport, !ImportValue platform-alarm-critical-alert-topic ]
+        - !ImportValue platform-alarm-critical-alert-topic
       OKActions:
-        - !If [ IsProdEnvironment, !Ref AlarmTopicPassport, !ImportValue platform-alarm-critical-alert-topic ]
+        - !ImportValue platform-alarm-critical-alert-topic
       InsufficientDataActions: [ ]
       MetricName: jwt_verification_failed
       Namespace: !Sub "${CriIdentifier}"
@@ -1076,9 +1076,9 @@ Resources:
       AlarmDescription: !Sub Passport ${Environment} - Common API Authorization Lambda concurrency threshold reached
       ActionsEnabled: true
       AlarmActions:
-        - !If [ IsProdEnvironment, !Ref AlarmTopicPassport, !ImportValue platform-alarm-critical-alert-topic ]
+        - !ImportValue platform-alarm-critical-alert-topic
       OKActions:
-        - !If [ IsProdEnvironment, !Ref AlarmTopicPassport, !ImportValue platform-alarm-critical-alert-topic ]
+        - !ImportValue platform-alarm-critical-alert-topic
       InsufficientDataActions: []
       MetricName: ConcurrentExecutions
       Namespace: AWS/Lambda
@@ -1100,9 +1100,9 @@ Resources:
       AlarmDescription: !Sub Passport ${Environment} - Common API AccessToken Lambda concurrency threshold reached
       ActionsEnabled: true
       AlarmActions:
-        - !If [ IsProdEnvironment, !Ref AlarmTopicPassport, !ImportValue platform-alarm-critical-alert-topic ]
+        - !ImportValue platform-alarm-critical-alert-topic
       OKActions:
-        - !If [ IsProdEnvironment, !Ref AlarmTopicPassport, !ImportValue platform-alarm-critical-alert-topic ]
+        - !ImportValue platform-alarm-critical-alert-topic
       InsufficientDataActions: []
       MetricName: ConcurrentExecutions
       Namespace: AWS/Lambda
@@ -1125,9 +1125,9 @@ Resources:
       AlarmDescription: !Sub Passport ${Environment} - Common API - Errors verifying JWTs that have been been received by the token lambda.
       ActionsEnabled: true
       AlarmActions:
-        - !If [ IsProdEnvironment, !Ref AlarmTopicPassport, !ImportValue platform-alarm-critical-alert-topic ]
+        - !ImportValue platform-alarm-critical-alert-topic
       OKActions:
-        - !If [ IsProdEnvironment, !Ref AlarmTopicPassport, !ImportValue platform-alarm-critical-alert-topic ]
+        - !ImportValue platform-alarm-critical-alert-topic
       InsufficientDataActions: [ ]
       MetricName: jwt_verification_failed
       Namespace: !Sub "${CriIdentifier}"
@@ -1150,9 +1150,9 @@ Resources:
       AlarmDescription: !Sub Passport ${Environment} - CheckPassportFunction Lambda concurrency threshold reached
       ActionsEnabled: true
       AlarmActions:
-        - !If [ IsProdEnvironment, !Ref AlarmTopicPassport, !ImportValue platform-alarm-critical-alert-topic ]
+        - !ImportValue platform-alarm-critical-alert-topic
       OKActions:
-        - !If [ IsProdEnvironment, !Ref AlarmTopicPassport, !ImportValue platform-alarm-critical-alert-topic ]
+        - !ImportValue platform-alarm-critical-alert-topic
       InsufficientDataActions: []
       MetricName: ConcurrentExecutions
       Namespace: AWS/Lambda
@@ -1174,9 +1174,9 @@ Resources:
       AlarmDescription: !Sub Passport ${Environment} - IssueCredential Lambda concurrency threshold reached
       ActionsEnabled: true
       AlarmActions:
-        - !If [ IsProdEnvironment, !Ref AlarmTopicPassport, !ImportValue platform-alarm-critical-alert-topic ]
+        - !ImportValue platform-alarm-critical-alert-topic
       OKActions:
-        - !If [ IsProdEnvironment, !Ref AlarmTopicPassport, !ImportValue platform-alarm-critical-alert-topic ]
+        - !ImportValue platform-alarm-critical-alert-topic
       InsufficientDataActions: []
       MetricName: ConcurrentExecutions
       Namespace: AWS/Lambda
@@ -1198,9 +1198,9 @@ Resources:
       AlarmDescription: !Sub Passport ${Environment} lambda errors
       ActionsEnabled: true
       AlarmActions:
-        - !If [ IsProdEnvironment, !Ref AlarmTopicPassport, !ImportValue platform-alarm-critical-alert-topic ]
+        - !ImportValue platform-alarm-critical-alert-topic
       OKActions:
-        - !If [ IsProdEnvironment, !Ref AlarmTopicPassport, !ImportValue platform-alarm-critical-alert-topic ]
+        - !ImportValue platform-alarm-critical-alert-topic
       InsufficientDataActions: []
       MetricName: Errors
       Namespace: AWS/Lambda
@@ -1220,9 +1220,9 @@ Resources:
       AlarmDescription: !Sub Passport ${Environment} API Gateway 5XX errors
       ActionsEnabled: true
       AlarmActions:
-        - !If [ IsProdEnvironment, !Ref AlarmTopicPassport, !ImportValue platform-alarm-critical-alert-topic ]
+        - !ImportValue platform-alarm-critical-alert-topic
       OKActions:
-        - !If [ IsProdEnvironment, !Ref AlarmTopicPassport, !ImportValue platform-alarm-critical-alert-topic ]
+        - !ImportValue platform-alarm-critical-alert-topic
       InsufficientDataActions: []
       Dimensions: []
       DatapointsToAlarm: 3
@@ -1401,74 +1401,6 @@ Resources:
       ComparisonOperator: GreaterThanOrEqualToThreshold
       TreatMissingData: notBreaching
 
-
-####################################################################
-#                                                                  #
-# Alarm setup                                                      #
-#                                                                  #
-####################################################################
-
-  AlarmSNSTopicKey:
-    Type: AWS::KMS::Key
-    Properties:
-      EnableKeyRotation: true
-      KeyPolicy:
-        Version: "2012-10-17"
-        Statement:
-          - Sid: "Allow Cloudwatch to enqueue encrypted messages"
-            Effect: Allow
-            Resource: "*"
-            Action:
-              - "kms:Decrypt"
-              - "kms:GenerateDataKey"
-            Principal:
-              Service:
-                - "cloudwatch.amazonaws.com"
-                - "sns.amazonaws.com"
-            Condition:
-              StringEquals:
-                aws:SourceAccount: !Ref "AWS::AccountId"
-          - Sid: "Allow the account to manage the key"
-            Effect: Allow
-            Principal:
-              AWS: !Sub "arn:aws:iam::${AWS::AccountId}:root"
-            Action: "kms:*"
-            Resource: "*"
-
-  AlarmTopicPassport:
-    Type: AWS::SNS::Topic
-    Properties:
-      KmsMasterKeyId: !Ref AlarmSNSTopicKey
-    Metadata:
-      SamResourceId: AlarmTopicPassport
-
-  AlarmTopicSubscriptionPagerDutyPassport:
-    Type: AWS::SNS::Subscription
-    Properties:
-      TopicArn: !Ref AlarmTopicPassport
-      Endpoint: !Sub "{{resolve:ssm:/alerting/pagerduty-passport/url}}"
-      Protocol: https
-    Metadata:
-      SamResourceId: AlarmTopicSubscriptionPagerDutyPassport
-
-  AlarmPublishToTopicPolicyPassport:
-    Type: AWS::SNS::TopicPolicy
-    Properties:
-      Topics:
-        - !Ref AlarmTopicPassport
-      PolicyDocument:
-        Version: "2012-10-17"
-        Statement:
-          - Effect: Allow
-            Action: sns:Publish
-            Resource: !Ref AlarmTopicPassport
-            Principal:
-              Service: cloudwatch.amazonaws.com
-            Condition:
-              ArnLike:
-                AWS:SourceArn: !Sub "arn:aws:cloudwatch:${AWS::Region}:${AWS::AccountId}:alarm:*"
-    Metadata:
-      SamResourceId: AlarmPublishToTopicPolicyPassport
 
   ####################################################################
   #                                                                  #
