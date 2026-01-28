@@ -51,6 +51,8 @@ else
   export JOURNEY_TAG="${TEST_TAG}"
 fi
 
+echo "Cucumber Journey Tags being used: ${JOURNEY_TAG}"
+
 pushd /home/gradle
 gradle cucumber -P tags="${JOURNEY_TAG}"
 popd
