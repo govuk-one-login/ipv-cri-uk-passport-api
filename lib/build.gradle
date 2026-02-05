@@ -40,7 +40,6 @@ dependencies {
 			"org.junit.jupiter:junit-jupiter-params",
 			"org.mockito:mockito-junit-jupiter:${dependencyVersions.mockito_version}",
 			"org.mockito:mockito-core:${dependencyVersions.mockito_version}",
-			"org.hamcrest:hamcrest:${dependencyVersions.hamcrest_version}",
 			"uk.org.webcompere:system-stubs-core:${dependencyVersions.webcompere_version}",
 			"uk.org.webcompere:system-stubs-jupiter:${dependencyVersions.webcompere_version}"
 
