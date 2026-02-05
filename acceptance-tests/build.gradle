@@ -85,7 +85,7 @@ dependencies {
 			"org.mockito:mockito-junit-jupiter:${dependencyVersions.mockito_version}",
 			"org.mockito:mockito-core:${dependencyVersions.mockito_version}",
 			"com.google.code.gson:gson:${dependencyVersions.gson_version}",
-			"org.json:json:20250107"
+			"org.json:json:20251224"
 
 	implementation "io.cucumber:cucumber-java:${dependencyVersions.cucumber_version}",
 			"org.seleniumhq.selenium:selenium-java:${dependencyVersions.selenium_version}",
