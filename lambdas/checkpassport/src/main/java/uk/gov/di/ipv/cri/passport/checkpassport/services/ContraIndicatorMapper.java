@@ -1,7 +1,7 @@
 package uk.gov.di.ipv.cri.passport.checkpassport.services;
 
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import uk.gov.di.ipv.cri.passport.checkpassport.domain.result.fields.ContraIndicatorMapperResult;
 import uk.gov.di.ipv.cri.passport.library.service.ParameterStoreService;
 import uk.gov.di.ipv.cri.passport.library.service.ServiceFactory;
@@ -31,7 +31,7 @@ public class ContraIndicatorMapper {
     private static final String CI_MAP = "CIMap";
 
     // Non-static as Log-line output in this class is tested
-    private final Logger logger = LogManager.getLogger();
+    private final Logger logger = LoggerFactory.getLogger(ContraIndicatorMapper.class);
 
     // Indexed by Flag
     private final Map<String, ContraIndicatorComplexMapping> flagToContraIndicatorMappings =

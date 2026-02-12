@@ -113,6 +113,7 @@ class CheckPassportHandlerTest {
         environmentVariables.set("DVAD_PERFORMANCE_STUB_IN_USE", "false");
         environmentVariables.set("DEV_ENVIRONMENT_ONLY_ENHANCED_DEBUG", "false");
         environmentVariables.set("SESSION_TTL", 7200L);
+        environmentVariables.set("POWERTOOLS_METRICS_NAMESPACE", "StackName");
 
         when(mockParameterStoreService.getParameterValue("HMPODVAD/API/EndpointUrl"))
                 .thenReturn("http://localhost");

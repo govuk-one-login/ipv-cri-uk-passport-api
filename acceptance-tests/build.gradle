@@ -20,12 +20,12 @@ configurations {
 
 dependencies {
 
-	var aws_powertools_version = "1.18.0"
+	var aws_powertools_version = "2.9.0"
 	var java_cucumber_version = "7.33.0"
 	var aws_cdk_version = "2.120.0"
 	var dependencyVersions = [
 
-		cri_common_lib_version             : "7.0.0",
+		cri_common_lib_version             : "8.3.0",
 
 		// CRI_LIB aws
 		aws_sdk_version                    : "2.34.3",
@@ -90,9 +90,8 @@ dependencies {
 	implementation "io.cucumber:cucumber-java:${dependencyVersions.cucumber_version}",
 			"org.seleniumhq.selenium:selenium-java:${dependencyVersions.selenium_version}",
 			"io.github.bonigarcia:webdrivermanager:${dependencyVersions.webdrivermanager_version}",
-			"com.deque.html.axe-core:selenium:${dependencyVersions.axe_core_selenium_version}"
-
-	aspect "software.amazon.lambda:powertools-logging:${dependencyVersions.aws_powertools_logging_version}",
+			"com.deque.html.axe-core:selenium:${dependencyVersions.axe_core_selenium_version}",
+			"software.amazon.lambda:powertools-logging-log4j:${dependencyVersions.aws_powertools_logging_version}",
 			"software.amazon.lambda:powertools-metrics:${dependencyVersions.aws_powertools_metrics_version}",
 			"software.amazon.lambda:powertools-parameters:${dependencyVersions.aws_powertools_parameters_version}"
 

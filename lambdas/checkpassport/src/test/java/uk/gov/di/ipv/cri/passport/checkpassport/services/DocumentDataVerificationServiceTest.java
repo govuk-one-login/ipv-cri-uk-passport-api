@@ -1,7 +1,6 @@
 package uk.gov.di.ipv.cri.passport.checkpassport.services;
 
 import org.apache.http.HttpStatus;
-import org.apache.logging.log4j.Level;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -277,11 +276,6 @@ class DocumentDataVerificationServiceTest {
                 new OAuthErrorResponseException(
                         HttpStatus.SC_INTERNAL_SERVER_ERROR,
                         ErrorResponse.FAILED_TO_SEND_AUDIT_MESSAGE_TO_SQS_QUEUE);
-
-        when(mockEventProbe.log(
-                        any(Level.class),
-                        eq(ErrorResponse.FAILED_TO_SEND_AUDIT_MESSAGE_TO_SQS_QUEUE.getMessage())))
-                .thenReturn(mockEventProbe);
 
         doThrow(exceptionCaught)
                 .when(mockAuditService)

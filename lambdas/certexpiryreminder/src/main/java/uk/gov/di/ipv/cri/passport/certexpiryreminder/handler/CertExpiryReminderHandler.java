@@ -2,15 +2,16 @@ package uk.gov.di.ipv.cri.passport.certexpiryreminder.handler;
 
 import com.amazonaws.services.lambda.runtime.Context;
 import com.amazonaws.services.lambda.runtime.RequestHandler;
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
-import software.amazon.lambda.powertools.logging.CorrelationIdPathConstants;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import software.amazon.lambda.powertools.logging.CorrelationIdPaths;
 import software.amazon.lambda.powertools.logging.Logging;
-import software.amazon.lambda.powertools.metrics.Metrics;
+import software.amazon.lambda.powertools.metrics.FlushMetrics;
 import uk.gov.di.ipv.cri.common.library.annotations.ExcludeFromGeneratedCoverageReport;
 import uk.gov.di.ipv.cri.common.library.util.ClientProviderFactory;
 import uk.gov.di.ipv.cri.common.library.util.EventProbe;
 import uk.gov.di.ipv.cri.passport.certexpiryreminder.handler.config.CertExpiryReminderConfig;
+import uk.gov.di.ipv.cri.passport.library.logging.LoggingSupport;
 import uk.gov.di.ipv.cri.passport.library.service.ParameterStoreService;
 
 import java.security.cert.CertificateException;
@@ -26,7 +27,11 @@ import static uk.gov.di.ipv.cri.passport.library.metrics.Definitions.CERTIFICATE
 
 public class CertExpiryReminderHandler implements RequestHandler<Object, Object> {
 
-    private static final Logger LOGGER = LogManager.getLogger();
+    private static final Logger LOGGER = LoggerFactory.getLogger(CertExpiryReminderHandler.class);
+
+    static {
+        LoggingSupport.populateLambdaInitLoggerValues();
+    }
 
     private final ParameterStoreService parameterStoreService;
 
@@ -60,8 +65,8 @@ public class CertExpiryReminderHandler implements RequestHandler<Object, Object>
     }
 
     @Override
-    @Metrics(captureColdStart = true)
-    @Logging(correlationIdPath = CorrelationIdPathConstants.EVENT_BRIDGE)
+    @FlushMetrics(captureColdStart = true)
+    @Logging(correlationIdPath = CorrelationIdPaths.EVENT_BRIDGE)
     public Object handleRequest(Object input, Context context) {
         LOGGER.info("Handling requests");
 

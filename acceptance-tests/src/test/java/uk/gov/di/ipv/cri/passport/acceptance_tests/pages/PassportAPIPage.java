@@ -8,11 +8,10 @@ import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import com.nimbusds.jwt.SignedJWT;
 import org.apache.commons.lang3.StringUtils;
-import org.apache.logging.log4j.Level;
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
 import org.json.JSONObject;
 import org.junit.Assert;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import uk.gov.di.ipv.cri.passport.acceptance_tests.model.AuthorisationResponse;
 import uk.gov.di.ipv.cri.passport.acceptance_tests.model.CheckPassportSuccessResponse;
 import uk.gov.di.ipv.cri.passport.acceptance_tests.model.PassportFormData;
@@ -58,7 +57,7 @@ public class PassportAPIPage extends CommonPageObject {
 
     private final ConfigurationService configurationService =
             new ConfigurationService(System.getenv("ENVIRONMENT"));
-    private static final Logger LOGGER = LogManager.getLogger();
+    private static final Logger LOGGER = LoggerFactory.getLogger(PassportAPIPage.class);
 
     public String getAuthorisationJwtFromStub(String criId, int userDataRowNumber)
             throws URISyntaxException, IOException, InterruptedException {
@@ -552,20 +551,19 @@ public class PassportAPIPage extends CommonPageObject {
 
         boolean match = expectedSha265Bash64Hash.equals(foundSha265Bash64Hash);
 
-        Level level = Level.INFO;
-
         if (!match) {
-            level = Level.ERROR;
+            LOGGER.error(
+                    "Hash match is {}, Comparing Expected Hash : {}  to Found Hash : {}",
+                    false,
+                    expectedSha265Bash64Hash,
+                    foundSha265Bash64Hash);
+        } else {
+            LOGGER.info(
+                    "Hash match is {}, Comparing Expected Hash : {}  to Found Hash : {}",
+                    true,
+                    expectedSha265Bash64Hash,
+                    foundSha265Bash64Hash);
         }
-
-        LOGGER.log(
-                level,
-                "Hash match is "
-                        + match
-                        + ", Comparing Expected Hash : "
-                        + expectedSha265Bash64Hash
-                        + "  to Found Hash : "
-                        + foundSha265Bash64Hash);
 
         return match;
     }
