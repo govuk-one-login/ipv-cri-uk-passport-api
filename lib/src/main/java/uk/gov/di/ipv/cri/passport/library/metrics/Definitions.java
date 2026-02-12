@@ -16,6 +16,11 @@ public class Definitions {
     public static final String LAMBDA_ISSUE_CREDENTIAL_COMPLETED_ERROR =
             "lambda_issue_credential_completed_error";
 
+    public static final String LAMBDA_CERT_EXPIRY_REMINDER_COMPLETED_OK =
+            "lambda_cert_expiry_reminder_completed_ok";
+    public static final String LAMBDA_CERT_EXPIRY_REMINDER_COMPLETED_ERROR =
+            "lambda_cert_expiry_reminder_completed_error";
+
     // Document Data Status after an attempt
     public static final String LAMBDA_CHECK_PASSPORT_ATTEMPT_STATUS_VERIFIED_PREFIX =
             "lambda_check_passport_attempt_status_verified_"; // Attempt count appended

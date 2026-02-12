@@ -46,11 +46,11 @@ public class PassportAPIStepDefs extends PassportAPIPage {
     }
 
     @When(
-            "Passport user sends a POST request to Passport endpoint with a invalid (.*) using jsonRequest (.*)$")
+            "Passport user sends a POST request to the /check-passport endpoint with an invalid sessionId header value of (.*) using jsonRequest (.*) and the API returns the OAuth error access_denied$")
     public void passport_user_sends_a_post_request_to_passport_end_point_with_invalid_sessionId(
             String invalidHeaderValue, String passportJsonRequestBody)
             throws IOException, InterruptedException, NoSuchFieldException, IllegalAccessException {
-        postRequestToPassportEndpointWithInvalidSessionId(
+        postRequestToPassportEndpointWithInvalidSessionIdAndApiReturnsOAuthAccessDenied(
                 invalidHeaderValue, passportJsonRequestBody);
     }
 

@@ -24,6 +24,7 @@ public class GlobalPage extends PageObjectSupport {
         this.driver = getCurrentDriver();
     }
 
+    @Override
     public void populateField(By selector, String value) {
         waitForElementVisible(selector, 60);
         WebElement field = getCurrentDriver().findElement(selector);

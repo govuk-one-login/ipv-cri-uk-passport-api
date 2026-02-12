@@ -63,7 +63,7 @@ Feature: Passport CRI - API Tests
     Given Passport user has the user identity in the form of a signed JWT string for CRI Id passport-v1-cri-dev and row number 6
     And Passport user sends a POST request to session endpoint
     And Passport user gets a session-id
-    When Passport user sends a POST request to Passport endpoint with a invalid <invalidHeaderValue> using jsonRequest PassportValidKennethJsonPayload
+    When Passport user sends a POST request to the /check-passport endpoint with an invalid sessionId header value of <invalidHeaderValue> using jsonRequest PassportValidKennethJsonPayload and the API returns the OAuth error access_denied
 
     Examples:
       | invalidHeaderValue |

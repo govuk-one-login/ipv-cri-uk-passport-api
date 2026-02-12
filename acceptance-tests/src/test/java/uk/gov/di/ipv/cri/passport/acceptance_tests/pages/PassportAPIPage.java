@@ -8,11 +8,10 @@ import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import com.nimbusds.jwt.SignedJWT;
 import org.apache.commons.lang3.StringUtils;
-import org.apache.logging.log4j.Level;
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
 import org.json.JSONObject;
 import org.junit.Assert;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import uk.gov.di.ipv.cri.passport.acceptance_tests.model.AuthorisationResponse;
 import uk.gov.di.ipv.cri.passport.acceptance_tests.model.CheckPassportSuccessResponse;
 import uk.gov.di.ipv.cri.passport.acceptance_tests.model.PassportFormData;
@@ -42,23 +41,22 @@ import static org.junit.jupiter.api.Assertions.fail;
 
 public class PassportAPIPage extends CommonPageObject {
 
-    private static String CLIENT_ID;
-    private static String SESSION_REQUEST_BODY;
-    private static String SESSION_ID;
-    private static String STATE;
-    private static String AUTHCODE;
-    private static String ACCESS_TOKEN;
+    private static String clientId;
+    private static String sessionRequestBody;
+    private static String sessionId;
+    private static String state;
+    private static String authCode;
+    private static String accessToken;
     private static String vcHeader;
     private static String vcBody;
     private static final String KID_PREFIX = "did:web:review-p.dev.account.gov.uk#";
-    private static String RETRY;
-    private static String extractedKeyValues;
-    private final ObjectMapper objectMapper =
+    private static String retry;
+    private static final ObjectMapper OBJECT_MAPPER =
             new ObjectMapper().registerModule(new JavaTimeModule());
 
     private final ConfigurationService configurationService =
             new ConfigurationService(System.getenv("ENVIRONMENT"));
-    private static final Logger LOGGER = LogManager.getLogger();
+    private static final Logger LOGGER = LoggerFactory.getLogger(PassportAPIPage.class);
 
     public String getAuthorisationJwtFromStub(String criId, int userDataRowNumber)
             throws URISyntaxException, IOException, InterruptedException {
@@ -72,16 +70,16 @@ public class PassportAPIPage extends CommonPageObject {
     public void userIdentityAsJwtString(String criId, int userDataRowNumber)
             throws URISyntaxException, IOException, InterruptedException {
         String jsonString = getAuthorisationJwtFromStub(criId, userDataRowNumber);
-        LOGGER.info("jsonString = " + jsonString);
+        LOGGER.info("jsonString = {}", jsonString);
         String coreStubUrl = configurationService.getCoreStubUrl(false);
-        SESSION_REQUEST_BODY = createRequest(coreStubUrl, criId, jsonString);
-        LOGGER.info("SESSION_REQUEST_BODY = " + SESSION_REQUEST_BODY);
+        sessionRequestBody = createRequest(coreStubUrl, criId, jsonString);
+        LOGGER.info("SESSION_REQUEST_BODY = {}", sessionRequestBody);
 
         // Capture client id for using later in the auth request
         Map<String, String> deserialisedSessionResponse =
-                objectMapper.readValue(SESSION_REQUEST_BODY, new TypeReference<>() {});
-        CLIENT_ID = deserialisedSessionResponse.get("client_id");
-        LOGGER.info("CLIENT_ID = {}", CLIENT_ID);
+                OBJECT_MAPPER.readValue(sessionRequestBody, new TypeReference<>() {});
+        clientId = deserialisedSessionResponse.get("client_id");
+        LOGGER.info("CLIENT_ID = {}", clientId);
     }
 
     public void getRequestToJwksEndpoint() throws IOException, InterruptedException {
@@ -98,7 +96,7 @@ public class PassportAPIPage extends CommonPageObject {
         LOGGER.info("wellKnownJWKSResponse = {}", wellKnownJWKSResponse);
 
         try {
-            JsonNode rootNode = objectMapper.readTree(wellKnownJWKSResponse);
+            JsonNode rootNode = OBJECT_MAPPER.readTree(wellKnownJWKSResponse);
             JsonNode keysNode = rootNode.path("keys").get(0);
 
             // Assertions for each key-value pair
@@ -128,9 +126,9 @@ public class PassportAPIPage extends CommonPageObject {
             String givenName, String familyName, String criId, int userDataRowNumber)
             throws URISyntaxException, IOException, InterruptedException {
         String jsonString = getAuthorisationJwtFromStub(criId, userDataRowNumber);
-        LOGGER.info("jsonString = " + jsonString);
+        LOGGER.info("jsonString = {}", jsonString);
         String coreStubUrl = configurationService.getCoreStubUrl(false);
-        JsonNode jsonNode = objectMapper.readTree((jsonString));
+        JsonNode jsonNode = OBJECT_MAPPER.readTree((jsonString));
         JsonNode nameArray = jsonNode.get("shared_claims").get("name");
         JsonNode firstItemInNameArray = nameArray.get(0);
         JsonNode namePartsNode = firstItemInNameArray.get("nameParts");
@@ -139,33 +137,33 @@ public class PassportAPIPage extends CommonPageObject {
         JsonNode secondItemInNamePartsArray = namePartsNode.get(1);
         ((ObjectNode) secondItemInNamePartsArray).put("value", familyName);
         String updatedJsonString = jsonNode.toString();
-        LOGGER.info("updatedJsonString = " + updatedJsonString);
-        SESSION_REQUEST_BODY = createRequest(coreStubUrl, criId, updatedJsonString);
-        LOGGER.info("SESSION_REQUEST_BODY = " + SESSION_REQUEST_BODY);
+        LOGGER.info("updatedJsonString = {}", updatedJsonString);
+        sessionRequestBody = createRequest(coreStubUrl, criId, updatedJsonString);
+        LOGGER.info("SESSION_REQUEST_BODY = {}", sessionRequestBody);
     }
 
     public void postRequestToSessionEndpoint() throws IOException, InterruptedException {
         String privateApiGatewayUrl = configurationService.getPrivateAPIEndpoint();
-        LOGGER.info("getPrivateAPIEndpoint() ==> " + privateApiGatewayUrl);
+        LOGGER.info("getPrivateAPIEndpoint() ==> {}", privateApiGatewayUrl);
         HttpRequest request =
                 HttpRequest.newBuilder()
                         .uri(URI.create(privateApiGatewayUrl + "/session"))
                         .setHeader("Accept", "application/json")
                         .setHeader("Content-Type", "application/json")
                         .setHeader("X-Forwarded-For", "123456789")
-                        .POST(HttpRequest.BodyPublishers.ofString(SESSION_REQUEST_BODY))
+                        .POST(HttpRequest.BodyPublishers.ofString(sessionRequestBody))
                         .build();
         String sessionResponse = sendHttpRequest(request).body();
-        LOGGER.info("sessionResponse = " + sessionResponse);
+        LOGGER.info("sessionResponse = {}", sessionResponse);
         Map<String, String> deserialisedResponse =
-                objectMapper.readValue(sessionResponse, new TypeReference<>() {});
-        SESSION_ID = deserialisedResponse.get("session_id");
-        STATE = deserialisedResponse.get("state");
+                OBJECT_MAPPER.readValue(sessionResponse, new TypeReference<>() {});
+        sessionId = deserialisedResponse.get("session_id");
+        state = deserialisedResponse.get("state");
     }
 
     public void getSessionIdForPassport() {
-        LOGGER.info("SESSION_ID = " + SESSION_ID);
-        assertTrue(StringUtils.isNotBlank(SESSION_ID));
+        LOGGER.info("SESSION_ID = {}", sessionId);
+        assertTrue(StringUtils.isNotBlank(sessionId));
     }
 
     public void postRequestToPassportEndpoint(String passportJsonRequestBody)
@@ -178,12 +176,12 @@ public class PassportAPIPage extends CommonPageObject {
             throws IOException, InterruptedException, NoSuchFieldException, IllegalAccessException {
         Map<String, String> jsonEdits = new HashMap<>();
         if (!StringUtils.isEmpty(jsonEditsString)) {
-            jsonEdits = objectMapper.readValue(jsonEditsString, Map.class);
+            jsonEdits = OBJECT_MAPPER.readValue(jsonEditsString, Map.class);
         }
 
         String privateApiGatewayUrl = configurationService.getPrivateAPIEndpoint();
         PassportFormData passportJson =
-                objectMapper.readValue(
+                OBJECT_MAPPER.readValue(
                         new File("src/test/resources/Data/" + passportJsonRequestBody + ".json"),
                         PassportFormData.class);
 
@@ -193,56 +191,56 @@ public class PassportAPIPage extends CommonPageObject {
 
             field.set(passportJson, entry.getValue());
         }
-        String passportInputJsonString = objectMapper.writeValueAsString(passportJson);
+        String passportInputJsonString = OBJECT_MAPPER.writeValueAsString(passportJson);
 
         HttpRequest.Builder builder = HttpRequest.newBuilder();
         builder.uri(URI.create(privateApiGatewayUrl + "/check-passport"))
                 .setHeader("Accept", "application/json")
                 .setHeader("Content-Type", "application/json")
-                .setHeader("session_id", SESSION_ID)
+                .setHeader("session_id", sessionId)
                 .POST(HttpRequest.BodyPublishers.ofString(passportInputJsonString));
         HttpRequest request = builder.build();
-        LOGGER.info("passport RequestBody = " + passportInputJsonString);
+        LOGGER.info("passport RequestBody = {}", passportInputJsonString);
         String passportCheckResponse = sendHttpRequest(request).body();
 
-        LOGGER.info("passportCheckResponse = " + passportCheckResponse);
+        LOGGER.info("passportCheckResponse = {}", passportCheckResponse);
 
         try {
             CheckPassportSuccessResponse checkPassportSuccessResponse =
-                    objectMapper.readValue(
+                    OBJECT_MAPPER.readValue(
                             passportCheckResponse, CheckPassportSuccessResponse.class);
 
-            STATE = checkPassportSuccessResponse.getState();
-            SESSION_ID = checkPassportSuccessResponse.getPassportSessionId();
+            state = checkPassportSuccessResponse.getState();
+            sessionId = checkPassportSuccessResponse.getPassportSessionId();
 
             LOGGER.info("Found a CheckPassportSuccessResponse");
 
         } catch (JsonMappingException e) {
             LOGGER.info("Not a CheckPassportSuccessResponse");
 
-            RETRY = passportCheckResponse;
-            LOGGER.info("RETRY = {}", RETRY);
+            retry = passportCheckResponse;
+            LOGGER.info("RETRY = {}", retry);
         }
     }
 
-    public void postRequestToPassportEndpointWithInvalidSessionId(
+    public void postRequestToPassportEndpointWithInvalidSessionIdAndApiReturnsOAuthAccessDenied(
             String invalidHeaderValue, String passportJsonRequestBody)
             throws IOException, InterruptedException, NoSuchFieldException, IllegalAccessException {
-        postRequestToPassportEndpointWithInvalidSessionId(
+        postRequestToPassportEndpointWithInvalidSessionIdAndApiReturnsOAuthAccessDenied(
                 invalidHeaderValue, passportJsonRequestBody, "");
     }
 
-    public void postRequestToPassportEndpointWithInvalidSessionId(
+    public void postRequestToPassportEndpointWithInvalidSessionIdAndApiReturnsOAuthAccessDenied(
             String invalidHeaderValue, String passportJsonRequestBody, String jsonEditsString)
             throws IOException, InterruptedException, NoSuchFieldException, IllegalAccessException {
         Map<String, String> jsonEdits = new HashMap<>();
         if (!StringUtils.isEmpty(jsonEditsString)) {
-            jsonEdits = objectMapper.readValue(jsonEditsString, Map.class);
+            jsonEdits = OBJECT_MAPPER.readValue(jsonEditsString, Map.class);
         }
 
         String privateApiGatewayUrl = configurationService.getPrivateAPIEndpoint();
         PassportFormData passportJson =
-                objectMapper.readValue(
+                OBJECT_MAPPER.readValue(
                         new File("src/test/resources/Data/" + passportJsonRequestBody + ".json"),
                         PassportFormData.class);
 
@@ -252,7 +250,7 @@ public class PassportAPIPage extends CommonPageObject {
 
             field.set(passportJson, entry.getValue());
         }
-        String passportInputJsonString = objectMapper.writeValueAsString(passportJson);
+        String passportInputJsonString = OBJECT_MAPPER.writeValueAsString(passportJson);
 
         HttpRequest.Builder builder = HttpRequest.newBuilder();
         builder.uri(URI.create(privateApiGatewayUrl + "/check-passport"))
@@ -282,24 +280,24 @@ public class PassportAPIPage extends CommonPageObject {
 
         try {
             CheckPassportSuccessResponse checkPassportSuccessResponse =
-                    objectMapper.readValue(
+                    OBJECT_MAPPER.readValue(
                             passportCheckResponse, CheckPassportSuccessResponse.class);
 
-            STATE = checkPassportSuccessResponse.getState();
-            SESSION_ID = checkPassportSuccessResponse.getPassportSessionId();
+            state = checkPassportSuccessResponse.getState();
+            sessionId = checkPassportSuccessResponse.getPassportSessionId();
 
             LOGGER.info("Found a CheckPassportSuccessResponse");
 
         } catch (JsonMappingException e) {
             LOGGER.info("Not a CheckPassportSuccessResponse");
 
-            RETRY = passportCheckResponse;
-            LOGGER.info("RETRY = " + RETRY);
+            retry = passportCheckResponse;
+            LOGGER.info("RETRY = {}", retry);
         }
     }
 
-    public void retryValueInPassportCheckResponse(Boolean retry) {
-        if (!(retry && RETRY.equals("{\"result\":\"retry\"}"))) {
+    public void retryValueInPassportCheckResponse(Boolean retryValue) {
+        if (!(retryValue && retry.equals("{\"result\":\"retry\"}"))) {
             fail("Should have retried");
         }
     }
@@ -316,30 +314,30 @@ public class PassportAPIPage extends CommonPageObject {
                                                 + "/authorization?redirect_uri="
                                                 + coreStubUrl
                                                 + "/callback&state="
-                                                + STATE
+                                                + state
                                                 + "&scope=openid&response_type=code&client_id="
-                                                + CLIENT_ID))
+                                                + clientId))
                         .setHeader("Accept", "application/json")
                         .setHeader("Content-Type", "application/json")
-                        .setHeader("session-id", SESSION_ID)
+                        .setHeader("session-id", sessionId)
                         .GET()
                         .build();
         String authCallResponse = sendHttpRequest(request).body();
-        LOGGER.info("authCallResponse = " + authCallResponse);
+        LOGGER.info("authCallResponse = {}", authCallResponse);
         AuthorisationResponse deserialisedResponse =
-                objectMapper.readValue(authCallResponse, AuthorisationResponse.class);
+                OBJECT_MAPPER.readValue(authCallResponse, AuthorisationResponse.class);
         if (null != deserialisedResponse.getAuthorizationCode()) {
-            AUTHCODE = deserialisedResponse.getAuthorizationCode().getValue();
-            LOGGER.info("authorizationCode = " + AUTHCODE);
+            authCode = deserialisedResponse.getAuthorizationCode().getValue();
+            LOGGER.info("authorizationCode = {}", authCode);
         }
     }
 
     public void postRequestToAccessTokenEndpoint(String criId)
             throws IOException, InterruptedException {
         String accessTokenRequestBody = getAccessTokenRequest(criId);
-        LOGGER.info("Access Token Request Body = " + accessTokenRequestBody);
+        LOGGER.info("Access Token Request Body = {}", accessTokenRequestBody);
         String publicApiGatewayUrl = configurationService.getPublicAPIEndpoint();
-        LOGGER.info("getPublicAPIEndpoint() ==> " + publicApiGatewayUrl);
+        LOGGER.info("getPublicAPIEndpoint() ==> {}", publicApiGatewayUrl);
         HttpRequest request =
                 HttpRequest.newBuilder()
                         .uri(URI.create(publicApiGatewayUrl + "/token"))
@@ -348,16 +346,16 @@ public class PassportAPIPage extends CommonPageObject {
                         .POST(HttpRequest.BodyPublishers.ofString(accessTokenRequestBody))
                         .build();
         String accessTokenPostCallResponse = sendHttpRequest(request).body();
-        LOGGER.info("accessTokenPostCallResponse = " + accessTokenPostCallResponse);
+        LOGGER.info("accessTokenPostCallResponse = {}", accessTokenPostCallResponse);
         Map<String, String> deserialisedResponse =
-                objectMapper.readValue(accessTokenPostCallResponse, new TypeReference<>() {});
-        ACCESS_TOKEN = deserialisedResponse.get("access_token");
+                OBJECT_MAPPER.readValue(accessTokenPostCallResponse, new TypeReference<>() {});
+        accessToken = deserialisedResponse.get("access_token");
     }
 
     public void postRequestToPublicApiEndpointWithoutApiKey(String endpoint)
             throws IOException, InterruptedException {
         String publicApiGatewayUrl = configurationService.getPublicAPIEndpoint();
-        LOGGER.info("getPublicAPIEndpoint() ==> " + publicApiGatewayUrl);
+        LOGGER.info("getPublicAPIEndpoint() ==> {}", publicApiGatewayUrl);
         HttpRequest request =
                 HttpRequest.newBuilder()
                         .uri(URI.create(publicApiGatewayUrl + endpoint))
@@ -367,11 +365,9 @@ public class PassportAPIPage extends CommonPageObject {
                         .build();
         String publicAPIGatewayEndpointPostResponse = sendHttpRequest(request).body();
         LOGGER.info(
-                "publicAPIGatewayEndpointPostResponse = " + publicAPIGatewayEndpointPostResponse);
+                "publicAPIGatewayEndpointPostResponse = {}", publicAPIGatewayEndpointPostResponse);
         try {
-            ObjectMapper objectMapper =
-                    new ObjectMapper(); // Assuming you have ObjectMapper defined elsewhere
-            JsonNode rootNode = objectMapper.readTree(publicAPIGatewayEndpointPostResponse);
+            JsonNode rootNode = OBJECT_MAPPER.readTree(publicAPIGatewayEndpointPostResponse);
 
             // Assertion for the expected error message
             assertEquals(
@@ -400,11 +396,11 @@ public class PassportAPIPage extends CommonPageObject {
                         .uri(URI.create(publicApiGatewayUrl + "/credential/issue"))
                         .setHeader("Accept", "application/json")
                         .setHeader("Content-Type", "application/json")
-                        .setHeader("Authorization", "Bearer " + ACCESS_TOKEN)
+                        .setHeader("Authorization", "Bearer " + accessToken)
                         .POST(HttpRequest.BodyPublishers.ofString(""))
                         .build();
         String requestPassportVCResponse = sendHttpRequest(request).body();
-        LOGGER.info("requestPassportVCResponse = " + requestPassportVCResponse);
+        LOGGER.info("requestPassportVCResponse = {}", requestPassportVCResponse);
         SignedJWT signedJWT = SignedJWT.parse(requestPassportVCResponse);
 
         vcHeader = signedJWT.getHeader().toString();
@@ -462,15 +458,14 @@ public class PassportAPIPage extends CommonPageObject {
     }
 
     public void validityScoreAndStrengthScoreInVC(String validityScore, String strengthScore)
-            throws IOException, InterruptedException, ParseException {
+            throws IOException {
         scoreIs(validityScore, strengthScore, vcBody);
     }
 
-    public void assertJtiIsPresent() throws IOException, ParseException, InterruptedException {
-        ObjectMapper objectMapper = new ObjectMapper();
-        JsonNode jsonNode = objectMapper.readTree(vcBody);
+    public void assertJtiIsPresent() throws IOException {
+        JsonNode jsonNode = OBJECT_MAPPER.readTree(vcBody);
         JsonNode jtiNode = jsonNode.get("jti");
-        LOGGER.info("jti = " + jtiNode.asText());
+        LOGGER.info("jti = {}", jtiNode.asText());
 
         assertNotNull(jtiNode.asText());
     }
@@ -507,34 +502,34 @@ public class PassportAPIPage extends CommonPageObject {
             "Cdf9YoboXyJxqCKvcAgqxvq+r4TCMt2Qh7WtgLWqr8k="
         };
 
-        JsonNode vcRootNode = objectMapper.readTree((vcBody));
+        JsonNode vcRootNode = OBJECT_MAPPER.readTree((vcBody));
 
         // Only the first evidence item
         JsonNode evidenceArrayFirst = vcRootNode.get("vc").get("evidence").get(0);
-        LOGGER.debug("asserting VC Evidence = " + evidenceArrayFirst.toPrettyString());
+        LOGGER.debug("asserting VC Evidence = {}", evidenceArrayFirst.toPrettyString());
 
         // Contra Indicators
         JsonNode ciArray = evidenceArrayFirst.get("ci");
-        LOGGER.debug("ciArray = " + ciArray);
+        LOGGER.debug("ciArray = {}", ciArray);
         String ciArrayFoundHash = createBase64Sha254HashOfNode(ciArray);
-        LOGGER.debug("ciArrayFoundHash = " + ciArrayFoundHash);
+        LOGGER.debug("ciArrayFoundHash = {}", ciArrayFoundHash);
         assertTrue(compareHashes(ciArrayHashes[expectedArrayIndex], ciArrayFoundHash));
 
         // Check Details
         JsonNode checkDetailsArray = evidenceArrayFirst.get("checkDetails");
-        LOGGER.debug("checkDetailsArray = " + checkDetailsArray);
+        LOGGER.debug("checkDetailsArray = {}", checkDetailsArray);
         String checkDetailsArrayFoundHash = createBase64Sha254HashOfNode(checkDetailsArray);
-        LOGGER.debug("checkDetailsArrayFoundHash = " + checkDetailsArrayFoundHash);
+        LOGGER.debug("checkDetailsArrayFoundHash = {}", checkDetailsArrayFoundHash);
         assertTrue(
                 compareHashes(
                         checkDetailsArrayHashes[expectedArrayIndex], checkDetailsArrayFoundHash));
 
         // Failed Check Details
         JsonNode failedCheckDetailsArray = evidenceArrayFirst.get("failedCheckDetails");
-        LOGGER.debug("failedCheckDetailsArray = " + failedCheckDetailsArray);
+        LOGGER.debug("failedCheckDetailsArray = {}", failedCheckDetailsArray);
         String failedCheckDetailsArrayFoundHash =
                 createBase64Sha254HashOfNode(failedCheckDetailsArray);
-        LOGGER.debug("failedCheckDetailsArrayFoundHash = " + failedCheckDetailsArrayFoundHash);
+        LOGGER.debug("failedCheckDetailsArrayFoundHash = {}", failedCheckDetailsArrayFoundHash);
         assertTrue(
                 compareHashes(
                         failedCheckDetailsArrayHashes[expectedArrayIndex],
@@ -542,9 +537,9 @@ public class PassportAPIPage extends CommonPageObject {
 
         // CI Reasons
         JsonNode ciReasonsArray = evidenceArrayFirst.get("ciReasons");
-        LOGGER.debug("ciReasons = " + ciReasonsArray);
+        LOGGER.debug("ciReasons = {}", ciReasonsArray);
         String ciReasonsFoundHash = createBase64Sha254HashOfNode(ciReasonsArray);
-        LOGGER.debug("ciReasonsFoundHash = " + ciReasonsFoundHash);
+        LOGGER.debug("ciReasonsFoundHash = {}", ciReasonsFoundHash);
         assertTrue(compareHashes(ciReasonsArrayHashes[expectedArrayIndex], ciReasonsFoundHash));
     }
 
@@ -552,20 +547,19 @@ public class PassportAPIPage extends CommonPageObject {
 
         boolean match = expectedSha265Bash64Hash.equals(foundSha265Bash64Hash);
 
-        Level level = Level.INFO;
-
         if (!match) {
-            level = Level.ERROR;
+            LOGGER.error(
+                    "Hash match is {}, Comparing Expected Hash : {}  to Found Hash : {}",
+                    false,
+                    expectedSha265Bash64Hash,
+                    foundSha265Bash64Hash);
+        } else {
+            LOGGER.info(
+                    "Hash match is {}, Comparing Expected Hash : {}  to Found Hash : {}",
+                    true,
+                    expectedSha265Bash64Hash,
+                    foundSha265Bash64Hash);
         }
-
-        LOGGER.log(
-                level,
-                "Hash match is "
-                        + match
-                        + ", Comparing Expected Hash : "
-                        + expectedSha265Bash64Hash
-                        + "  to Found Hash : "
-                        + foundSha265Bash64Hash);
 
         return match;
     }
@@ -582,19 +576,18 @@ public class PassportAPIPage extends CommonPageObject {
         return Base64.getEncoder().encodeToString(hash);
     }
 
-    public void ciInPassportCriVc(String ci)
-            throws IOException, InterruptedException, ParseException {
-        JsonNode jsonNode = objectMapper.readTree((vcBody));
+    public void ciInPassportCriVc(String ci) throws IOException {
+        JsonNode jsonNode = OBJECT_MAPPER.readTree((vcBody));
         JsonNode evidenceArray = jsonNode.get("vc").get("evidence");
         JsonNode ciInEvidenceArray = evidenceArray.get(0);
-        LOGGER.info("ciInEvidenceArray = " + ciInEvidenceArray);
+        LOGGER.info("ciInEvidenceArray = {}", ciInEvidenceArray);
         JsonNode ciNode = ciInEvidenceArray.get("ci").get(0);
         String actualCI = ciNode.asText();
         Assert.assertEquals(ci, actualCI);
     }
 
     public void checkPassportResponseContainsException() {
-        RETRY.equals(
+        retry.equals(
                 "{\"oauth_error\":{\"error_description\":\"Unexpected server error\",\"error\":\"server_error\"}}");
     }
 
@@ -609,7 +602,7 @@ public class PassportAPIPage extends CommonPageObject {
                                 + "&rowNumber="
                                 + userDataRowNumber);
 
-        LOGGER.info("URL =>> " + url);
+        LOGGER.info("URL =>> {}", url);
 
         HttpRequest request =
                 HttpRequest.newBuilder()
@@ -628,7 +621,7 @@ public class PassportAPIPage extends CommonPageObject {
             throws URISyntaxException, IOException, InterruptedException {
 
         URI uri = new URI(baseUrl + "/backend/createSessionRequest?cri=" + criId);
-        LOGGER.info("URL =>> " + uri);
+        LOGGER.info("URL =>> {}", uri);
 
         HttpRequest request =
                 HttpRequest.newBuilder()
@@ -667,7 +660,7 @@ public class PassportAPIPage extends CommonPageObject {
                                 URI.create(
                                         coreStubUrl
                                                 + "/backend/createTokenRequestPrivateKeyJWT?authorization_code="
-                                                + AUTHCODE
+                                                + authCode
                                                 + "&cri="
                                                 + criId))
                         .setHeader("Accept", "application/json")

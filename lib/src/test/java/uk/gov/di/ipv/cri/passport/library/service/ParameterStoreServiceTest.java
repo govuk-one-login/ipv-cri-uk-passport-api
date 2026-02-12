@@ -5,7 +5,7 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
-import software.amazon.lambda.powertools.parameters.SSMProvider;
+import software.amazon.lambda.powertools.parameters.ssm.SSMProvider;
 import uk.org.webcompere.systemstubs.environment.EnvironmentVariables;
 import uk.org.webcompere.systemstubs.jupiter.SystemStub;
 import uk.org.webcompere.systemstubs.jupiter.SystemStubsExtension;
@@ -27,9 +27,9 @@ class ParameterStoreServiceTest {
 
     @Mock SSMProvider mockSSMProvider;
 
-    private final String AWS_STACK_NAME = "passport-api-dev";
-    private final String PARAMETER_PREFIX = "passport-api-pipeline";
-    private final String COMMON_PARAMETER_NAME_PREFIX = "commmon-lambdas";
+    private static final String AWS_STACK_NAME = "passport-api-dev";
+    private static final String PARAMETER_PREFIX = "passport-api-pipeline";
+    private static final String COMMON_PARAMETER_NAME_PREFIX = "commmon-lambdas";
 
     private ParameterStoreService parameterStoreService;
 

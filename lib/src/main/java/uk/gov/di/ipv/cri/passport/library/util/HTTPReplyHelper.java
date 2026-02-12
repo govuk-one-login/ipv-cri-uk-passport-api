@@ -2,8 +2,8 @@ package uk.gov.di.ipv.cri.passport.library.util;
 
 import org.apache.http.HttpResponse;
 import org.apache.http.util.EntityUtils;
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import software.amazon.awssdk.http.HttpStatusCode;
 import uk.gov.di.ipv.cri.passport.library.error.ErrorResponse;
 import uk.gov.di.ipv.cri.passport.library.exceptions.OAuthErrorResponseException;
@@ -12,7 +12,7 @@ import java.io.IOException;
 
 public class HTTPReplyHelper {
 
-    private static final Logger LOGGER = LogManager.getLogger();
+    private static final Logger LOGGER = LoggerFactory.getLogger(HTTPReplyHelper.class);
 
     private HTTPReplyHelper() {
         // Utility Class
@@ -34,7 +34,7 @@ public class HTTPReplyHelper {
             return new HTTPReply(httpStatusCode, responseBody);
         } catch (IOException e) {
 
-            LOGGER.error(String.format("IOException retrieving %s response body", endpointName));
+            LOGGER.error("IOException retrieving {} response body", endpointName);
             LOGGER.debug(e.getMessage());
 
             throw new OAuthErrorResponseException(

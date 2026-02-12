@@ -15,6 +15,9 @@ import com.nimbusds.jose.crypto.ECDSASigner;
 import com.nimbusds.oauth2.sdk.ParseException;
 import com.nimbusds.oauth2.sdk.token.AccessToken;
 import com.nimbusds.oauth2.sdk.token.AccessTokenType;
+import org.apache.log4j.BasicConfigurator;
+import org.apache.logging.log4j.Level;
+import org.apache.logging.log4j.core.config.Configurator;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
@@ -108,10 +111,19 @@ class IssueCredentialHandlerTest {
         return new SelectorBuilder().mainBranch();
     }
 
+    // Off by default to prevent logging all secrets
+    private static final boolean ENABLE_FULL_DEBUG = false;
+
     @BeforeAll
     static void setupServer() {
         System.setProperty("pact.verifier.publishResults", "true");
         System.setProperty("pact.content_type.override.application/jwt", "text");
+
+        if (ENABLE_FULL_DEBUG) {
+            // AutoConfig SL4j with Log4J
+            BasicConfigurator.configure();
+            Configurator.setAllLevels("", Level.DEBUG);
+        }
     }
 
     @BeforeEach
@@ -121,6 +133,7 @@ class IssueCredentialHandlerTest {
         environmentVariables.set(ENV_VAR_FEATURE_FLAG_VC_EXPIRY_REMOVED, true);
         environmentVariables.set(ENV_VAR_FEATURE_FLAG_VC_CONTAINS_UNIQUE_ID, true);
         environmentVariables.set("INCLUDE_VC_KID", false);
+        environmentVariables.set("POWERTOOLS_METRICS_NAMESPACE", "StackName");
 
         mockServiceFactoryBehaviour();
 
@@ -146,7 +159,7 @@ class IssueCredentialHandlerTest {
     }
 
     @AfterEach
-    public void tearDown() {
+    void tearDown() {
         MockHttpServer.stopServer();
     }
 

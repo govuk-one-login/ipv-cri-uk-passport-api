@@ -1,12 +1,12 @@
 package uk.gov.di.ipv.cri.passport.acceptance_tests.pages;
 
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
 import org.junit.Assert;
 import org.openqa.selenium.By;
 import org.openqa.selenium.WebElement;
 import org.openqa.selenium.support.FindBy;
 import org.openqa.selenium.support.PageFactory;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import uk.gov.di.ipv.cri.passport.acceptance_tests.service.ConfigurationService;
 import uk.gov.di.ipv.cri.passport.acceptance_tests.utilities.BrowserUtils;
 import uk.gov.di.ipv.cri.passport.acceptance_tests.utilities.Driver;
@@ -20,7 +20,7 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 public class PassportPageObject extends UniversalSteps {
 
     private final ConfigurationService configurationService;
-    private static final Logger LOGGER = LogManager.getLogger();
+    private static final Logger LOGGER = LoggerFactory.getLogger(PassportPageObject.class);
 
     @FindBy(className = "error-summary")
     public WebElement errorSummary;
@@ -53,13 +53,13 @@ public class PassportPageObject extends UniversalSteps {
     public WebElement passportNumber;
 
     @FindBy(id = "surname")
-    public WebElement LastName;
+    public WebElement lastName;
 
     @FindBy(id = "firstName")
-    public WebElement FirstName;
+    public WebElement firstName;
 
     @FindBy(id = "middleNames")
-    public WebElement MiddleNames;
+    public WebElement middleNames;
 
     @FindBy(id = "dateOfBirth-day")
     public WebElement birthDay;
@@ -80,7 +80,7 @@ public class PassportPageObject extends UniversalSteps {
     public WebElement validToYear;
 
     @FindBy(xpath = "//button[@class='govuk-button button']")
-    public WebElement Continue;
+    public WebElement continueButton;
 
     @FindBy(id = "header")
     public WebElement pageHeader;
@@ -90,54 +90,54 @@ public class PassportPageObject extends UniversalSteps {
     @FindBy(
             xpath =
                     "//*[@class='govuk-error-summary error-summary']//*[@class='govuk-error-summary__body']//*[@class='govuk-list govuk-error-summary__list']//*[contains(@href,'dateOfBirth-day')]")
-    public WebElement InvalidDOBErrorInSummary;
+    public WebElement invalidDOBErrorInSummary;
 
     @FindBy(
             xpath =
                     "//*[@class='govuk-error-summary error-summary']//*[@class='govuk-error-summary__body']//*[@class='govuk-list govuk-error-summary__list']//*[contains(@href,'#passportNumber')]")
-    public WebElement InvalidPassportErrorInSummary;
+    public WebElement invalidPassportErrorInSummary;
 
     @FindBy(
             xpath =
                     "//*[@class='govuk-error-summary error-summary']//*[@class='govuk-error-summary__body']//*[@class='govuk-list govuk-error-summary__list']//*[contains(@href,'#surname')]")
-    public WebElement InvalidLastNameErrorInSummary;
+    public WebElement invalidLastNameErrorInSummary;
 
     @FindBy(
             xpath =
                     "//*[@class='govuk-error-summary error-summary']//*[@class='govuk-error-summary__body']//*[@class='govuk-list govuk-error-summary__list']//*[contains(@href,'#firstName')]")
-    public WebElement InvalidFirstNameErrorInSummary;
+    public WebElement invalidFirstNameErrorInSummary;
 
     @FindBy(
             xpath =
                     "//*[@class='govuk-error-summary error-summary']//*[@class='govuk-error-summary__body']//*[@class='govuk-list govuk-error-summary__list']//*[contains(@href,'#middleNames')]")
-    public WebElement InvalidMiddleNamesErrorInSummary;
+    public WebElement invalidMiddleNamesErrorInSummary;
 
     @FindBy(
             xpath =
                     "//*[@class='govuk-error-summary error-summary']//*[@class='govuk-error-summary__body']//*[@class='govuk-list govuk-error-summary__list']//*[contains(@href,'#expiryDate-day')]")
-    public WebElement InvalidValidToDateErrorInSummary;
+    public WebElement invalidValidToDateErrorInSummary;
 
     // -------------------------
 
     // Field errors
 
     @FindBy(id = "dateOfBirth-error")
-    public WebElement InvalidDateOfBirthFieldError;
+    public WebElement invalidDateOfBirthFieldError;
 
     @FindBy(id = "surname-error")
-    public WebElement InvalidLastNameFieldError;
+    public WebElement invalidLastNameFieldError;
 
     @FindBy(id = "firstName-error")
-    public WebElement InvalidFirstNameFieldError;
+    public WebElement invalidFirstNameFieldError;
 
     @FindBy(id = "middleNames-error")
-    public WebElement InvalidMiddleNamesFieldError;
+    public WebElement invalidMiddleNamesFieldError;
 
     @FindBy(id = "expiryDate-error")
-    public WebElement InvalidValidToDateFieldError;
+    public WebElement invalidValidToDateFieldError;
 
     @FindBy(id = "passportNumber-error")
-    public WebElement PassportNumberFieldError;
+    public WebElement passportNumberFieldError;
 
     // ------------------------
 
@@ -182,19 +182,19 @@ public class PassportPageObject extends UniversalSteps {
     }
 
     public void userReEntersLastName(String invalidLastName) {
-        LastName.clear();
-        LastName.sendKeys(invalidLastName);
+        lastName.clear();
+        lastName.sendKeys(invalidLastName);
     }
 
     public void userReEntersFirstName(String invalidFirstName) {
-        FirstName.clear();
-        FirstName.sendKeys(invalidFirstName);
+        firstName.clear();
+        firstName.sendKeys(invalidFirstName);
     }
 
     // this method is not currently used, saved for reuse in future
     public void userReEntersMiddleNames(String invalidMiddleNames) {
-        MiddleNames.clear();
-        MiddleNames.sendKeys(invalidMiddleNames);
+        middleNames.clear();
+        middleNames.sendKeys(invalidMiddleNames);
     }
 
     public void userReEntersPassportNumber(String invalidPassportNumber) {
@@ -240,8 +240,8 @@ public class PassportPageObject extends UniversalSteps {
         birthMonth.sendKeys(passportSubject.getBirthMonth());
         birthYear.sendKeys(passportSubject.getBirthYear());
 
-        LastName.sendKeys(passportSubject.getLastName());
-        FirstName.sendKeys(passportSubject.getFirstName());
+        lastName.sendKeys(passportSubject.getLastName());
+        firstName.sendKeys(passportSubject.getFirstName());
         validToDay.sendKeys(passportSubject.getValidToDay());
         validToMonth.sendKeys(passportSubject.getValidToMonth());
         validToYear.sendKeys(passportSubject.getValidToYear());
@@ -250,8 +250,8 @@ public class PassportPageObject extends UniversalSteps {
     public void userEntersInvalidPassportDetails() {
         PassportPageObject passportPage = new PassportPageObject();
         passportPage.passportNumber.sendKeys("123456789");
-        passportPage.LastName.sendKeys("Testlastname");
-        passportPage.FirstName.sendKeys("Testfirstname");
+        passportPage.lastName.sendKeys("Testlastname");
+        passportPage.firstName.sendKeys("Testfirstname");
         passportPage.birthDay.sendKeys("11");
         passportPage.birthMonth.sendKeys("10");
         passportPage.birthYear.sendKeys("1962");
@@ -263,9 +263,9 @@ public class PassportPageObject extends UniversalSteps {
     // this method is not currently used, saved for reuse in future
     public void enterInvalidLastAndFirstName() {
         PassportPageObject passportPageObject = new PassportPageObject();
-        passportPageObject.LastName.sendKeys("Parker!");
-        passportPageObject.FirstName.sendKeys("Peter@@!");
-        passportPageObject.MiddleNames.sendKeys("@@@@@@@");
+        passportPageObject.lastName.sendKeys("Parker!");
+        passportPageObject.firstName.sendKeys("Peter@@!");
+        passportPageObject.middleNames.sendKeys("@@@@@@@");
     }
 
     // this method is not currently used, saved for reuse in future
@@ -309,9 +309,9 @@ public class PassportPageObject extends UniversalSteps {
                 TestDataCreator.getPassportTestUserFromMap(passportSubjectScenario);
 
         passportNumber.clear();
-        LastName.clear();
-        FirstName.clear();
-        MiddleNames.clear();
+        lastName.clear();
+        firstName.clear();
+        middleNames.clear();
         birthDay.clear();
         birthMonth.clear();
         birthYear.clear();
@@ -319,10 +319,10 @@ public class PassportPageObject extends UniversalSteps {
         validToMonth.clear();
         validToYear.clear();
         passportNumber.sendKeys(passportSubject.getPassportNumber());
-        LastName.sendKeys(passportSubject.getLastName());
-        FirstName.sendKeys(passportSubject.getFirstName());
+        lastName.sendKeys(passportSubject.getLastName());
+        firstName.sendKeys(passportSubject.getFirstName());
         if (null != passportSubject.getMiddleNames()) {
-            MiddleNames.sendKeys(passportSubject.getMiddleNames());
+            middleNames.sendKeys(passportSubject.getMiddleNames());
         }
         birthDay.sendKeys(passportSubject.getBirthDay());
         birthMonth.sendKeys(passportSubject.getBirthMonth());
@@ -334,68 +334,68 @@ public class PassportPageObject extends UniversalSteps {
 
     // this method is not currently used, saved for reuse in future
     public void assertInvalidDoBInErrorSummary(String expectedText) {
-        Assert.assertEquals(expectedText, InvalidDOBErrorInSummary.getText());
+        Assert.assertEquals(expectedText, invalidDOBErrorInSummary.getText());
     }
 
     // this method is not currently used, saved for reuse in future
     public void assertInvalidDoBOnField(String expectedText) {
         Assert.assertEquals(
-                expectedText, InvalidDateOfBirthFieldError.getText().trim().replace("\n", ""));
+                expectedText, invalidDateOfBirthFieldError.getText().trim().replace("\n", ""));
     }
 
     public void assertInvalidValidToDateInErrorSummary(String expectedText) {
-        BrowserUtils.waitForVisibility(InvalidValidToDateErrorInSummary, 10);
-        Assert.assertEquals(expectedText, InvalidValidToDateErrorInSummary.getText());
+        BrowserUtils.waitForVisibility(invalidValidToDateErrorInSummary, 10);
+        Assert.assertEquals(expectedText, invalidValidToDateErrorInSummary.getText());
     }
 
     public void assertInvalidValidToDateOnField(String expectedText) {
-        BrowserUtils.waitForVisibility(InvalidValidToDateFieldError, 10);
+        BrowserUtils.waitForVisibility(invalidValidToDateFieldError, 10);
         Assert.assertEquals(
-                expectedText, InvalidValidToDateFieldError.getText().trim().replace("\n", ""));
+                expectedText, invalidValidToDateFieldError.getText().trim().replace("\n", ""));
     }
 
     // this method is not currently used, saved for reuse in future
     public void assertInvalidPassportNumberInErrorSummary(String expectedText) {
-        Assert.assertEquals(expectedText, InvalidPassportErrorInSummary.getText());
+        Assert.assertEquals(expectedText, invalidPassportErrorInSummary.getText());
     }
 
     // this method is not currently used, saved for reuse in future
     public void assertInvalidPassportNumberOnField(String expectedText) {
         Assert.assertEquals(
-                expectedText, PassportNumberFieldError.getText().trim().replace("\n", ""));
+                expectedText, passportNumberFieldError.getText().trim().replace("\n", ""));
     }
 
     // this method is not currently used, saved for reuse in future
     public void assertInvalidLastNameInErrorSummary(String expectedText) {
-        Assert.assertEquals(expectedText, InvalidLastNameErrorInSummary.getText());
+        Assert.assertEquals(expectedText, invalidLastNameErrorInSummary.getText());
     }
 
     // this method is not currently used, saved for reuse in future
     public void assertInvalidLastNameOnField(String expectedText) {
         Assert.assertEquals(
-                expectedText, InvalidLastNameFieldError.getText().trim().replace("\n", ""));
+                expectedText, invalidLastNameFieldError.getText().trim().replace("\n", ""));
     }
 
     // this method is not currently used, saved for reuse in future
     public void assertInvalidFirstNameInErrorSummary(String expectedText) {
-        Assert.assertEquals(expectedText, InvalidFirstNameErrorInSummary.getText());
+        Assert.assertEquals(expectedText, invalidFirstNameErrorInSummary.getText());
     }
 
     // this method is not currently used, saved for reuse in future
     public void assertInvalidFirstNameOnField(String expectedText) {
         Assert.assertEquals(
-                expectedText, InvalidFirstNameFieldError.getText().trim().replace("\n", ""));
+                expectedText, invalidFirstNameFieldError.getText().trim().replace("\n", ""));
     }
 
     // this method is not currently used, saved for reuse in future
     public void assertInvalidMiddleNameInErrorSummary(String expectedText) {
-        Assert.assertEquals(expectedText, InvalidMiddleNamesErrorInSummary.getText());
+        Assert.assertEquals(expectedText, invalidMiddleNamesErrorInSummary.getText());
     }
 
     // this method is not currently used, saved for reuse in future
     public void assertInvalidMiddleNameOnField(String expectedText) {
         Assert.assertEquals(
-                expectedText, InvalidMiddleNamesFieldError.getText().trim().replace("\n", ""));
+                expectedText, invalidMiddleNamesFieldError.getText().trim().replace("\n", ""));
     }
 
     // this method is not currently used, saved for reuse in future
@@ -435,21 +435,22 @@ public class PassportPageObject extends UniversalSteps {
 
     // this method is not currently used, saved for reuse in future
     public void assertLastNameLabelText(String expectedText) {
-        Assert.assertEquals(expectedText, getLabel(getParent(LastName)).getText());
+        Assert.assertEquals(expectedText, getLabel(getParent(lastName)).getText());
     }
 
     // this method is not currently used, saved for reuse in future
     public void assertGivenNameLegendText(String expectedText) {
         Assert.assertEquals(
                 expectedText,
-                FirstName.findElement(By.xpath("./../../.."))
+                firstName
+                        .findElement(By.xpath("./../../.."))
                         .findElement(By.tagName("legend"))
                         .getText());
     }
 
     // this method is not currently used, saved for reuse in future
     public void assertMiddleNameLabelText(String expectedText) {
-        Assert.assertEquals(expectedText, getLabel(getParent(MiddleNames)).getText());
+        Assert.assertEquals(expectedText, getLabel(getParent(middleNames)).getText());
     }
 
     // this method is not currently used, saved for reuse in future
@@ -525,7 +526,7 @@ public class PassportPageObject extends UniversalSteps {
 
     // this method is not currently used, saved for reuse in future
     public void assertCTATextAs(String expectedText) {
-        assertEquals(Continue.getText(), expectedText);
+        assertEquals(continueButton.getText(), expectedText);
     }
 
     private WebElement getParent(WebElement webElement) {

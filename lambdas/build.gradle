@@ -14,11 +14,12 @@ subprojects {
 					"com.amazonaws:aws-lambda-java-events:${dependencyVersions.aws_lambda_events_version}",
 					"uk.gov.account:cri-common-lib:${dependencyVersions.cri_common_lib_version}",
 					"com.nimbusds:oauth2-oidc-sdk:${dependencyVersions.nimbusds_oauth_version}",
+					"software.amazon.lambda:powertools-logging-log4j:${dependencyVersions.aws_powertools_logging_version}",
+					"software.amazon.lambda:powertools-parameters-ssm:${dependencyVersions.aws_powertools_parameters_version}",
 					project(":lib")
 
 			aspect "software.amazon.lambda:powertools-logging:${dependencyVersions.aws_powertools_logging_version}",
-					"software.amazon.lambda:powertools-metrics:${dependencyVersions.aws_powertools_metrics_version}",
-					"software.amazon.lambda:powertools-parameters:${dependencyVersions.aws_powertools_parameters_version}"
+					"software.amazon.lambda:powertools-metrics:${dependencyVersions.aws_powertools_metrics_version}"
 		}
 	}
 }
