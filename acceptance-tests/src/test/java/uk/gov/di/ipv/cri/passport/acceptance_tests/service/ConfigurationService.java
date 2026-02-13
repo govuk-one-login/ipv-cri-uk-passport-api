@@ -1,12 +1,12 @@
 package uk.gov.di.ipv.cri.passport.acceptance_tests.service;
 
 import org.apache.commons.lang3.StringUtils;
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 public class ConfigurationService {
 
-    private static final Logger LOGGER = LogManager.getLogger();
+    private static final Logger LOGGER = LoggerFactory.getLogger(ConfigurationService.class);
 
     private final String publicApiBaseUrl;
     private final String coreStubEndpoint;

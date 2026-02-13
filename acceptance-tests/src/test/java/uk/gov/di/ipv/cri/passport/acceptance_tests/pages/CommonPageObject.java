@@ -6,12 +6,12 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.ObjectReader;
 import org.apache.commons.lang3.StringUtils;
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
 import org.junit.Assert;
 import org.openqa.selenium.WebElement;
 import org.openqa.selenium.support.FindBy;
 import org.openqa.selenium.support.PageFactory;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import uk.gov.di.ipv.cri.passport.acceptance_tests.service.ConfigurationService;
 import uk.gov.di.ipv.cri.passport.acceptance_tests.utilities.BrowserUtils;
 import uk.gov.di.ipv.cri.passport.acceptance_tests.utilities.Driver;
@@ -34,7 +34,7 @@ import static uk.gov.di.ipv.cri.passport.acceptance_tests.pages.Headers.IPV_CORE
 public class CommonPageObject extends UniversalSteps {
 
     private final ConfigurationService configurationService;
-    private static final Logger LOGGER = LogManager.getLogger();
+    private static final Logger LOGGER = LoggerFactory.getLogger(CommonPageObject.class);
 
     private static final String STUB_VC_PAGE_TITLE = "IPV Core Stub Credential Result - GOV.UK";
 

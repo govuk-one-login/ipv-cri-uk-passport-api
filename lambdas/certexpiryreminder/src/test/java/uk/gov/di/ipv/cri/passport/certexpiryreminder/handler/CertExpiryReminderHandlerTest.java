@@ -9,6 +9,9 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import uk.gov.di.ipv.cri.common.library.util.EventProbe;
 import uk.gov.di.ipv.cri.passport.certexpiryreminder.handler.config.CertExpiryReminderConfig;
 import uk.gov.di.ipv.cri.passport.library.service.ParameterStoreService;
+import uk.org.webcompere.systemstubs.environment.EnvironmentVariables;
+import uk.org.webcompere.systemstubs.jupiter.SystemStub;
+import uk.org.webcompere.systemstubs.jupiter.SystemStubsExtension;
 
 import java.security.cert.CertificateException;
 import java.security.cert.X509Certificate;
@@ -24,7 +27,9 @@ import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.when;
 
 @ExtendWith(MockitoExtension.class)
+@ExtendWith(SystemStubsExtension.class)
 class CertExpiryReminderHandlerTest {
+    @SystemStub private EnvironmentVariables environmentVariables = new EnvironmentVariables();
 
     @Mock private ParameterStoreService parameterStoreService;
     @Mock private CertExpiryReminderConfig certExpiryReminderConfig;
@@ -48,6 +53,8 @@ class CertExpiryReminderHandlerTest {
                                 "tlsCert", mockTlsCert,
                                 "intermediate", mockTlsIntermediateCert,
                                 "tlsRoot", mockTlsRootCert));
+
+        environmentVariables.set("POWERTOOLS_METRICS_NAMESPACE", "StackName");
 
         // Use below certificate as control for tests
         this.certExpiryReminderHandler =
