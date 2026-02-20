@@ -32,7 +32,7 @@ dependencies {
 		aws_lambda_events_version          : "3.16.0",
 
 		// CRI_LIB nimbus
-		nimbusds_oauth_version             : "11.29.1",
+		nimbusds_oauth_version             : "11.33",
 
 		// CRI_LIB powertools
 		aws_powertools_logging_version     : "${aws_powertools_version}",
