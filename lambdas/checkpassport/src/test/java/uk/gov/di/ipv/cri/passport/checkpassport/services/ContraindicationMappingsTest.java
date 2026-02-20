@@ -1,7 +1,5 @@
 package uk.gov.di.ipv.cri.passport.checkpassport.services;
 
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -10,6 +8,8 @@ import org.junit.jupiter.params.provider.CsvSource;
 import org.mockito.Mock;
 import org.mockito.MockedStatic;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import uk.gov.di.ipv.cri.passport.checkpassport.domain.result.fields.ContraIndicatorMapperResult;
 import uk.gov.di.ipv.cri.passport.library.service.ParameterStoreService;
 import uk.gov.di.ipv.cri.passport.library.service.ServiceFactory;
@@ -415,9 +415,11 @@ class ContraindicationMappingsTest {
         contraIndicatorMapper = null;
 
         // Mocks the logger creation and verifies the ERROR log line
-        try (MockedStatic<LogManager> mockedLogManager = mockStatic(LogManager.class)) {
+        try (MockedStatic<LoggerFactory> mockedLogManager = mockStatic(LoggerFactory.class)) {
             Logger mockedStaticLogger = mock(Logger.class);
-            mockedLogManager.when(LogManager::getLogger).thenReturn(mockedStaticLogger);
+            mockedLogManager
+                    .when(() -> LoggerFactory.getLogger(ContraIndicatorMapper.class))
+                    .thenReturn(mockedStaticLogger);
 
             Map<String, String> testflagMap = new HashMap<>();
             testflagMap.put("flagOne", "false"); // Valid flag but not correct value

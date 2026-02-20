@@ -27,14 +27,14 @@ dependencies {
 			"com.fasterxml.jackson.core:jackson-annotations",
 			"com.fasterxml.jackson.datatype:jackson-datatype-jsr310",
 			"com.fasterxml.jackson.datatype:jackson-datatype-jdk8",
-			"org.apache.httpcomponents:httpclient:${dependencyVersions.httpcomponents_client_version}"
-
-	aspect "software.amazon.lambda:powertools-logging:${dependencyVersions.aws_powertools_logging_version}",
+			"org.apache.httpcomponents:httpclient:${dependencyVersions.httpcomponents_client_version}",
+			"software.amazon.lambda:powertools-logging-log4j:${dependencyVersions.aws_powertools_logging_version}",
 			"software.amazon.lambda:powertools-metrics:${dependencyVersions.aws_powertools_metrics_version}",
-			"software.amazon.lambda:powertools-parameters:${dependencyVersions.aws_powertools_parameters_version}"
+			"software.amazon.lambda:powertools-parameters-ssm:${dependencyVersions.aws_powertools_parameters_version}",
+			"software.amazon.lambda:powertools-parameters-secrets:${dependencyVersions.aws_powertools_parameters_version}"
 
 	testImplementation platform("org.junit:junit-bom:${dependencyVersions.junit_version}"),
-			"org.junit.platform:junit-platform-launcher:${dependencyVersions.junit_platform}",
+			"org.junit.platform:junit-platform-launcher:${dependencyVersions.junit_version}",
 			"org.junit.jupiter:junit-jupiter-engine",
 			"org.junit.jupiter:junit-jupiter-api",
 			"org.junit.jupiter:junit-jupiter-params",

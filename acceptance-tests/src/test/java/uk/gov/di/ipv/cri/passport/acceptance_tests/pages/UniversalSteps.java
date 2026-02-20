@@ -1,9 +1,9 @@
 package uk.gov.di.ipv.cri.passport.acceptance_tests.pages;
 
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
 import org.json.JSONObject;
 import org.openqa.selenium.support.PageFactory;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import uk.gov.di.ipv.cri.passport.acceptance_tests.utilities.Driver;
 
 import java.nio.file.Files;
@@ -15,7 +15,7 @@ import static uk.gov.di.ipv.cri.passport.acceptance_tests.utilities.BrowserUtils
 
 public class UniversalSteps {
 
-    private static final Logger LOGGER = LogManager.getLogger();
+    private static final Logger LOGGER = LoggerFactory.getLogger(UniversalSteps.class);
 
     public static final int MAX_WAIT_SEC = 15;
 
@@ -49,7 +49,7 @@ public class UniversalSteps {
         boolean status = waitForUrlToContain(expected, MAX_WAIT_SEC);
 
         String url = Driver.get().getCurrentUrl();
-        LOGGER.info("Page url: " + url);
+        LOGGER.info("Page url: {}", url);
 
         assertTrue(status);
     }

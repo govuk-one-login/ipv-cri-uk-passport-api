@@ -1,7 +1,7 @@
 package uk.gov.di.ipv.cri.passport.acceptance_tests.utilities;
 
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.io.FileInputStream;
 import java.util.Properties;
@@ -9,7 +9,7 @@ import java.util.Properties;
 /** reads the properties file configuration.properties */
 public class ConfigurationReader {
 
-    private static final Logger LOGGER = LogManager.getLogger();
+    private static final Logger LOGGER = LoggerFactory.getLogger(ConfigurationReader.class);
 
     private static Properties properties;
 
@@ -22,7 +22,7 @@ public class ConfigurationReader {
 
             input.close();
         } catch (Exception e) {
-            LOGGER.error(e);
+            LOGGER.error("Error: ", e);
         }
     }
 

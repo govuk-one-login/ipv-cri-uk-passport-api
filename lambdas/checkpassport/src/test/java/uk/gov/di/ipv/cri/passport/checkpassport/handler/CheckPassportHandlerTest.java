@@ -104,12 +104,14 @@ class CheckPassportHandlerTest {
     @Mock private ServiceFactory mockServiceFactory;
     @Mock private DocumentDataVerificationService mockDocumentDataVerificationService;
 
+    @Mock private Context context;
     private CheckPassportHandler checkPassportHandler;
 
     @BeforeEach
     void setup() throws JsonProcessingException {
         environmentVariables.set("AWS_REGION", "eu-west-2");
         environmentVariables.set("AWS_STACK_NAME", "TEST_STACK");
+        environmentVariables.set("POWERTOOLS_METRICS_NAMESPACE", "StackName");
         environmentVariables.set("DVAD_PERFORMANCE_STUB_IN_USE", "false");
         environmentVariables.set("DEV_ENVIRONMENT_ONLY_ENHANCED_DEBUG", "false");
         environmentVariables.set("SESSION_TTL", 7200L);
@@ -128,7 +130,7 @@ class CheckPassportHandlerTest {
     }
 
     @AfterEach
-    public void tearDown() {
+    void tearDown() {
         verifyNoMoreInteractions(mockDocumentDataVerificationService);
     }
 
@@ -436,7 +438,6 @@ class CheckPassportHandlerTest {
         final String STATE = UUID.randomUUID().toString();
         final String REDIRECT_URI = "https://example.com";
         final int ATTEMPT_NO = 0;
-        final int MAX_ATTEMPTS = 2;
 
         PassportFormData passportFormData = PassportFormTestDataGenerator.generate();
 
@@ -560,9 +561,7 @@ class CheckPassportHandlerTest {
         assertEquals(HttpStatusCode.INTERNAL_SERVER_ERROR, responseEvent.getStatusCode());
 
         // Assert CommonExpress OAuth error format
-        assertEquals(
-                "oauth_error",
-                responseTreeRootNode.fieldNames().next().toString()); // Root Node Name
+        assertEquals("oauth_error", responseTreeRootNode.fieldNames().next()); // Root Node Name
         assertEquals(
                 expectedObject.getError().get("error"),
                 oauthErrorNode.get("error").textValue()); // error
@@ -596,9 +595,7 @@ class CheckPassportHandlerTest {
         assertNotNull(oauthErrorNode);
         assertEquals(HttpStatusCode.FORBIDDEN, responseEvent.getStatusCode());
 
-        assertEquals(
-                "oauth_error",
-                responseTreeRootNode.fieldNames().next().toString()); // Root Node Name
+        assertEquals("oauth_error", responseTreeRootNode.fieldNames().next()); // Root Node Name
         assertEquals(
                 expectedObject.getError().get("error"),
                 oauthErrorNode.get("error").textValue()); // error
@@ -633,9 +630,7 @@ class CheckPassportHandlerTest {
         assertNotNull(oauthErrorNode);
         assertEquals(HttpStatusCode.FORBIDDEN, responseEvent.getStatusCode());
 
-        assertEquals(
-                "oauth_error",
-                responseTreeRootNode.fieldNames().next().toString()); // Root Node Name
+        assertEquals("oauth_error", responseTreeRootNode.fieldNames().next()); // Root Node Name
         assertEquals(
                 expectedObject.getError().get("error"),
                 oauthErrorNode.get("error").textValue()); // error
@@ -669,9 +664,7 @@ class CheckPassportHandlerTest {
         assertNotNull(oauthErrorNode);
         assertEquals(HttpStatusCode.FORBIDDEN, responseEvent.getStatusCode());
 
-        assertEquals(
-                "oauth_error",
-                responseTreeRootNode.fieldNames().next().toString()); // Root Node Name
+        assertEquals("oauth_error", responseTreeRootNode.fieldNames().next()); // Root Node Name
         assertEquals(
                 expectedObject.getError().get("error"),
                 oauthErrorNode.get("error").textValue()); // error

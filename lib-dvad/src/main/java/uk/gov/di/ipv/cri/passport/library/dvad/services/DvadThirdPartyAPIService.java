@@ -3,8 +3,8 @@ package uk.gov.di.ipv.cri.passport.library.dvad.services;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.apache.http.client.config.RequestConfig;
 import org.apache.http.impl.client.CloseableHttpClient;
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import software.amazon.awssdk.http.HttpStatusCode;
 import uk.gov.di.ipv.cri.common.library.util.EventProbe;
 import uk.gov.di.ipv.cri.passport.library.config.HttpRequestConfig;
@@ -39,7 +39,7 @@ import static uk.gov.di.ipv.cri.passport.library.metrics.ThirdPartyAPIEndpointMe
 
 public class DvadThirdPartyAPIService implements ThirdPartyAPIService {
 
-    private static final Logger LOGGER = LogManager.getLogger();
+    private static final Logger LOGGER = LoggerFactory.getLogger(DvadThirdPartyAPIService.class);
 
     private static final APIResultSource API_RESULT_SOURCE = DVAD;
 
@@ -77,11 +77,10 @@ public class DvadThirdPartyAPIService implements ThirdPartyAPIService {
     public ThirdPartyAPIResult performCheck(PassportFormData passportFormData, Strategy strategy)
             throws OAuthErrorResponseException {
 
-        LOGGER.info(() -> String.format("%s reading header parameters", SERVICE_NAME));
+        LOGGER.info("{} reading header parameters", SERVICE_NAME);
         final DvadAPIHeaderValues dvadAPIHeaderValues =
                 new DvadAPIHeaderValues(parameterStoreService);
-        LOGGER.info(() -> String.format("%s header parameters set", SERVICE_NAME));
-
+        LOGGER.info("{} header parameters set", SERVICE_NAME);
         final RequestConfig defaultRequestConfig =
                 new HttpRequestConfig().getDefaultRequestConfig();
 

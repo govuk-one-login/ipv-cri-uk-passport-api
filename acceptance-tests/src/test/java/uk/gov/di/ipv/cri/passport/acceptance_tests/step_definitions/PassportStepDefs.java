@@ -15,48 +15,48 @@ public class PassportStepDefs extends PassportPageObject {
     }
 
     @And("User re-enters last name as (.*)$")
-    public void userEntersLastName(String InvalidLastName) {
-        userReEntersLastName(InvalidLastName);
+    public void userEntersLastName(String invalidLastName) {
+        userReEntersLastName(invalidLastName);
     }
 
     @And("User re-enters first name as (.*)$")
-    public void userEntersFirstName(String InvalidFirstName) {
-        userReEntersFirstName(InvalidFirstName);
+    public void userEntersFirstName(String invalidFirstName) {
+        userReEntersFirstName(invalidFirstName);
     }
 
     @And("User re-enters passport number as (.*)$")
-    public void userEntersPassportNumber(String InvalidPassportNumber) {
-        userReEntersPassportNumber(InvalidPassportNumber);
+    public void userEntersPassportNumber(String invalidPassportNumber) {
+        userReEntersPassportNumber(invalidPassportNumber);
     }
 
     @And("User re-enters birth day as (.*)$")
-    public void userEntersBirthDay(String InvalidBirthDay) {
-        userReEntersBirthDay(InvalidBirthDay);
+    public void userEntersBirthDay(String invalidBirthDay) {
+        userReEntersBirthDay(invalidBirthDay);
     }
 
     @And("User re-enters birth month as (.*)$")
-    public void userEntersBirthMonth(String InvalidBirthMonth) {
-        userReEntersBirthMonth(InvalidBirthMonth);
+    public void userEntersBirthMonth(String invalidBirthMonth) {
+        userReEntersBirthMonth(invalidBirthMonth);
     }
 
     @And("User re-enters birth year as (.*)$")
-    public void userEntersBirthYear(String InvalidBirthYear) {
-        userReEntersBirthYear(InvalidBirthYear);
+    public void userEntersBirthYear(String invalidBirthYear) {
+        userReEntersBirthYear(invalidBirthYear);
     }
 
     @And("User re-enters valid to day as (.*)$")
-    public void userEntersValidToDay(String InvalidValidToDay) {
-        userReEntersValidToDay(InvalidValidToDay);
+    public void userEntersValidToDay(String invalidValidToDay) {
+        userReEntersValidToDay(invalidValidToDay);
     }
 
     @And("User re-enters valid to month as (.*)$")
-    public void userEntersValidToMonth(String InvalidValidToMonth) {
-        userReEntersValidToMonth(InvalidValidToMonth);
+    public void userEntersValidToMonth(String invalidValidToMonth) {
+        userReEntersValidToMonth(invalidValidToMonth);
     }
 
     @And("User re-enters valid to year as (.*)$")
-    public void userEntersValidToYear(String InvalidValidToYear) {
-        userReEntersValidToYear(InvalidValidToYear);
+    public void userEntersValidToYear(String invalidValidToYear) {
+        userReEntersValidToYear(invalidValidToYear);
     }
 
     @And("I assert the url path contains (.*)$")
@@ -116,7 +116,7 @@ public class PassportStepDefs extends PassportPageObject {
 
     @When("User clicks on continue")
     public void user_clicks_on_continue() {
-        Continue.click();
+        continueButton.click();
     }
 
     @Then("User enters expiry date as current date minus (.*) months and minus (.*) days$")

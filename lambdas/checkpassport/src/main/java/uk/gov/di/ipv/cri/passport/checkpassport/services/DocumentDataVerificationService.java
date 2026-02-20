@@ -1,8 +1,7 @@
 package uk.gov.di.ipv.cri.passport.checkpassport.services;
 
-import org.apache.logging.log4j.Level;
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import software.amazon.awssdk.http.HttpStatusCode;
 import uk.gov.di.ipv.cri.common.library.domain.AuditEventContext;
 import uk.gov.di.ipv.cri.common.library.domain.AuditEventType;
@@ -33,7 +32,8 @@ import static uk.gov.di.ipv.cri.passport.library.metrics.Definitions.FORM_DATA_V
 import static uk.gov.di.ipv.cri.passport.library.metrics.Definitions.FORM_DATA_VALIDATION_PASS;
 
 public class DocumentDataVerificationService {
-    private static final Logger LOGGER = LogManager.getLogger();
+    private static final Logger LOGGER =
+            LoggerFactory.getLogger(DocumentDataVerificationService.class);
 
     private static final String DOCUMENT_DATA_VERIFICATION_CI = "D02";
     private static final String DOCUMENT_DATA_VERIFICATION_CHECK_NAME = "record_check";
@@ -172,11 +172,9 @@ public class DocumentDataVerificationService {
             throw e;
         } catch (SqsException e) {
             // Audit Events are not working
-            eventProbe
-                    .log(
-                            Level.ERROR,
-                            ErrorResponse.FAILED_TO_SEND_AUDIT_MESSAGE_TO_SQS_QUEUE.getMessage())
-                    .counterMetric(DOCUMENT_DATA_VERIFICATION_REQUEST_FAILED);
+            LOGGER.error(
+                    "{}", ErrorResponse.FAILED_TO_SEND_AUDIT_MESSAGE_TO_SQS_QUEUE.getMessage());
+            eventProbe.counterMetric(DOCUMENT_DATA_VERIFICATION_REQUEST_FAILED);
             throw new OAuthErrorResponseException(
                     HttpStatusCode.INTERNAL_SERVER_ERROR,
                     ErrorResponse.FAILED_TO_SEND_AUDIT_MESSAGE_TO_SQS_QUEUE);

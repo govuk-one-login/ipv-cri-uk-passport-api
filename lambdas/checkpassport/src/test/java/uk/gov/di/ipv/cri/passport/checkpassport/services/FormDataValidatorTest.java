@@ -1,12 +1,12 @@
 package uk.gov.di.ipv.cri.passport.checkpassport.services;
 
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.CsvSource;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import uk.gov.di.ipv.cri.passport.checkpassport.validation.JsonValidationUtility;
 import uk.gov.di.ipv.cri.passport.checkpassport.validation.ValidationResult;
 import uk.gov.di.ipv.cri.passport.library.PassportFormTestDataGenerator;
@@ -22,7 +22,7 @@ import static org.junit.jupiter.api.Assertions.assertNull;
 @ExtendWith(MockitoExtension.class)
 class FormDataValidatorTest {
 
-    private static final Logger LOGGER = LogManager.getLogger();
+    private static final Logger LOGGER = LoggerFactory.getLogger(FormDataValidatorTest.class);
 
     @Test
     void testFormDataValidatorNamesCannotBeNull() {
@@ -56,12 +56,12 @@ class FormDataValidatorTest {
     @Test
     void testFormDataValidatorDOBCannotBeNull() {
 
-        final LocalDate TEST_LOCAL_DATE = null;
+        final LocalDate testLocalDate = null;
 
         PassportFormData passportFormData = PassportFormTestDataGenerator.generate();
         FormDataValidator formDataValidator = new FormDataValidator();
 
-        passportFormData.setDateOfBirth(TEST_LOCAL_DATE);
+        passportFormData.setDateOfBirth(testLocalDate);
 
         ValidationResult<List<String>> validationResult =
                 formDataValidator.validate(passportFormData);
@@ -71,7 +71,7 @@ class FormDataValidatorTest {
 
         LOGGER.info(validationResult.getError().toString());
 
-        assertEquals(TEST_LOCAL_DATE, passportFormData.getDateOfBirth());
+        assertEquals(testLocalDate, passportFormData.getDateOfBirth());
         assertEquals(1, validationResult.getError().size());
         assertEquals(EXPECTED_ERROR, validationResult.getError().get(0));
         assertFalse(validationResult.isValid());
@@ -97,14 +97,14 @@ class FormDataValidatorTest {
         ValidationResult<List<String>> validationResult =
                 formDataValidator.validate(passportFormData);
 
-        String EXPECTED_ERROR = null;
+        String expectedError = null;
 
         if (invalidPassportNumber == null) {
-            EXPECTED_ERROR = FIELD_NAME + JsonValidationUtility.IS_NULL_ERROR_MESSAGE_SUFFIX;
+            expectedError = FIELD_NAME + JsonValidationUtility.IS_NULL_ERROR_MESSAGE_SUFFIX;
         } else if (invalidPassportNumber.isEmpty()) {
-            EXPECTED_ERROR = FIELD_NAME + JsonValidationUtility.IS_EMPTY_ERROR_MESSAGE_SUFFIX;
+            expectedError = FIELD_NAME + JsonValidationUtility.IS_EMPTY_ERROR_MESSAGE_SUFFIX;
         } else if (invalidPassportNumber.equals("NOT A NUMBER")) {
-            EXPECTED_ERROR =
+            expectedError =
                     FIELD_NAME + JsonValidationUtility.FAIL_PARSING_INTEGER_ERROR_MESSAGE_SUFFIX;
         }
 
@@ -112,19 +112,19 @@ class FormDataValidatorTest {
 
         assertEquals(invalidPassportNumber, passportFormData.getPassportNumber());
         assertEquals(1, validationResult.getError().size());
-        assertEquals(EXPECTED_ERROR, validationResult.getError().get(0));
+        assertEquals(expectedError, validationResult.getError().get(0));
         assertFalse(validationResult.isValid());
     }
 
     @Test
     void testFormDataValidatorExpiryDateCannotBeNull() {
 
-        final LocalDate TEST_EXPIRY_DATE = null;
+        final LocalDate testExpiryDate = null;
 
         PassportFormData passportFormData = PassportFormTestDataGenerator.generate();
         FormDataValidator formDataValidator = new FormDataValidator();
 
-        passportFormData.setExpiryDate(TEST_EXPIRY_DATE);
+        passportFormData.setExpiryDate(testExpiryDate);
 
         ValidationResult<List<String>> validationResult =
                 formDataValidator.validate(passportFormData);
@@ -134,7 +134,7 @@ class FormDataValidatorTest {
 
         LOGGER.info(validationResult.getError().toString());
 
-        assertEquals(TEST_EXPIRY_DATE, passportFormData.getExpiryDate());
+        assertEquals(testExpiryDate, passportFormData.getExpiryDate());
         assertEquals(1, validationResult.getError().size());
         assertEquals(EXPECTED_ERROR, validationResult.getError().get(0));
         assertFalse(validationResult.isValid());

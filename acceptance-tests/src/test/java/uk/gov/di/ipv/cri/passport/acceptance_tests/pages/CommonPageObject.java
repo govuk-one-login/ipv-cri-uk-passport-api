@@ -6,12 +6,12 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.ObjectReader;
 import org.apache.commons.lang3.StringUtils;
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
 import org.junit.Assert;
 import org.openqa.selenium.WebElement;
 import org.openqa.selenium.support.FindBy;
 import org.openqa.selenium.support.PageFactory;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import uk.gov.di.ipv.cri.passport.acceptance_tests.service.ConfigurationService;
 import uk.gov.di.ipv.cri.passport.acceptance_tests.utilities.BrowserUtils;
 import uk.gov.di.ipv.cri.passport.acceptance_tests.utilities.Driver;
@@ -33,8 +33,10 @@ import static uk.gov.di.ipv.cri.passport.acceptance_tests.pages.Headers.IPV_CORE
 
 public class CommonPageObject extends UniversalSteps {
 
+    private static final Logger LOGGER = LoggerFactory.getLogger(CommonPageObject.class);
+    private static final ObjectMapper OBJECT_MAPPER = new ObjectMapper();
+
     private final ConfigurationService configurationService;
-    private static final Logger LOGGER = LogManager.getLogger();
 
     private static final String STUB_VC_PAGE_TITLE = "IPV Core Stub Credential Result - GOV.UK";
 
@@ -68,7 +70,7 @@ public class CommonPageObject extends UniversalSteps {
     public WebElement selectRow;
 
     @FindBy(xpath = "//*[@id=\"main-content\"]/div/details/div/pre")
-    public WebElement JSONPayload;
+    public WebElement jsonPayload;
 
     @FindBy(xpath = "//*[@id=\"main-content\"]/div/details")
     public WebElement errorResponse;
@@ -96,12 +98,12 @@ public class CommonPageObject extends UniversalSteps {
     public void navigateToPassportCRIOnTestEnv() {
         visitCredentialIssuers.click();
         String passportCRITestEnvironment = configurationService.getPassportCRITestEnvironment();
-        LOGGER.info("passportCRITestEnvironment = " + passportCRITestEnvironment);
+        LOGGER.info("passportCRITestEnvironment = {}", passportCRITestEnvironment);
 
         boolean sharedDev = passportCRITestEnvironment.toLowerCase().contains("shared");
 
         boolean isUsingLocalStub = configurationService.isUsingLocalStub();
-        LOGGER.info("isUsingLocalStub = " + isUsingLocalStub);
+        LOGGER.info("isUsingLocalStub = {}", isUsingLocalStub);
 
         if (isUsingLocalStub) {
             // Local Stub - Passport CRI dev V1 or Passport CRI Shared dev V1
@@ -155,42 +157,42 @@ public class CommonPageObject extends UniversalSteps {
 
     public void jsonErrorResponse(String expectedErrorDescription, String expectedErrorStatusCode)
             throws JsonProcessingException {
-        String result = JSONPayload.getText();
-        LOGGER.info("result = " + result);
+        String result = jsonPayload.getText();
+        LOGGER.info("result = {}", result);
 
         JsonNode insideError = getJsonNode(result, "errorObject");
-        LOGGER.info("insideError = " + insideError);
+        LOGGER.info("insideError = {}", insideError);
 
         JsonNode errorDescription = insideError.get("description");
         JsonNode statusCode = insideError.get("httpstatusCode");
-        String ActualErrorDescription = insideError.get("description").asText();
-        String ActualStatusCode = insideError.get("httpstatusCode").asText();
+        String actualErrorDescription = insideError.get("description").asText();
+        String actualStatusCode = insideError.get("httpstatusCode").asText();
 
-        LOGGER.info("errorDescription = " + errorDescription);
-        LOGGER.info("statusCode = " + statusCode);
-        LOGGER.info("testErrorDescription = " + expectedErrorDescription);
-        LOGGER.info("testStatusCode = " + expectedErrorStatusCode);
+        LOGGER.info("errorDescription = {}", errorDescription);
+        LOGGER.info("statusCode = {}", statusCode);
+        LOGGER.info("testErrorDescription = {}", expectedErrorDescription);
+        LOGGER.info("testStatusCode = {}", expectedErrorStatusCode);
 
-        Assert.assertEquals(expectedErrorDescription, ActualErrorDescription);
-        Assert.assertEquals(expectedErrorStatusCode, ActualStatusCode);
+        Assert.assertEquals(expectedErrorDescription, actualErrorDescription);
+        Assert.assertEquals(expectedErrorStatusCode, actualStatusCode);
     }
 
     public void checkScoreInStubIs(String validityScore, String strengthScore) throws IOException {
-        scoreIs(validityScore, strengthScore, JSONPayload.getText());
+        scoreIs(validityScore, strengthScore, jsonPayload.getText());
     }
 
     public void scoreIs(String validityScore, String strengthScore, String jsonPayloadText)
             throws IOException {
         String result = jsonPayloadText;
-        LOGGER.info("result = " + result);
+        LOGGER.info("result = {}", result);
         JsonNode vcNode = getJsonNode(result, "vc");
         List<JsonNode> evidence = getListOfNodes(vcNode, "evidence");
 
-        String ValidityScore = evidence.get(0).get("validityScore").asText();
-        assertEquals(ValidityScore, validityScore);
+        String evidenceValidityScore = evidence.get(0).get("validityScore").asText();
+        assertEquals(evidenceValidityScore, validityScore);
 
-        String StrengthScore = evidence.get(0).get("strengthScore").asText();
-        assertEquals(StrengthScore, strengthScore);
+        String evidenceStrengthScore = evidence.get(0).get("strengthScore").asText();
+        assertEquals(evidenceStrengthScore, strengthScore);
     }
 
     // this method is not currently used, saved for reuse in future
@@ -210,16 +212,16 @@ public class CommonPageObject extends UniversalSteps {
     }
 
     public void ciInVC(String ci) throws IOException {
-        String result = JSONPayload.getText();
-        LOGGER.info("result = " + result);
+        String result = jsonPayload.getText();
+        LOGGER.info("result = {}", result);
         JsonNode vcNode = getJsonNode(result, "vc");
         JsonNode evidenceNode = vcNode.get("evidence");
 
         List<String> cis = getCIsFromEvidence(evidenceNode);
 
         if (StringUtils.isNotEmpty(ci)) {
-            if (cis.size() > 0) {
-                LOGGER.info("HELP " + Arrays.toString(cis.toArray()) + "    " + ci);
+            if (!cis.isEmpty()) {
+                LOGGER.info("HELP {}    {}", Arrays.toString(cis.toArray()), ci);
                 assertTrue(cis.contains(ci));
             } else {
                 fail("No CIs found");
@@ -228,16 +230,15 @@ public class CommonPageObject extends UniversalSteps {
     }
 
     public void assertDocumentNumberInVc(String documentNumber) throws IOException {
-        String result = JSONPayload.getText();
-        LOGGER.info("result = " + result);
+        String result = jsonPayload.getText();
+        LOGGER.info("result = {}", result);
         JsonNode vcNode = getJsonNode(result, "vc");
         String passportNumber = getDocumentNumberFromVc(vcNode);
         assertEquals(documentNumber, passportNumber);
     }
 
     private List<String> getCIsFromEvidence(JsonNode evidenceNode) throws IOException {
-        ObjectReader objectReader =
-                new ObjectMapper().readerFor(new TypeReference<List<JsonNode>>() {});
+        ObjectReader objectReader = OBJECT_MAPPER.readerFor(new TypeReference<List<JsonNode>>() {});
         List<JsonNode> evidence = objectReader.readValue(evidenceNode);
 
         List<String> cis =
@@ -248,8 +249,7 @@ public class CommonPageObject extends UniversalSteps {
     }
 
     private JsonNode getJsonNode(String result, String vc) throws JsonProcessingException {
-        ObjectMapper objectMapper = new ObjectMapper();
-        JsonNode jsonNode = objectMapper.readTree(result);
+        JsonNode jsonNode = OBJECT_MAPPER.readTree(result);
         return jsonNode.get(vc);
     }
 
@@ -264,16 +264,14 @@ public class CommonPageObject extends UniversalSteps {
     private List<JsonNode> getListOfNodes(JsonNode vcNode, String evidence) throws IOException {
         JsonNode evidenceNode = vcNode.get(evidence);
 
-        ObjectReader objectReader =
-                new ObjectMapper().readerFor(new TypeReference<List<JsonNode>>() {});
+        ObjectReader objectReader = OBJECT_MAPPER.readerFor(new TypeReference<List<JsonNode>>() {});
         return objectReader.readValue(evidenceNode);
     }
 
     private JsonNode getVCFromJson(String vc) throws JsonProcessingException {
-        String result = JSONPayload.getText();
-        LOGGER.info("result = " + result);
-        ObjectMapper objectMapper = new ObjectMapper();
-        JsonNode jsonNode = objectMapper.readTree(result);
+        String result = jsonPayload.getText();
+        LOGGER.info("result = {}", result);
+        JsonNode jsonNode = OBJECT_MAPPER.readTree(result);
         return jsonNode.get(vc);
     }
 
@@ -282,26 +280,24 @@ public class CommonPageObject extends UniversalSteps {
     }
 
     public void assertJtiIsPresentAndNotNull() throws JsonProcessingException {
-        String result = JSONPayload.getText();
-        LOGGER.info("result = " + result);
-        ObjectMapper objectMapper = new ObjectMapper();
-        JsonNode jsonNode = objectMapper.readTree(result);
+        String result = jsonPayload.getText();
+        LOGGER.info("result = {}", result);
+        JsonNode jsonNode = OBJECT_MAPPER.readTree(result);
         JsonNode jtiNode = jsonNode.get("jti");
-        LOGGER.info("jti = " + jtiNode.asText());
+        LOGGER.info("jti = {}", jtiNode.asText());
 
         assertNotNull(jtiNode.asText());
     }
 
     private void assertNbfIsRecentAndExpiryIsNull() throws JsonProcessingException {
-        String result = JSONPayload.getText();
-        LOGGER.info("result = " + result);
-        ObjectMapper objectMapper = new ObjectMapper();
-        JsonNode jsonNode = objectMapper.readTree(result);
+        String result = jsonPayload.getText();
+        LOGGER.info("result = {}", result);
+        JsonNode jsonNode = OBJECT_MAPPER.readTree(result);
         JsonNode nbfNode = jsonNode.get("nbf");
         JsonNode expNode = jsonNode.get("exp");
         String nbf = jsonNode.get("nbf").asText();
-        LOGGER.info("nbf = " + nbfNode);
-        LOGGER.info("exp = " + expNode);
+        LOGGER.info("nbf = {}", nbfNode);
+        LOGGER.info("exp = {}", expNode);
         LocalDateTime nbfDateTime =
                 LocalDateTime.ofEpochSecond(Long.parseLong(nbf), 0, ZoneOffset.UTC);
 
@@ -312,9 +308,9 @@ public class CommonPageObject extends UniversalSteps {
     boolean isWithinRange(LocalDateTime testDate) {
         LocalDateTime nbfMin = LocalDateTime.now(ZoneOffset.UTC).minusSeconds(30);
         LocalDateTime nbfMax = LocalDateTime.now(ZoneOffset.UTC).plusSeconds(30);
-        LOGGER.info("nbfMin " + nbfMin);
-        LOGGER.info("nbfMax " + nbfMax);
-        LOGGER.info("nbf " + testDate);
+        LOGGER.info("nbfMin {}", nbfMin);
+        LOGGER.info("nbfMax {}", nbfMax);
+        LOGGER.info("nbf {}", testDate);
 
         return testDate.isBefore(nbfMax) && testDate.isAfter(nbfMin);
     }

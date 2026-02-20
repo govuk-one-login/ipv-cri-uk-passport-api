@@ -152,9 +152,10 @@ Globals:
         DT_TENANT: !Sub
           - '{{resolve:secretsmanager:${SecretArn}:SecretString:DT_TENANT}}'
           - SecretArn: !FindInMap [ EnvironmentConfiguration, !Ref Environment, dynatraceSecretArn ]
-        DT_LOGGING_DESTINATION: !If [IsDeployedFromPipeline, "", "stdout"]
-        DT_LOG_COLLECTION_FILTER_MIN_LEVEL: !If [IsDeployedFromPipeline, ERROR , INFO ]
-        DT_LOGGING_JAVA_FLAGS: !If [IsDeployedFromPipeline, !Ref AWS::NoValue, "log-Transformer=true,log-OpenTelemetryUtils=true,log-AsyncClassRetransformer=true,log-ClassValue=true" ]
+#       These env vars control debug logging in Dynatrace (off by default)
+#        DT_LOGGING_DESTINATION: !If [IsDeployedFromPipeline, "", "stdout"]
+#        DT_LOG_COLLECTION_FILTER_MIN_LEVEL: !If [IsDeployedFromPipeline, ERROR , INFO ]
+#        DT_LOGGING_JAVA_FLAGS: !If [IsDeployedFromPipeline, !Ref AWS::NoValue, "log-Transformer=true,log-OpenTelemetryUtils=true,log-AsyncClassRetransformer=true,log-ClassValue=true" ]
         JAVA_TOOL_OPTIONS: -XX:+TieredCompilation -XX:TieredStopAtLevel=1
         AWS_STACK_NAME: !Sub ${AWS::StackName}
         POWERTOOLS_LOG_LEVEL: INFO
