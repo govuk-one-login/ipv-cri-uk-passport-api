@@ -63,7 +63,7 @@ jobs:
           path: LIME-Cucumber-gh-pages
 
       - name: Cucumber HTML Report action
-        uses: PavanMudigonda/html-reporter-github-pages@54c76f16127af1800cbc0187ac458a9e347addd4
+        uses: PavanMudigonda/html-reporter-github-pages@f650ff9a98b7bc13404ce5f36d77a3e3409bc004
         id: test-report
         if: always()
         with:
