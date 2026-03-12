@@ -33,7 +33,7 @@ jobs:
           gradle-version: wrapper
 
       - name: Setup SAM
-        uses: aws-actions/setup-sam@f664fad9e12492edfc187a31f575537dfbb0ff63
+        uses: aws-actions/setup-sam@d78e1a4a9656d3b223e59b80676a797f20093133
         with:
           use-installer: true
           version: "1.134.0"
