@@ -980,11 +980,14 @@ Resources:
 
 ####################################################################
 #                                                                  #
-# Alerts                                                           #
+# Alarms                                                           #
 #                                                                  #
 ####################################################################
 
-  ## Common API Alarms
+  ################################################################################
+  ##  Common API Alarms - NOTE: TS Lambdas have a lower case "service" Dimension #
+  ################################################################################
+
   CommonAPISessionLambdaConcurrencyThresholdReached:
     Type: AWS::CloudWatch::Alarm
     Condition: AlarmsEnabled
@@ -1001,7 +1004,7 @@ Resources:
       Statistic: Average
       Dimensions:
         - Name: FunctionName
-          Value: !Sub "${CommonStackName}-SessionFunction"
+          Value: !Sub "${CommonStackName}-SessionFunctionTS"
       Period: 60
       EvaluationPeriods: 15
       DatapointsToAlarm: 12
@@ -1025,8 +1028,8 @@ Resources:
       Namespace: !Sub "${CriIdentifier}"
       Statistic: Sum
       Dimensions:
-        - Name: Service
-          Value: !Sub "${CriIdentifier}-session"
+        - Name: service
+          Value: !Sub "${CriIdentifier}-sessionTS"
       Period: 60
       EvaluationPeriods: 3
       DatapointsToAlarm: 3
@@ -1050,8 +1053,8 @@ Resources:
       Namespace: !Sub "${CriIdentifier}"
       Statistic: Sum
       Dimensions:
-        - Name: Service
-          Value: !Sub "${CriIdentifier}-session"
+        - Name: service
+          Value: !Sub "${CriIdentifier}-sessionTS"
       Period: 60
       DatapointsToAlarm: 3
       EvaluationPeriods: 15
@@ -1075,7 +1078,7 @@ Resources:
       Statistic: Average
       Dimensions:
         - Name: FunctionName
-          Value: !Sub "${CommonStackName}-AuthorizationFunction"
+          Value: !Sub "${CommonStackName}-authorizationTS"
       Period: 60
       EvaluationPeriods: 15
       DatapointsToAlarm: 12
@@ -1099,7 +1102,7 @@ Resources:
       Statistic: Average
       Dimensions:
         - Name: FunctionName
-          Value: !Sub "${CommonStackName}-AccessTokenFunction"
+          Value: !Sub "${CommonStackName}-AccessTokenFunctionTS"
       Period: 60
       EvaluationPeriods: 15
       DatapointsToAlarm: 12
@@ -1123,8 +1126,8 @@ Resources:
       Namespace: !Sub "${CriIdentifier}"
       Statistic: Sum
       Dimensions:
-        - Name: Service
-          Value: !Sub "${CriIdentifier}-access-token"
+        - Name: service
+          Value: !Sub "${CriIdentifier}-access-token-2"
       Period: 60
       DatapointsToAlarm: 3
       EvaluationPeriods: 15
@@ -1132,7 +1135,10 @@ Resources:
       ComparisonOperator: GreaterThanThreshold
       TreatMissingData: notBreaching
 
-  ## Passport API Alarms
+  #######################################################################################
+  ##  Passport Lambda Alarms - NOTE: Java Lambdas have a Upper case "Service" Dimension #
+  #######################################################################################
+
   PassportCheckPassportLambdaConcurrencyThresholdReached:
     Type: AWS::CloudWatch::Alarm
     Condition: AlarmsEnabled
@@ -1203,6 +1209,35 @@ Resources:
       ComparisonOperator: GreaterThanThreshold
       TreatMissingData: notBreaching
 
+  CertificateExpiryAlarm:
+    Type: AWS::CloudWatch::Alarm
+    Condition: AlarmsEnabled
+    Properties:
+      AlarmName: !Sub "${AWS::StackName}-${Environment} - Passport - Certificate expiry Alarm"
+      AlarmDescription: !Sub Passport ${Environment} HMPO certificate is close to expiry (expires within 28 days) see certificate catalogue in confluence for expiries and certificate names
+      ActionsEnabled: true
+      AlarmActions:
+        - !ImportValue build-notifications-CriticalAlertsTopicArn
+      OKActions:
+        - !ImportValue build-notifications-CriticalAlertsTopicArn
+      InsufficientDataActions: [ ]
+      MetricName: hmpo_cert_expiry_metric
+      Namespace: !Sub "${CriIdentifier}"
+      Statistic: Sum
+      Dimensions:
+        - Name: Service
+          Value: !Sub "${CriIdentifier}-CertExpiryReminder"
+      Period: 60
+      EvaluationPeriods: 1
+      DatapointsToAlarm: 1
+      Threshold: 1
+      ComparisonOperator: GreaterThanOrEqualToThreshold
+      TreatMissingData: notBreaching
+
+  #######################################################################################
+  ##  Passport API Gateway Alarms                                                       #
+  #######################################################################################
+
   PassportAPIGW5XXErrors:
     Type: AWS::CloudWatch::Alarm
     Condition: AlarmsEnabled
@@ -1247,31 +1282,6 @@ Resources:
                   Value: !Sub "${AWS::StackName}-PrivateUKPassportApi"
             Period: 300
             Stat: Sum
-
-  CertificateExpiryAlarm:
-    Type: AWS::CloudWatch::Alarm
-    Condition: AlarmsEnabled
-    Properties:
-      AlarmName: !Sub "${AWS::StackName}-${Environment} - Passport - Certificate expiry Alarm"
-      AlarmDescription: !Sub Passport ${Environment} HMPO certificate is close to expiry (expires within 28 days) see certificate catalogue in confluence for expiries and certificate names
-      ActionsEnabled: true
-      AlarmActions:
-        - !ImportValue build-notifications-CriticalAlertsTopicArn
-      OKActions:
-        - !ImportValue build-notifications-CriticalAlertsTopicArn
-      InsufficientDataActions: [ ]
-      MetricName: hmpo_cert_expiry_metric
-      Namespace: !Sub "${CriIdentifier}"
-      Statistic: Sum
-      Dimensions:
-        - Name: Service
-          Value: !Sub "${CriIdentifier}-CertExpiryReminder"
-      Period: 60
-      EvaluationPeriods: 1
-      DatapointsToAlarm: 1
-      Threshold: 1
-      ComparisonOperator: GreaterThanOrEqualToThreshold
-      TreatMissingData: notBreaching
 
 ###################################################################
 #                                                                 #

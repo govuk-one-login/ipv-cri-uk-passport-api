@@ -38,8 +38,6 @@ sam validate -t infrastructure/lambda/template.yaml --config-env dev --lint
 echo -e "🧱 Building with sam build"
 sam build -s "$CURRENT_PATH" -t infrastructure/lambda/template.yaml --config-env dev
 echo -e "🚀 Deploying..."
-sam validate -t infrastructure/lambda/template.yaml --config-env dev --lint
-sam build -s "$CURRENT_PATH" -t infrastructure/lambda/template.yaml --config-env dev
 sam deploy --stack-name "$stack_name" \
   --no-fail-on-empty-changeset \
   --no-confirm-changeset \
