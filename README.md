@@ -63,7 +63,7 @@ trim trailing whitespace.................................................Passed
 detect aws credentials...................................................Passed
 detect private key.......................................................Passed
 AWS CloudFormation Linter................................................Failed
-- hook id: cfn-python-lint
+- hook id: cfn-lint
 - exit code: 4
 
 W3011 Both UpdateReplacePolicy and DeletionPolicy are needed to protect Resources/PublicHostedZone from deletion

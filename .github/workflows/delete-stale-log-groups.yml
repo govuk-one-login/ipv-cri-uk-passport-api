@@ -15,7 +15,7 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      - uses: govuk-one-login/github-actions/sam/delete-stale-log-groups@d0ad650db678eea445ef523eb2206cb66187de6e
+      - uses: govuk-one-login/github-actions/sam/delete-stale-log-groups@3b0015c58dd0e19e1572fda59dda4184df387d1e
         with:
           aws-role-arn: ${{ secrets.AWS_PRE_MERGE_ROLE_ARN }}
           cutoff-days: "30"
