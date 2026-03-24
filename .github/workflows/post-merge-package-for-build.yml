@@ -77,11 +77,11 @@ jobs:
           IMAGE_TAG: latest
         run: |
           docker build -t $ECR_REGISTRY/$ECR_REPOSITORY_BUILD:$IMAGE_TAG acceptance-tests
-          docker push $ECR_REGISTRY/$ECR_REPOSITORY_BUILD:$IMAGE_TAG
-          cosign sign --key awskms:///${CONTAINER_SIGN_KMS_KEY} $ECR_REGISTRY/$ECR_REPOSITORY_BUILD:$IMAGE_TAG
+          BUILD_DIGEST=$(docker push $ECR_REGISTRY/$ECR_REPOSITORY_BUILD:$IMAGE_TAG | grep -o 'sha256:[a-f0-9]*')
+          cosign sign --yes --key awskms:///${CONTAINER_SIGN_KMS_KEY} $ECR_REGISTRY/$ECR_REPOSITORY_BUILD@$BUILD_DIGEST
           docker tag $ECR_REGISTRY/$ECR_REPOSITORY_BUILD:$IMAGE_TAG $ECR_REGISTRY/$ECR_REPOSITORY_STAGING:$IMAGE_TAG
-          docker push $ECR_REGISTRY/$ECR_REPOSITORY_STAGING:$IMAGE_TAG
-          cosign sign --key awskms:///${CONTAINER_SIGN_KMS_KEY} $ECR_REGISTRY/$ECR_REPOSITORY_STAGING:$IMAGE_TAG
+          STAGING_DIGEST=$(docker push $ECR_REGISTRY/$ECR_REPOSITORY_STAGING:$IMAGE_TAG | grep -o 'sha256:[a-f0-9]*')
+          cosign sign --yes --key awskms:///${CONTAINER_SIGN_KMS_KEY} $ECR_REGISTRY/$ECR_REPOSITORY_STAGING@$STAGING_DIGEST
 
       - name: reset to working directory
         run: cd ${GITHUB_WORKSPACE}
