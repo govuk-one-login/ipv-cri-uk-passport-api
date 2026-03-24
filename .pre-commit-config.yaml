@@ -1,6 +1,6 @@
 repos:
   - repo: https://github.com/pre-commit/pre-commit-hooks
-    rev: v4.6.0
+    rev: v5.0.0
     hooks:
     -   id: check-json
     -   id: end-of-file-fixer
@@ -9,14 +9,14 @@ repos:
         args: [ --allow-missing-credentials ]
     -   id: detect-private-key
 
-  - repo: https://github.com/awslabs/cfn-python-lint
-    rev: v1.15.2 # The version of cfn-lint to use
+  - repo: https://github.com/aws-cloudformation/cfn-lint
+    rev: v1.46.0
     hooks:
-    -   id: cfn-python-lint
-        files: .template\.yaml$
+    -   id: cfn-lint
+        files: template\.ya?ml$
 
   - repo: https://github.com/bridgecrewio/checkov.git
-    rev: '3.2.456'
+    rev: 3.2.457
     hooks:
     - id: checkov
       verbose: true
