@@ -49,21 +49,21 @@ jobs:
         uses: aws-actions/amazon-ecr-login@261fc3d4806db1fa66a15cc11113c456db8870a7 # v2.1.0
 
       - name: Install Cosign
-        uses: sigstore/cosign-installer@d7543c93d881b35a8faa02e8e3605f69b7a1ce62 # v2.6.0
+        uses: sigstore/cosign-installer@7e8b541eb2e61bf99390e1afd4be13a184e9ebc5 #v3.10.1
         with:
-          cosign-release: 'v2.5.2'
+          cosign-release: "v2.5.1"
 
-      - name: Build, push traffic test image to ECR
-        uses: govuk-one-login/devplatform-upload-action-ecr@f82c8774a6390f200b15112b3cbb9faf3442173c # v1.5.0
-        with:
-          artifact-bucket-name: ""
-          container-sign-kms-key-arn: ${{ secrets.CONTAINER_SIGN_KMS_KEY_DEV }}
-          role-to-assume-arn: ${{ secrets.AWS_DEV_ROLE_ARN }}
-          ecr-repo-name: ${{ secrets.ECR_REPOSITORY_TRAFFIC_TEST_DEV }}
-          working-directory: acceptance-tests
-          dockerfile: Dockerfile-traffictest
-          build-and-push-image-only: "true"
-          push-latest-tag: true
+      - name: Build, tag, and push traffic test image to ECR
+        env:
+          CONTAINER_SIGN_KMS_KEY_DEV: ${{ secrets.CONTAINER_SIGN_KMS_KEY_DEV }}
+          ECR_REGISTRY: ${{ steps.login-ecr.outputs.registry }}
+          ECR_REPOSITORY_TRAFFIC_DEV: ${{ secrets.ECR_REPOSITORY_TRAFFIC_TEST_DEV }}
+          IMAGE_TAG: latest
+        run: |
+          docker build -t $ECR_REGISTRY/$ECR_REPOSITORY_TRAFFIC_DEV:$IMAGE_TAG -f acceptance-tests/Dockerfile-traffictest acceptance-tests
+          docker push $ECR_REGISTRY/$ECR_REPOSITORY_TRAFFIC_DEV:$IMAGE_TAG
+          cosign sign --yes --tlog-upload=false --key awskms:///${CONTAINER_SIGN_KMS_KEY_DEV} $ECR_REGISTRY/$ECR_REPOSITORY_TRAFFIC_DEV:$IMAGE_TAG
+          docker tag $ECR_REGISTRY/$ECR_REPOSITORY_TRAFFIC_DEV:$IMAGE_TAG $ECR_REGISTRY/$ECR_REPOSITORY_TRAFFIC_DEV:$IMAGE_TAG
 
       - name: reset to working directory
         run: cd ${GITHUB_WORKSPACE}
