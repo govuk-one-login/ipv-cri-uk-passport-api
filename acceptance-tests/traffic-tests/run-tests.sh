@@ -49,6 +49,6 @@ else
   export JOURNEY_TAG="${TEST_TAG}"
 fi
 
-pushd /home/gradle
-gradle cucumber -P tags=${JOURNEY_TAG}
+pushd /home/gradle/cri/acceptance-tests
+gradle cucumber --no-watch-fs -P tags="${JOURNEY_TAG}"
 popd

@@ -6,9 +6,11 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.CsvSource;
+import org.junit.jupiter.params.provider.EnumSource;
 import org.mockito.InOrder;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import uk.gov.account.ipv.cri.lime.limeade.strategy.Strategy;
 import uk.gov.di.ipv.cri.common.library.domain.AuditEventContext;
 import uk.gov.di.ipv.cri.common.library.domain.AuditEventType;
 import uk.gov.di.ipv.cri.common.library.exception.SqsException;
@@ -20,7 +22,6 @@ import uk.gov.di.ipv.cri.passport.checkpassport.domain.result.fields.ContraIndic
 import uk.gov.di.ipv.cri.passport.checkpassport.validation.ValidationResult;
 import uk.gov.di.ipv.cri.passport.library.PassportFormTestDataGenerator;
 import uk.gov.di.ipv.cri.passport.library.domain.PassportFormData;
-import uk.gov.di.ipv.cri.passport.library.domain.Strategy;
 import uk.gov.di.ipv.cri.passport.library.domain.result.ThirdPartyAPIResult;
 import uk.gov.di.ipv.cri.passport.library.error.ErrorResponse;
 import uk.gov.di.ipv.cri.passport.library.exceptions.OAuthErrorResponseException;
@@ -62,7 +63,8 @@ class DocumentDataVerificationServiceTest {
     @Mock private FormDataValidator mockFormDataValidator;
 
     @Mock private ContraIndicatorMapper mockContraIndicatorMapper;
-    @Mock private ThirdPartyAPIService mocThirdPartyAPIService;
+    @Mock private ThirdPartyAPIServiceFactory mockThirdPartyAPIServiceFactory;
+    @Mock private ThirdPartyAPIService mockThirdPartyAPIService;
 
     private DocumentDataVerificationService documentDataVerificationService;
 
@@ -72,7 +74,10 @@ class DocumentDataVerificationServiceTest {
 
         documentDataVerificationService =
                 new DocumentDataVerificationService(
-                        mockServiceFactory, mockFormDataValidator, mockContraIndicatorMapper);
+                        mockServiceFactory,
+                        mockThirdPartyAPIServiceFactory,
+                        mockFormDataValidator,
+                        mockContraIndicatorMapper);
     }
 
     @ParameterizedTest
@@ -114,16 +119,15 @@ class DocumentDataVerificationServiceTest {
         when(mockFormDataValidator.validate(passportFormData))
                 .thenReturn(new ValidationResult<>(true, null));
 
-        when(mocThirdPartyAPIService.performCheck(passportFormData, Strategy.NO_CHANGE))
+        when(mockThirdPartyAPIServiceFactory.getDvadThirdPartyAPIService())
+                .thenReturn(mockThirdPartyAPIService);
+
+        when(mockThirdPartyAPIService.performCheck(passportFormData, Strategy.NO_CHANGE))
                 .thenReturn(thirdPartyAPIResult);
 
         DocumentDataVerificationResult documentDataVerificationResult =
                 documentDataVerificationService.verifyData(
-                        mocThirdPartyAPIService,
-                        passportFormData,
-                        sessionItem,
-                        null,
-                        Strategy.NO_CHANGE);
+                        Strategy.NO_CHANGE, passportFormData, sessionItem, null);
 
         InOrder inOrder = inOrder(mockEventProbe);
         inOrder.verify(mockEventProbe).counterMetric(FORM_DATA_VALIDATION_PASS);
@@ -131,7 +135,7 @@ class DocumentDataVerificationServiceTest {
         verifyNoMoreInteractions(mockEventProbe);
 
         verify(mockFormDataValidator).validate(passportFormData);
-        verify(mocThirdPartyAPIService).performCheck(passportFormData, Strategy.NO_CHANGE);
+        verify(mockThirdPartyAPIService).performCheck(passportFormData, Strategy.NO_CHANGE);
 
         verify(mockAuditService)
                 .sendAuditEvent(eq(AuditEventType.REQUEST_SENT), any(AuditEventContext.class));
@@ -205,11 +209,7 @@ class DocumentDataVerificationServiceTest {
                         OAuthErrorResponseException.class,
                         () -> {
                             documentDataVerificationService.verifyData(
-                                    mocThirdPartyAPIService,
-                                    passportFormData,
-                                    sessionItem,
-                                    null,
-                                    Strategy.NO_CHANGE);
+                                    Strategy.NO_CHANGE, passportFormData, sessionItem, null);
                         });
 
         assertEquals(expectedReturnedException.getStatusCode(), thrownException.getStatusCode());
@@ -220,8 +220,9 @@ class DocumentDataVerificationServiceTest {
         verifyNoInteractions(mockAuditService);
     }
 
-    @Test
-    void verifyIdentityShouldReturnErrorWhenThirdPartyCallFails()
+    @ParameterizedTest
+    @EnumSource(Strategy.class)
+    void verifyIdentityShouldReturnErrorWhenThirdPartyCallFails(Strategy strategy)
             throws OAuthErrorResponseException {
         SessionItem sessionItem = new SessionItem();
         sessionItem.setSessionId(UUID.randomUUID());
@@ -236,20 +237,18 @@ class DocumentDataVerificationServiceTest {
                         HttpStatus.SC_INTERNAL_SERVER_ERROR,
                         ErrorResponse.ERROR_INVOKING_LEGACY_THIRD_PARTY_API);
 
+        mockThirdPartyAPIService(strategy);
+
         doThrow(expectedReturnedException)
-                .when(mocThirdPartyAPIService)
-                .performCheck(passportFormData, Strategy.NO_CHANGE);
+                .when(mockThirdPartyAPIService)
+                .performCheck(passportFormData, strategy);
 
         OAuthErrorResponseException thrownException =
                 assertThrows(
                         OAuthErrorResponseException.class,
                         () -> {
                             documentDataVerificationService.verifyData(
-                                    mocThirdPartyAPIService,
-                                    passportFormData,
-                                    sessionItem,
-                                    null,
-                                    Strategy.NO_CHANGE);
+                                    strategy, passportFormData, sessionItem, null);
                         });
 
         assertEquals(expectedReturnedException.getStatusCode(), thrownException.getStatusCode());
@@ -269,6 +268,8 @@ class DocumentDataVerificationServiceTest {
 
         when(mockFormDataValidator.validate(passportFormData))
                 .thenReturn(new ValidationResult<>(true, null));
+        when(mockThirdPartyAPIServiceFactory.getDvadThirdPartyAPIService())
+                .thenReturn(mockThirdPartyAPIService);
 
         SqsException exceptionCaught = new SqsException("Sqs Send fail");
 
@@ -286,11 +287,7 @@ class DocumentDataVerificationServiceTest {
                         OAuthErrorResponseException.class,
                         () -> {
                             documentDataVerificationService.verifyData(
-                                    mocThirdPartyAPIService,
-                                    passportFormData,
-                                    sessionItem,
-                                    null,
-                                    Strategy.NO_CHANGE);
+                                    Strategy.NO_CHANGE, passportFormData, sessionItem, null);
                         });
 
         assertEquals(expectedReturnedException.getStatusCode(), thrownException.getStatusCode());
@@ -304,5 +301,17 @@ class DocumentDataVerificationServiceTest {
     private void mockServiceFactoryBehaviour() {
         when(mockServiceFactory.getEventProbe()).thenReturn(mockEventProbe);
         when(mockServiceFactory.getAuditService()).thenReturn(mockAuditService);
+    }
+
+    private void mockThirdPartyAPIService(Strategy strategy) {
+        if (strategy == Strategy.STUB) {
+            when(mockThirdPartyAPIServiceFactory.getDvadThirdPartyAPIServiceForStub())
+                    .thenReturn(mockThirdPartyAPIService);
+
+            return;
+        }
+
+        when(mockThirdPartyAPIServiceFactory.getDvadThirdPartyAPIService())
+                .thenReturn(mockThirdPartyAPIService);
     }
 }

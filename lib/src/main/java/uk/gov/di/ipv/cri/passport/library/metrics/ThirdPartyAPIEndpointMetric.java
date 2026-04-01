@@ -18,9 +18,9 @@ import static uk.gov.di.ipv.cri.passport.library.metrics.ThirdPartyAPIMetricEndp
 
 public enum ThirdPartyAPIEndpointMetric {
 
-    ///////////////////////////////////////////////////////////////////////////////////////////////
-    // DVAD Health End Point Metrics                                                             //
-    ///////////////////////////////////////////////////////////////////////////////////////////////
+    /* *********************************************************************************************************
+     DVAD Health End Point Metrics
+    *********************************************************************************************************** */
     DVAD_HEALTH_REQUEST_CREATED(DVAD_THIRD_PARTY_API_HEALTH_ENDPOINT, REQUEST_CREATED),
     DVAD_HEALTH_REQUEST_SEND_OK(DVAD_THIRD_PARTY_API_HEALTH_ENDPOINT, REQUEST_SEND_OK),
     DVAD_HEALTH_REQUEST_SEND_ERROR(DVAD_THIRD_PARTY_API_HEALTH_ENDPOINT, REQUEST_SEND_ERROR),
@@ -39,9 +39,9 @@ public enum ThirdPartyAPIEndpointMetric {
 
     DVAD_HEALTH_RESPONSE_LATENCY(DVAD_THIRD_PARTY_API_HEALTH_ENDPOINT, API_RESPONSE_LATENCY),
 
-    ///////////////////////////////////////////////////////////////////////////////////////////////
-    // DVAD Token End Point Metrics                                                              //
-    ///////////////////////////////////////////////////////////////////////////////////////////////
+    /* *********************************************************************************************************
+     DVAD Token End Point Metrics
+    *********************************************************************************************************** */
     DVAD_TOKEN_REQUEST_REUSING_CACHED_TOKEN(
             DVAD_THIRD_PARTY_API_TOKEN_ENDPOINT, "reusing_cached_token"),
 
@@ -61,9 +61,9 @@ public enum ThirdPartyAPIEndpointMetric {
 
     DVAD_TOKEN_RESPONSE_LATENCY(DVAD_THIRD_PARTY_API_TOKEN_ENDPOINT, API_RESPONSE_LATENCY),
 
-    ///////////////////////////////////////////////////////////////////////////////////////////////
-    // DVAD GraphQL End Point Metrics                                                            //
-    ///////////////////////////////////////////////////////////////////////////////////////////////
+    /* *********************************************************************************************************
+     DVAD GraphQL End Point Metrics
+    *********************************************************************************************************** */
     DVAD_GRAPHQL_REQUEST_CREATED(DVAD_THIRD_PARTY_API_GRAPHQL_ENDPOINT, REQUEST_CREATED),
     DVAD_GRAPHQL_REQUEST_SEND_OK(DVAD_THIRD_PARTY_API_GRAPHQL_ENDPOINT, REQUEST_SEND_OK),
     DVAD_GRAPHQL_REQUEST_SEND_ERROR(DVAD_THIRD_PARTY_API_GRAPHQL_ENDPOINT, REQUEST_SEND_ERROR),

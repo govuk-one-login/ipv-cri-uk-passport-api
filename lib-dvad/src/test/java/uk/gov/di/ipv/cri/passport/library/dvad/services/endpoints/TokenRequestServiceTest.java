@@ -124,8 +124,6 @@ class TokenRequestServiceTest {
         when(mockCloseableHttpClient.execute(httpRequestCaptor.capture()))
                 .thenReturn(tokenResponse);
 
-        String requestId = UUID.randomUUID().toString();
-
         AccessTokenResponse accessTokenResponse =
                 tokenRequestService.requestAccessToken(realDvadAPIHeaderValues, true);
 
@@ -165,8 +163,6 @@ class TokenRequestServiceTest {
     @Test
     void shouldReturnOAuthErrorResponseExceptionWhenTokenEndpointDoesNotRespond()
             throws IOException {
-        String requestId = UUID.randomUUID().toString();
-
         Exception exceptionCaught = new IOException("Token Endpoint Timed out");
 
         doThrow(exceptionCaught).when(mockCloseableHttpClient).execute(any(HttpPost.class));
@@ -220,8 +216,6 @@ class TokenRequestServiceTest {
         when(mockCloseableHttpClient.execute(httpRequestCaptor.capture()))
                 .thenReturn(tokenResponse);
 
-        String requestId = UUID.randomUUID().toString();
-
         OAuthErrorResponseException expectedReturnedException =
                 new OAuthErrorResponseException(
                         HttpStatus.SC_INTERNAL_SERVER_ERROR,
@@ -272,8 +266,6 @@ class TokenRequestServiceTest {
         // HttpClient response
         when(mockCloseableHttpClient.execute(httpRequestCaptor.capture()))
                 .thenReturn(tokenResponse);
-
-        String requestId = UUID.randomUUID().toString();
 
         OAuthErrorResponseException expectedReturnedException =
                 new OAuthErrorResponseException(
@@ -334,8 +326,6 @@ class TokenRequestServiceTest {
         when(mockCloseableHttpClient.execute(httpRequestCaptor.capture()))
                 .thenReturn(tokenResponse);
 
-        String requestId = UUID.randomUUID().toString();
-
         OAuthErrorResponseException expectedReturnedException =
                 new OAuthErrorResponseException(
                         HttpStatus.SC_INTERNAL_SERVER_ERROR,
@@ -389,8 +379,6 @@ class TokenRequestServiceTest {
         // HttpClient response
         when(mockCloseableHttpClient.execute(httpRequestCaptor.capture()))
                 .thenReturn(tokenResponse);
-
-        String requestId = UUID.randomUUID().toString();
 
         // Request one
         AccessTokenResponse accessTokenResponseOne =
@@ -450,8 +438,6 @@ class TokenRequestServiceTest {
         when(mockCloseableHttpClient.execute(httpRequestCaptor.capture()))
                 .thenReturn(tokenResponse1)
                 .thenReturn(tokenResponse2);
-
-        String requestId = UUID.randomUUID().toString();
 
         // Request one
         AccessTokenResponse accessTokenResponseOne =

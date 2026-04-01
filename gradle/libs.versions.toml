@@ -1,0 +1,134 @@
+[versions]
+# Gradle Plugins
+spotless = "8.4.0"
+sonarqube = "7.2.3.7755"
+post_compile_weaving = "9.2.0"
+
+# Lambdas
+aws_sdk = "2.42.31"
+aws_lambda_events = "3.16.0"
+aws_lambda_core = "1.4.0" # https://github.com/aws/aws-lambda-java-libs
+cri_common_lib = "8.3.4"
+limeade = "1.1.1"
+nimbusds_oauth = "11.37"
+aspect_jrt = "1.9.25.1"
+aws_powertools = "2.10.0"
+jackson = "2.21.2"
+jackson_jr = "2.21.2"
+
+# Lambdas Apache HTTP Client https://hc.apache.org/httpcomponents-client-4.5.x/current/httpclient/dependencies.html
+apache_httpcomponents_httpcore = "4.4.16"
+apache_httpcomponents_httpclient = "4.5.14"
+
+# Lambdas OpenTel
+opentelemetry_bom_alpha = "2.20.1-alpha"
+
+# Unit tests
+junit = "6.0.3"
+mockito = "5.23.0"
+webcompere = "2.1.8"
+
+# Contract tests
+pact_provider = "4.6.19"
+commons_io = "2.21.0"
+
+# AC tests
+cucumber = "7.34.3"
+selenium = "4.1.0"
+axe_core_selenium = "4.11.1"
+webdrivermanager = "6.3.4"
+restassured =  "5.5.6"
+aws_cdk_lib = "2.133.0"
+
+[libraries]
+# AWS SDK
+aws-sdk-bom = { module = "software.amazon.awssdk:bom", version.ref = "aws_sdk" }
+aws-lambda-java-events = { module = "com.amazonaws:aws-lambda-java-events", version.ref = "aws_lambda_events" }
+aws-lambda-java-core = { module = "com.amazonaws:aws-lambda-java-core", version.ref = "aws_lambda_core" }
+aws-sdk-crt-client = { module = "software.amazon.awssdk:aws-crt-client" }
+aws-sdk-dynamodb = { module = "software.amazon.awssdk:dynamodb" }
+aws-sdk-dynamodb-enhanced = { module = "software.amazon.awssdk:dynamodb-enhanced" }
+aws-sdk-kms = { module = "software.amazon.awssdk:kms" }
+aws-sdk-lambda = { module = "software.amazon.awssdk:lambda" }
+aws-sdk-sqs = { module = "software.amazon.awssdk:sqs" }
+aws-sdk-acm = { module = "software.amazon.awssdk:acm" }
+aws-cdk-lib = { module = "software.amazon.awscdk:aws-cdk-lib", version.ref = "aws_cdk_lib" }
+
+# Shared
+cri-common-lib = { module = "uk.gov.account:cri-common-lib", version.ref = "cri_common_lib" }
+limeade = { module = "uk.gov.account.ipv.cri.lime:limeade", version.ref = "limeade" }
+
+# Jackson + Addons - NO LONGER - needs to track the aws sdk version of jackson - https://aws.amazon.com/blogs/developer/the-aws-sdk-for-java-2-17-removes-its-external-dependency-on-jackson/
+jackson-bom = { module = "com.fasterxml.jackson:jackson-bom", version.ref = "jackson"}
+jackson-annotations = { module = "com.fasterxml.jackson.core:jackson-annotations" }
+jackson-core = { module = "com.fasterxml.jackson.core:jackson-core" }
+jackson-databind = { module = "com.fasterxml.jackson.core:jackson-databind" }
+jackson-jdk8 = { module = "com.fasterxml.jackson.datatype:jackson-datatype-jdk8" }
+jackson-jsr310 = { module = "com.fasterxml.jackson.datatype:jackson-datatype-jsr310" }
+jackson-dataformat-yaml = { module = "com.fasterxml.jackson.dataformat:jackson-dataformat-yaml" }
+
+# Smaller less heavy version of jackson ( #via aws-sdk-bom )
+jackson-jr-objects = { module = "com.fasterxml.jackson.jr:jackson-jr-objects", version.ref = "jackson_jr" }
+
+# OAuth
+nimbus-oauth = { module = "com.nimbusds:oauth2-oidc-sdk", version.ref = "nimbusds_oauth" }
+
+# Open telemetry
+opentelemetry-bom-alpha= { module = "io.opentelemetry.instrumentation:opentelemetry-instrumentation-bom-alpha", version.ref = "opentelemetry_bom_alpha" }
+opentelemetry-aws-sdk= { module = "io.opentelemetry.instrumentation:opentelemetry-aws-sdk-2.2" }
+
+# Powertools Aspect API (Handers only)
+aspectjrt = { module = "org.aspectj:aspectjrt", version.ref = "aspect_jrt" }
+
+# Powertools Functional API
+powertools-logging = { module = "software.amazon.lambda:powertools-logging", version.ref = "aws_powertools" }
+powertools-logging-log4j = { module = "software.amazon.lambda:powertools-logging-log4j", version.ref = "aws_powertools" }
+powertools-metrics = { module = "software.amazon.lambda:powertools-metrics", version.ref = "aws_powertools" }
+powertools-parameters-ssm = { module = "software.amazon.lambda:powertools-parameters-ssm", version.ref = "aws_powertools" }
+powertools-parameters-secrets = { module = "software.amazon.lambda:powertools-parameters-secrets", version.ref = "aws_powertools" }
+
+# Apache HTTP
+apache-httpcomponents-httpcore = { module = "org.apache.httpcomponents:httpcore", version.ref = "apache_httpcomponents_httpcore" }
+apache-httpcomponents-httpclient = { module = "org.apache.httpcomponents:httpclient", version.ref = "apache_httpcomponents_httpclient" }
+
+# Unit testing
+junit-platform-bom = { module = "org.junit:junit-bom", version.ref ="junit"}
+junit-platform-launcher = { module = "org.junit.platform:junit-platform-launcher"}
+junit-api = { module = "org.junit.jupiter:junit-jupiter-api"}
+junit-params = { module = "org.junit.jupiter:junit-jupiter-params"}
+junit-engine = { module = "org.junit.jupiter:junit-jupiter-engine"}
+mockito-bom = { module = "org.mockito:mockito-bom", version.ref = "mockito" }
+mockito-core = { module = "org.mockito:mockito-core", version.ref = "mockito" }
+mockito-junit-jupiter = { module = "org.mockito:mockito-junit-jupiter", version.ref = "mockito" }
+webcompere-system-stubs-core = { module = "uk.org.webcompere:system-stubs-core", version.ref = "webcompere" }
+webcompere-system-stubs-jupiter = { module = "uk.org.webcompere:system-stubs-jupiter", version.ref = "webcompere" }
+
+# Contract tests
+pact-provider = { module = "au.com.dius.pact:provider", version.ref = "pact_provider" }
+pact-junit5 = { module = "au.com.dius.pact.provider:junit5", version.ref = "pact_provider" }
+commons-io = { module = "commons-io:commons-io", version.ref = "commons_io" }
+
+# Ac tests
+actest-cucumber-java = { module = "io.cucumber:cucumber-java", version.ref = "cucumber" }
+actest-selenium-java = { module = "org.seleniumhq.selenium:selenium-java", version.ref = "selenium" }
+actest-axe_core-selenium = { module = "com.deque.html.axe-core:selenium", version.ref = "axe_core_selenium" }
+actest-bonigarcia-webdrivermanager = { module = "io.github.bonigarcia:webdrivermanager", version.ref = "webdrivermanager" }
+actest-rest-assured = { module = "io.rest-assured:rest-assured", version.ref = "restassured" }
+actest-cucumber-junit = { module = "io.cucumber:cucumber-junit", version.ref = "cucumber" }
+
+[bundles]
+unit-testing = [ "mockito-core" , "mockito-junit-jupiter", "junit-platform-launcher", "junit-api", "junit-engine", "junit-params", "webcompere-system-stubs-core","webcompere-system-stubs-jupiter"]
+jackson = [ "jackson-annotations" , "jackson-core", "jackson-databind", "jackson-jdk8", "jackson-jsr310"]
+pact = [ "pact-provider", "pact-junit5", "commons-io" ]
+actest-cucumber = [ "actest-cucumber-java", "actest-selenium-java", "actest-axe_core-selenium", "actest-bonigarcia-webdrivermanager"]
+
+[plugins]
+java = { id = "java" }
+java-library = { id = "java-library" }
+java-test-fixtures = { id = "java-test-fixtures" }
+idea = { id = "idea" }
+jacoco = { id = "jacoco" }
+jacoco-report-aggregation = { id = "jacoco-report-aggregation" }
+post-compile-weaving = { id = "io.freefair.aspectj.post-compile-weaving", version.ref = "post_compile_weaving" }
+sonarqube = { id = "org.sonarqube", version.ref = "sonarqube" }
+spotless = { id = "com.diffplug.spotless", version.ref = "spotless" }

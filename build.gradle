@@ -1,86 +1,18 @@
 import com.diffplug.spotless.extra.wtp.EclipseWtpFormatterStep
+import org.gradle.api.tasks.testing.logging.TestExceptionFormat
+import org.gradle.api.tasks.testing.logging.TestLogEvent
 
 plugins {
-	id "java"
-	id "idea"
-	id "org.sonarqube" version "7.2.2.6593"
-	id 'io.freefair.aspectj.post-compile-weaving' version '8.12.1'
-	id "jacoco"
-	id "jacoco-report-aggregation"
-	id "com.diffplug.spotless" version "8.0.0"
+	alias(libs.plugins.idea)
+	alias(libs.plugins.java)
+	alias(libs.plugins.jacoco)
+	alias(libs.plugins.jacoco.report.aggregation)
+	alias(libs.plugins.spotless)
+	alias(libs.plugins.sonarqube)
+	alias(libs.plugins.post.compile.weaving)
 }
 
 defaultTasks 'clean', 'spotlessApply', 'build'
-
-repositories {
-	maven {
-		url 'https://gds.jfrog.io/artifactory/di-allowed-repos'
-	}
-}
-
-ext {
-	aws_powertools_version = "2.10.0"
-	dependencyVersions = [
-
-		// ---------------------------------------------------------
-		// cri_common_lib dependencies should match the ipv-cri-lib version
-		// Workaround until dependency resolution is fixed.
-		// ---------------------------------------------------------
-		cri_common_lib_version             : "8.3.3",
-
-		// AWS SDK
-		aws_sdk_version                    : "2.42.16",
-
-		aws_lambda_events_version          : "3.16.0",
-
-		// Nimbus Oauth
-		nimbusds_oauth_version             : "11.29.1",
-
-		// CRI_LIB powertools
-		aws_powertools_logging_version     : "${aws_powertools_version}",
-		aws_powertools_metrics_version     : "${aws_powertools_version}",
-		aws_powertools_parameters_version  : "${aws_powertools_version}",
-
-		// ---------------------------------------------------------
-		// Passport CRI Dependencies
-		// ---------------------------------------------------------
-
-		// AWS  aws-lambda-java-libs see https://github.com/aws/aws-lambda-java-libs
-		aws_lambda_core_version                    : "1.3.0",
-		// Jackson Addons/ needs to track the aws sdk version of jackson
-		jackson_version                            : "2.21.1",
-		// Powertools Aspect API (Handers only)
-		aspectjrt_version                          : "1.9.25.1",
-
-		// Open telemetry
-		opentelemetry_bom_alpha_version  : "2.20.1-alpha",
-
-		// CRI Apache HTTP Client see https://hc.apache.org/httpcomponents-client-4.5.x/current/httpclient/dependencies.html
-		httpcomponents_core_version        : "4.4.16",
-		httpcomponents_client_version      : "4.5.14",
-
-		// Test
-		junit_version                      : "6.0.3",
-		mockito_version                    : "5.17.0",
-		webcompere_version                 : "2.1.8",
-
-		// testFixturesImplementation
-
-		// Contract Tests
-		pact_provider_version              : "4.6.19",
-		slf4j_log4j12_version              : "2.0.17", // For contract test debug
-	]
-
-	// Sets the version used on the lambda + lib (ac tests have separate dependencies)
-	javaCompatibility = [
-		source : JavaVersion.VERSION_17,
-		target : JavaVersion.VERSION_17
-	]
-
-	// Code Coverage (Lines/Branches) cannot be below this value on a per sub project basis
-	minUnitTestLineCoverage = 0.9
-	minUnitTestBranchCoverage = 0.9
-}
 
 sonar {
 	properties {
@@ -102,20 +34,20 @@ reporting {
 }
 
 dependencies {
-	jacocoAggregation project(':lib'),
-			project(':lib-dvad'),
-			project("lambdas:checkpassport"),
-			project("lambdas:issuecredential"),
-			project("lambdas:certexpiryreminder")
+	if (!System.getenv('AC_TEST_ONLY')) {
+		jacocoAggregation project(':lib'),
+				project(':lib-dvad'),
+				project("lambdas:checkpassport"),
+				project("lambdas:issuecredential"),
+				project("lambdas:certexpiryreminder")
+	}
 }
 
 spotless {
 	java {
 		target "**/src/**/*.java"
-		googleJavaFormat("1.19.2").aosp().formatJavadoc(true)
+		googleJavaFormat("1.35.0").aosp().formatJavadoc(true)
 		importOrder "", "javax", "java", "\\#"
-		sourceCompatibility = "${javaCompatibility.source}"
-		targetCompatibility = "${javaCompatibility.target}"
 		removeUnusedImports()
 		forbidWildcardImports()
 		formatAnnotations()
@@ -161,60 +93,122 @@ spotless {
 }
 
 subprojects {
+	apply plugin: 'jacoco'
+	apply plugin: libs.plugins.post.compile.weaving.get().pluginId
 	apply plugin: 'org.sonarqube'
-	apply plugin: 'io.freefair.aspectj.post-compile-weaving'
-
-	configurations.configureEach {
-		// These clients are excluded as we are using the aws-crt client exclusively
-		// https://aws.amazon.com/blogs/developer/tuning-the-aws-java-sdk-2-x-to-reduce-startup-time/
-		exclude group:"software.amazon.awssdk", module: "apache-client"
-		exclude group:"software.amazon.awssdk", module: "netty-nio-client"
-		exclude group:"software.amazon.awssdk", module: "url-connection-client"
-
-		// Exclude netty in general
-		exclude group: "io.netty", module: "*"
-		exclude group: "io.grpc", module: "grpc-netty"
-	}
-
-	repositories {
-		maven {
-			url 'https://gds.jfrog.io/artifactory/di-allowed-repos'
-		}
-		//flatDir {
-		//	dirs '<Location of your projects absolute path>/di-ipv-cri-lib/build/libs'
-		//}
-	}
 
 	plugins.withId('java') {
-		sourceCompatibility = "${javaCompatibility.source}"
-		targetCompatibility = "${javaCompatibility.target}"
-	}
+		java {
+			toolchain {
+				languageVersion = JavaLanguageVersion.of(25)
+			}
+		}
 
-	plugins.withId('java-library') {
-		sourceCompatibility = "${javaCompatibility.source}"
-		targetCompatibility = "${javaCompatibility.target}"
-	}
+		configurations {
+			mockitoAgent
+		}
 
-	plugins.withId('java-test-fixtures') {
-		sourceCompatibility = "${javaCompatibility.source}"
-		targetCompatibility = "${javaCompatibility.target}"
-	}
+		configurations.configureEach {
+			// These clients are excluded as we are using the aws-crt client exclusively
+			// https://aws.amazon.com/blogs/developer/tuning-the-aws-java-sdk-2-x-to-reduce-startup-time/
+			exclude group:"software.amazon.awssdk", module: "apache-client"
+			exclude group:"software.amazon.awssdk", module: "netty-nio-client"
+			exclude group:"software.amazon.awssdk", module: "url-connection-client"
 
-	tasks.withType(JavaCompile).configureEach {
-		options.compilerArgs << "-Xlint" << "-Xlint:-processing"
-	}
+			// Exclude netty in general but allow for webdriver manager in acceptance tests (browser download)
+			if (project.name != 'acceptance-tests') {
+				exclude group: "io.netty", module: "*"
+				exclude group: "io.grpc", module: "grpc-netty"
+			}
+		}
 
-	tasks.register('allDeps', DependencyReportTask) {}
+		tasks.withType(JavaCompile).configureEach {
+			options.compilerArgs << "-Xlint"
+		}
 
-	// Use a common log4j2.xml for all subprojects
-	tasks.register('copyLog4j2Config', Copy) {
-		from rootProject.file('shared-resources/log4j2.xml')
-		from rootProject.file('shared-resources/CustomLambdaJsonLayout.json')
-		into layout.buildDirectory.dir('resources/main')
-	}
+		dependencies {
+			mockitoAgent platform(libs.mockito.bom)
+			mockitoAgent(libs.mockito.core) {
+				transitive = false
+			}
 
-	tasks.matching { it.name in ['processResources', 'jar'] }.configureEach {
-		dependsOn tasks.named('copyLog4j2Config')
+			testImplementation platform(libs.junit.platform.bom)
+			testImplementation platform(libs.mockito.bom)
+			testImplementation libs.bundles.unit.testing
+
+			testRuntimeOnly "org.junit.platform:junit-platform-launcher"
+		}
+
+		// Use a common log4j2.xml for all subprojects
+		tasks.register('copyLog4j2Config', Copy) {
+			from rootProject.file('shared-resources/log4j2.xml')
+			from rootProject.file('shared-resources/CustomLambdaJsonLayout.json')
+			into layout.buildDirectory.dir('resources/main')
+		}
+
+		tasks.matching { it.name in ['processResources', 'jar'] }.configureEach {
+			dependsOn tasks.named('copyLog4j2Config')
+		}
+
+		test {
+			useJUnitPlatform {
+				excludeTags 'Pact'
+			}
+			jvmArgs("-javaagent:${configurations.mockitoAgent.asPath}", "-Xshare:off")
+			finalizedBy jacocoTestReport, jacocoTestCoverageVerification
+			testLogging {
+				events = [
+					TestLogEvent.PASSED,
+					TestLogEvent.SKIPPED,
+					TestLogEvent.FAILED
+				]
+				showStandardStreams = false
+				showExceptions = true
+				showCauses = true
+				exceptionFormat = TestExceptionFormat.FULL
+				displayGranularity = 2
+			}
+			afterSuite { suite, result ->
+				if (!suite.parent) {
+					def output = "Results: ${result.resultType} (${result.testCount} tests, ${result.successfulTestCount} passed, ${result.failedTestCount} failed, ${result.skippedTestCount} skipped)"
+					def startItem = "|  ", endItem = "  |"
+					def repeatLength = startItem.length() + output.length() + endItem.length()
+					println("\n" + ("-" * repeatLength) + "\n" + startItem + output + endItem + "\n" + ("-" * repeatLength))
+				}
+			}
+		}
+
+		tasks.register("pactTests", Test) {
+			useJUnitPlatform {
+				includeTags 'Pact'
+			}
+			jacoco {
+				enabled = false
+			}
+			testClassesDirs = sourceSets.test.output.classesDirs
+			classpath = sourceSets.test.runtimeClasspath
+		}
+
+		jacocoTestReport {
+			reports {
+				xml.required.set(true)
+			}
+		}
+
+		jacocoTestCoverageVerification {
+			violationRules {
+				rule {
+					limit {
+						counter = 'LINE'
+						minimum = 0.95
+					}
+					limit {
+						counter = 'BRANCH'
+						minimum = 0.95
+					}
+				}
+			}
+		}
 	}
 }
 

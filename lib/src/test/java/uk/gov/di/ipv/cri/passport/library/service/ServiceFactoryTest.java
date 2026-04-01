@@ -8,6 +8,7 @@ import org.mockito.Mock;
 import org.mockito.MockedConstruction;
 import org.mockito.junit.jupiter.MockitoExtension;
 import uk.gov.di.ipv.cri.common.library.persistence.DataStore;
+import uk.gov.di.ipv.cri.common.library.service.AuditEventFactory;
 import uk.gov.di.ipv.cri.common.library.service.AuditService;
 import uk.gov.di.ipv.cri.common.library.service.ConfigurationService;
 import uk.gov.di.ipv.cri.common.library.service.PersonIdentityService;
@@ -31,8 +32,8 @@ class ServiceFactoryTest {
 
     @SystemStub private EnvironmentVariables environmentVariables = new EnvironmentVariables();
 
-    @Mock private AuditService mockAuditService;
-    @Mock private DataStore<DocumentCheckResultItem> mockDocumentCheckResultStore;
+    @Mock private ParameterStoreService mockParameterStoreService;
+    @Mock private ConfigurationService mockCommonLibConfigurationService;
 
     private ServiceFactory serviceFactory;
 
@@ -73,17 +74,6 @@ class ServiceFactoryTest {
     }
 
     @Test
-    void shouldReturnApacheHTTPClientFactoryService() {
-        ApacheHTTPClientFactoryService apacheHTTPClientFactoryService1 =
-                serviceFactory.getApacheHTTPClientFactoryService();
-        assertNotNull(apacheHTTPClientFactoryService1);
-
-        ApacheHTTPClientFactoryService apacheHTTPClientFactoryService2 =
-                serviceFactory.getApacheHTTPClientFactoryService();
-        assertEquals(apacheHTTPClientFactoryService1, apacheHTTPClientFactoryService2);
-    }
-
-    @Test
     void shouldReturnPassportConfigurationService() {
         ParameterStoreService parameterStoreService1 = serviceFactory.getParameterStoreService();
         assertNotNull(parameterStoreService1);
@@ -119,20 +109,28 @@ class ServiceFactoryTest {
     }
 
     @Test
+    @SuppressWarnings("java:S1481") // ignored
     void shouldReturnAuditService() throws NoSuchFieldException, IllegalAccessException {
 
-        // Audit Service makes nested object calls during construction
-        // This test just confirms that the service is a singleton
-        Field auditServiceField = serviceFactory.getClass().getDeclaredField("auditService");
+        // Pre-set commonLibConfigurationService to avoid real SSM calls
+        Field commonLibConfigField =
+                serviceFactory.getClass().getDeclaredField("commonLibConfigurationService");
+        commonLibConfigField.setAccessible(true);
+        commonLibConfigField.set(serviceFactory, mockCommonLibConfigurationService);
 
-        auditServiceField.setAccessible(true);
-        auditServiceField.set(serviceFactory, mockAuditService);
+        try (MockedConstruction<AuditEventFactory> ignored =
+                        mockConstruction(AuditEventFactory.class);
+                MockedConstruction<AuditService> auditServiceMockedConstruction =
+                        mockConstruction(AuditService.class)) {
 
-        AuditService auditService = serviceFactory.getAuditService();
-        assertNotNull(auditService);
+            AuditService auditService = serviceFactory.getAuditService();
+            assertNotNull(auditService);
 
-        AuditService auditService2 = serviceFactory.getAuditService();
-        assertEquals(auditService, auditService2);
+            AuditService auditService2 = serviceFactory.getAuditService();
+            assertEquals(auditService, auditService2);
+
+            assertEquals(auditService, auditServiceMockedConstruction.constructed().getFirst());
+        }
     }
 
     @Test
@@ -157,20 +155,26 @@ class ServiceFactoryTest {
     void shouldReturnDocumentCheckResultStore()
             throws NoSuchFieldException, IllegalAccessException {
 
-        // DataStore makes nested object calls using objects created during construction
-        // This test just confirms that the service is a singleton
-        Field documentCheckResultStoreField =
-                serviceFactory.getClass().getDeclaredField("documentCheckResultStore");
+        // Pre-set parameterStoreService to avoid real SSM calls
+        Field parameterStoreServiceField =
+                serviceFactory.getClass().getDeclaredField("parameterStoreService");
+        parameterStoreServiceField.setAccessible(true);
+        parameterStoreServiceField.set(serviceFactory, mockParameterStoreService);
 
-        documentCheckResultStoreField.setAccessible(true);
-        documentCheckResultStoreField.set(serviceFactory, mockDocumentCheckResultStore);
+        try (@SuppressWarnings("rawtypes")
+                MockedConstruction<DataStore> dataStoreMockedConstruction =
+                        mockConstruction(DataStore.class)) {
 
-        DataStore<DocumentCheckResultItem> documentCheckResultStore =
-                serviceFactory.getDocumentCheckResultStore();
-        assertNotNull(documentCheckResultStore);
+            DataStore<DocumentCheckResultItem> documentCheckResultStore =
+                    serviceFactory.getDocumentCheckResultStore();
+            assertNotNull(documentCheckResultStore);
 
-        DataStore<DocumentCheckResultItem> documentCheckResultStore2 =
-                serviceFactory.getDocumentCheckResultStore();
-        assertEquals(documentCheckResultStore, documentCheckResultStore2);
+            DataStore<DocumentCheckResultItem> documentCheckResultStore2 =
+                    serviceFactory.getDocumentCheckResultStore();
+            assertEquals(documentCheckResultStore, documentCheckResultStore2);
+
+            assertEquals(
+                    documentCheckResultStore, dataStoreMockedConstruction.constructed().get(0));
+        }
     }
 }

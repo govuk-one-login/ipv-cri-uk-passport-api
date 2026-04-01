@@ -15,7 +15,6 @@ import com.nimbusds.jose.crypto.ECDSASigner;
 import com.nimbusds.oauth2.sdk.ParseException;
 import com.nimbusds.oauth2.sdk.token.AccessToken;
 import com.nimbusds.oauth2.sdk.token.AccessTokenType;
-import org.apache.log4j.BasicConfigurator;
 import org.apache.logging.log4j.Level;
 import org.apache.logging.log4j.core.config.Configurator;
 import org.junit.jupiter.api.AfterEach;
@@ -121,7 +120,6 @@ class IssueCredentialHandlerTest {
 
         if (ENABLE_FULL_DEBUG) {
             // AutoConfig SL4j with Log4J
-            BasicConfigurator.configure();
             Configurator.setAllLevels("", Level.DEBUG);
         }
     }
@@ -164,7 +162,9 @@ class IssueCredentialHandlerTest {
     }
 
     @State("dummyApiKey is a valid api key")
-    void dummyAPIKeyIsValid() {}
+    void dummyAPIKeyIsValid() {
+        /* intended */
+    }
 
     @State("dummyAccessToken is a valid access token")
     void accessTokenIsValid() {
@@ -223,16 +223,24 @@ class IssueCredentialHandlerTest {
     }
 
     @State("dummyInvalidAccessToken is an invalid access token")
-    void invalidAccessTokenIsInvalidAccessToken() {}
+    void invalidAccessTokenIsInvalidAccessToken() {
+        /* intended */
+    }
 
     @State("test-subject is a valid subject")
-    void jwtSubjectIsValid() {}
+    void jwtSubjectIsValid() {
+        /* intended */
+    }
 
     @State("dummyPassportComponentId is a valid issuer")
-    void componentIdIsValidIssue() {}
+    void componentIdIsValidIssue() {
+        /* intended */
+    }
 
     @State("VC familyName is Watson")
-    void vcHasTheDesiredFamilyName() {}
+    void vcHasTheDesiredFamilyName() {
+        /* intended */
+    }
 
     @State("VC is a scenario 2 failure")
     void vcHasTheDesiredFamilyName1() throws ParseException {
@@ -253,15 +261,18 @@ class IssueCredentialHandlerTest {
         documentCheckResultItem.setValidityScore(0);
         documentCheckResultItem.setContraIndicators(List.of("CI01"));
         documentCheckResultItem.setCiReasons(List.of("CI01,Scenario2"));
-        when(mockDocumentCheckResultStore.getItem(sessionId.toString()))
-                .thenReturn(documentCheckResultItem);
+        when(mockDocumentCheckResultStore.getItem(sessionId)).thenReturn(documentCheckResultItem);
     }
 
     @State("VC givenName is Mary")
-    void vcHasTheDesiredGivenName() {}
+    void vcHasTheDesiredGivenName() {
+        /* intended */
+    }
 
     @State("VC birthDate is 1932-02-25")
-    void vcHasTheDesiredBirthDate() {}
+    void vcHasTheDesiredBirthDate() {
+        /* intended */
+    }
 
     @State("VC passport documentNumber is 824159121")
     void vcHasTheDesiredDocumentNumber() throws ParseException {
@@ -280,8 +291,7 @@ class IssueCredentialHandlerTest {
         documentCheckResultItem.setValidityScore(2);
         documentCheckResultItem.setContraIndicators(new ArrayList<>());
         documentCheckResultItem.setCiReasons(new ArrayList<>());
-        when(mockDocumentCheckResultStore.getItem(sessionId.toString()))
-                .thenReturn(documentCheckResultItem);
+        when(mockDocumentCheckResultStore.getItem(sessionId)).thenReturn(documentCheckResultItem);
     }
 
     @State("VC passport documentNumber is 123456789")
@@ -301,15 +311,18 @@ class IssueCredentialHandlerTest {
         documentCheckResultItem.setValidityScore(0);
         documentCheckResultItem.setContraIndicators(List.of("D02"));
         documentCheckResultItem.setCiReasons(List.of("D02,NoMatchingRecord"));
-        when(mockDocumentCheckResultStore.getItem(sessionId.toString()))
-                .thenReturn(documentCheckResultItem);
+        when(mockDocumentCheckResultStore.getItem(sessionId)).thenReturn(documentCheckResultItem);
     }
 
     @State("VC passport expiryDate is 2030-12-12")
-    void vcHasTheDesiredExpiryDate() {}
+    void vcHasTheDesiredExpiryDate() {
+        /* intended */
+    }
 
     @State("VC passport expiryDate is 2030-01-01")
-    void vcHasTheDesiredExpiryDate2() {}
+    void vcHasTheDesiredExpiryDate2() {
+        /* intended */
+    }
 
     @TestTemplate
     @ExtendWith(PactVerificationInvocationContextProvider.class)

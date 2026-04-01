@@ -53,8 +53,8 @@ fi
 
 echo "Cucumber Journey Tags being used: ${JOURNEY_TAG}"
 
-pushd /home/gradle
-gradle cucumber -P tags="${JOURNEY_TAG}"
+pushd /home/gradle/cri/acceptance-tests
+gradle cucumber --no-watch-fs -P tags="${JOURNEY_TAG}"
 popd
 
-cp -r /home/gradle/build/test-results "$REPORT_DIR"
+cp -r /home/gradle/cri/acceptance-tests/build/test-results "$REPORT_DIR"

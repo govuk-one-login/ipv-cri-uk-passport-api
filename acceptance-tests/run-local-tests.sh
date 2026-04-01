@@ -104,4 +104,6 @@ echo "TAG=${TAG}" >> test-args.conf
 
 
 ###### Run tests
-./gradlew clean cucumber -P tags=${TAG}
+actestPath="${PWD}"
+cd ../ && AC_TEST_ONLY=true ./gradlew clean cucumber -P tags="${TAG}"
+cd "${actestPath}" || exit

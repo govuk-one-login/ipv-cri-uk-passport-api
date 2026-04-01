@@ -1,15 +1,36 @@
+import org.gradle.api.initialization.resolve.RepositoriesMode
+
+pluginManagement {
+	repositories {
+		maven {
+			url = 'https://gds.jfrog.io/artifactory/di-allowed-repos'
+		}
+		//flatDir {
+		//	dirs '<Location of your projects absolute path>/di-ipv-cri-lib/build/libs'
+		//}
+	}
+}
+
+dependencyResolutionManagement {
+	repositoriesMode.set(RepositoriesMode.FAIL_ON_PROJECT_REPOS)
+	repositories {
+		// mavenLocal() // Uncomment if using locally published libs
+		maven {
+			url = 'https://gds.jfrog.io/artifactory/di-allowed-repos'
+		}
+	}
+}
+
 rootProject.name = 'di-ipv-cri-uk-passport-api'
 
-include "acceptance-tests",
-		"lib",
-		"lib-dvad",
-		"lambdas:checkpassport",
-		"lambdas:issuecredential",
-		"lambdas:certexpiryreminder"
+if (System.getenv('AC_TEST_ONLY')) {
+	include "acceptance-tests"
+} else {
+	include "lib",
+			"lib-dvad",
+			"lambdas:checkpassport",
+			"lambdas:issuecredential",
+			"lambdas:certexpiryreminder"
+}
 
-// Workaround to ensure ide's enable the correct plugins
-// for the acceptance tests when repo is access at the root level.
-// But avoid building acceptance test when not needed.
-//if(file('.idea').exists() || file('.vscode').exists()) {
-//	include "acceptance-tests"
-//}
+enableFeaturePreview('TYPESAFE_PROJECT_ACCESSORS')

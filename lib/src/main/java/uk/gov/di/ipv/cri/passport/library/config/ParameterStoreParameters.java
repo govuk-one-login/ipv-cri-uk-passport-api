@@ -7,8 +7,6 @@ public class ParameterStoreParameters {
     public static final String CONTRAINDICATION_MAPPINGS = "ContraindicationMappings";
 
     public static final String DOCUMENT_CHECK_RESULT_TABLE_NAME = "DocumentCheckResultTableName";
-    public static final String DOCUMENT_CHECK_RESULT_TTL_PARAMETER =
-            "SessionTtl"; // Linked to Common SessionTTL
 
     public static final String HMPO_GRAPHQL_QUERY_STRING =
             "HMPODVAD/API/GraphQl/QueryString"; // Non-public

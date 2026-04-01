@@ -1,6 +1,3 @@
-import org.gradle.api.tasks.testing.logging.TestExceptionFormat
-import org.gradle.api.tasks.testing.logging.TestLogEvent
-
 plugins {
 	id "java-library"
 	id "idea"
@@ -9,93 +6,29 @@ plugins {
 }
 
 dependencies {
-	api "org.aspectj:aspectjrt:${dependencyVersions.aspectjrt_version}",
-			platform("software.amazon.awssdk:bom:${dependencyVersions.aws_sdk_version}"),
-			platform("com.fasterxml.jackson:jackson-bom:${dependencyVersions.jackson_version}"),
-			platform("io.opentelemetry.instrumentation:opentelemetry-instrumentation-bom-alpha:${dependencyVersions.opentelemetry_bom_alpha_version}"),
-			"io.opentelemetry.instrumentation:opentelemetry-aws-sdk-2.2",
+	implementation libs.aspectjrt,
+			libs.powertools.logging.log4j,
+			libs.powertools.metrics,
 			project(":lib"),
-			"uk.gov.account:cri-common-lib:${dependencyVersions.cri_common_lib_version}",
-			"org.apache.httpcomponents:httpcore:${dependencyVersions.httpcomponents_core_version}",
-			"org.apache.httpcomponents:httpclient:${dependencyVersions.httpcomponents_client_version}",
-			"software.amazon.lambda:powertools-logging-log4j:${dependencyVersions.aws_powertools_logging_version}",
-			"software.amazon.lambda:powertools-metrics:${dependencyVersions.aws_powertools_metrics_version}",
-			"software.amazon.lambda:powertools-parameters-ssm:${dependencyVersions.aws_powertools_parameters_version}"
+			libs.limeade,
+			libs.cri.common.lib,
+			platform(libs.aws.sdk.bom),
+			libs.aws.sdk.dynamodb.enhanced,
+			platform(libs.jackson.bom),
+			libs.bundles.jackson,
+			libs.apache.httpcomponents.httpcore,
+			libs.apache.httpcomponents.httpclient
 
 	testImplementation testFixtures(project(":lib")),
-			platform("org.junit:junit-bom:${dependencyVersions.junit_version}"),
-			"org.junit.platform:junit-platform-launcher:${dependencyVersions.junit_version}",
-			"org.junit.jupiter:junit-jupiter-engine",
-			"org.junit.jupiter:junit-jupiter-api",
-			"org.junit.jupiter:junit-jupiter-params",
-			"org.mockito:mockito-junit-jupiter:${dependencyVersions.mockito_version}",
-			"org.mockito:mockito-core:${dependencyVersions.mockito_version}",
-			"uk.org.webcompere:system-stubs-core:${dependencyVersions.webcompere_version}",
-			"uk.org.webcompere:system-stubs-jupiter:${dependencyVersions.webcompere_version}"
+			platform(libs.junit.platform.bom),
+			libs.bundles.unit.testing,
+			platform(libs.jackson.bom),
+			libs.bundles.jackson
 
-	testFixturesImplementation platform("com.fasterxml.jackson:jackson-bom:${dependencyVersions.jackson_version}"),
-			testFixtures(project(":lib")),
-			"org.apache.httpcomponents:httpcore:${dependencyVersions.httpcomponents_core_version}",
-			"org.apache.httpcomponents:httpclient:${dependencyVersions.httpcomponents_client_version}",
-			"com.fasterxml.jackson.core:jackson-core",
-			"com.fasterxml.jackson.core:jackson-databind",
-			"com.fasterxml.jackson.core:jackson-annotations",
-			"com.fasterxml.jackson.datatype:jackson-datatype-jsr310",
-			"com.fasterxml.jackson.datatype:jackson-datatype-jdk8"
-}
-
-tasks.named("jar") {
-	manifest {
-		attributes("Implementation-Title": project.name,
-		"Implementation-Version": project.version)
-	}
-}
-
-test {
-	useJUnitPlatform ()
-	finalizedBy jacocoTestReport, jacocoTestCoverageVerification
-}
-
-jacocoTestReport {
-	dependsOn test
-	reports {
-		xml.required.set(true)
-	}
-}
-
-tasks.withType(Test) {
-	testLogging {
-		events TestLogEvent.FAILED,
-				TestLogEvent.PASSED,
-				TestLogEvent.SKIPPED
-
-		exceptionFormat TestExceptionFormat.FULL
-		showExceptions true
-		showCauses true
-		showStackTraces true
-
-		afterSuite { suite, result ->
-			if (!suite.parent) {
-				def output = "Results: ${result.resultType} (${result.testCount} tests, ${result.successfulTestCount} passed, ${result.failedTestCount} failed, ${result.skippedTestCount} skipped)"
-				def startItem = "|  ", endItem = "  |"
-				def repeatLength = startItem.length() + output.length() + endItem.length()
-				println("\n" + ("-" * repeatLength) + "\n" + startItem + output + endItem + "\n" + ("-" * repeatLength))
-			}
-		}
-	}
-}
-
-jacocoTestCoverageVerification {
-	violationRules {
-		rule {
-			limit {
-				counter = 'LINE'
-				minimum = minUnitTestLineCoverage
-			}
-			limit {
-				counter = 'BRANCH'
-				minimum = minUnitTestBranchCoverage
-			}
-		}
-	}
+	testFixturesImplementation testFixtures(project(":lib")),
+			libs.aspectjrt,
+			platform(libs.jackson.bom),
+			libs.bundles.jackson,
+			libs.apache.httpcomponents.httpcore,
+			libs.apache.httpcomponents.httpclient
 }

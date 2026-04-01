@@ -9,14 +9,14 @@ import org.apache.http.impl.client.CloseableHttpClient;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import software.amazon.awssdk.http.HttpStatusCode;
+import uk.gov.account.ipv.cri.lime.limeade.util.http.HTTPReply;
+import uk.gov.account.ipv.cri.lime.limeade.util.http.HTTPReplyHelper;
+import uk.gov.account.ipv.cri.lime.limeade.util.timing.StopWatch;
 import uk.gov.di.ipv.cri.common.library.util.EventProbe;
 import uk.gov.di.ipv.cri.passport.library.dvad.domain.response.HealthCheckResponse;
 import uk.gov.di.ipv.cri.passport.library.dvad.services.DvadAPIHeaderValues;
 import uk.gov.di.ipv.cri.passport.library.error.ErrorResponse;
 import uk.gov.di.ipv.cri.passport.library.exceptions.OAuthErrorResponseException;
-import uk.gov.di.ipv.cri.passport.library.util.HTTPReply;
-import uk.gov.di.ipv.cri.passport.library.util.HTTPReplyHelper;
-import uk.gov.di.ipv.cri.passport.library.util.StopWatch;
 
 import java.io.IOException;
 import java.net.URI;
@@ -96,8 +96,7 @@ public class HealthCheckService {
             eventProbe.counterMetric(DVAD_HEALTH_REQUEST_SEND_OK.withEndpointPrefix());
 
             // Throws OAuthErrorResponseException on error
-            httpReply =
-                    HTTPReplyHelper.retrieveStatusCodeAndBodyFromResponse(response, ENDPOINT_NAME);
+            httpReply = HTTPReplyHelper.retrieveResponse(response, ENDPOINT_NAME);
         } catch (IOException e) {
 
             // No Response Latency
@@ -118,17 +117,17 @@ public class HealthCheckService {
         eventProbe.counterMetric(
                 DVAD_HEALTH_RESPONSE_LATENCY.withEndpointPrefix(), stopWatch.stop());
 
-        if (httpReply.statusCode == 200) {
-            LOGGER.info("HealthCheck status code {}", httpReply.statusCode);
+        if (httpReply.statusCode() == 200) {
+            LOGGER.info("HealthCheck status code {}", httpReply.statusCode());
 
             eventProbe.counterMetric(
                     DVAD_HEALTH_RESPONSE_TYPE_EXPECTED_HTTP_STATUS.withEndpointPrefix());
 
             try {
-                LOGGER.debug("HealthCheck ResponseBody - {}", httpReply.responseBody);
+                LOGGER.debug("HealthCheck ResponseBody - {}", httpReply.responseBody());
 
                 HealthCheckResponse healthCheckResponse =
-                        objectMapper.readValue(httpReply.responseBody, HealthCheckResponse.class);
+                        objectMapper.readValue(httpReply.responseBody(), HealthCheckResponse.class);
 
                 String apiStatus = healthCheckResponse.status();
 
@@ -137,7 +136,7 @@ public class HealthCheckService {
                 String message =
                         String.format(
                                 "API health check returned httpStatusCode %s with health status : %s",
-                                httpReply.statusCode, apiStatus);
+                                httpReply.statusCode(), apiStatus);
                 LOGGER.info(message);
 
                 // Endpoint reply json is valid...
@@ -166,8 +165,8 @@ public class HealthCheckService {
             // The health check responded but with an expected status code
             LOGGER.error(
                     "HealthCheck response status code {} content - {}",
-                    httpReply.statusCode,
-                    httpReply.responseBody);
+                    httpReply.statusCode(),
+                    httpReply.responseBody());
 
             eventProbe.counterMetric(
                     DVAD_HEALTH_RESPONSE_TYPE_UNEXPECTED_HTTP_STATUS.withEndpointPrefix());

@@ -4,9 +4,8 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.apache.http.client.config.RequestConfig;
 import org.apache.http.impl.client.CloseableHttpClient;
-import uk.gov.di.ipv.cri.common.library.annotations.ExcludeFromGeneratedCoverageReport;
+import uk.gov.account.ipv.cri.lime.limeade.strategy.Strategy;
 import uk.gov.di.ipv.cri.common.library.util.EventProbe;
-import uk.gov.di.ipv.cri.passport.library.domain.Strategy;
 import uk.gov.di.ipv.cri.passport.library.service.ParameterStoreService;
 
 import java.util.Map;
@@ -18,7 +17,6 @@ import static uk.gov.di.ipv.cri.passport.library.config.ParameterStoreParameters
 import static uk.gov.di.ipv.cri.passport.library.config.ParameterStoreParameters.TEST_STRATEGY_HMPO_API_ENDPOINT_URL;
 
 /** NOTE: Lazy initialization is used for the Services created by this factory. */
-@ExcludeFromGeneratedCoverageReport
 public class DvadAPIEndpointFactory {
 
     private static final String END_POINT_PATH_FORMAT = "%s%s";

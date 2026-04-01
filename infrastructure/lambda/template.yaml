@@ -455,7 +455,7 @@ Resources:
           - UseCanaryDeploymentAlarms
           - [!Ref CheckPassportFunctionCanaryErrors, !Ref CheckPassportFunctionCanary5xxErrors]
           - [!Ref AWS::NoValue]
-      Runtime: java17
+      Runtime: java25
       CodeUri: lambdas/checkpassport
       Environment:
         # checkov:skip=CKV_AWS_173: These environment variables do not require encryption.
@@ -593,7 +593,7 @@ Resources:
           - UseCanaryDeploymentAlarms
           - [!Ref IssueCredentialFunctionCanaryErrors, !Ref IssueCredentialFunctionCanary5xxErrors]
           - [!Ref AWS::NoValue]
-      Runtime: java17
+      Runtime: java25
       CodeUri: lambdas/issuecredential
       Environment:
         # checkov:skip=CKV_AWS_173: These environment variables do not require encryption.
@@ -705,7 +705,7 @@ Resources:
           - Fn::ImportValue:
               !Sub "${VpcStackName}-PrivateSubnetIdC"
       Handler: uk.gov.di.ipv.cri.passport.certexpiryreminder.handler.CertExpiryReminderHandler::handleRequest
-      Runtime: java17
+      Runtime: java25
       CodeUri: lambdas/certexpiryreminder
       Environment:
         Variables:
