@@ -2,9 +2,7 @@ import org.gradle.api.initialization.resolve.RepositoriesMode
 
 pluginManagement {
 	repositories {
-		maven {
-			url = 'https://gds.jfrog.io/artifactory/di-allowed-repos'
-		}
+		gradlePluginPortal()
 		//flatDir {
 		//	dirs '<Location of your projects absolute path>/di-ipv-cri-lib/build/libs'
 		//}
@@ -15,9 +13,7 @@ dependencyResolutionManagement {
 	repositoriesMode.set(RepositoriesMode.FAIL_ON_PROJECT_REPOS)
 	repositories {
 		// mavenLocal() // Uncomment if using locally published libs
-		maven {
-			url = 'https://gds.jfrog.io/artifactory/di-allowed-repos'
-		}
+		mavenCentral()
 	}
 }
 
