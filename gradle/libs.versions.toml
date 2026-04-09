@@ -34,7 +34,7 @@ commons_io = "2.21.0"
 
 # AC tests
 cucumber = "7.34.3"
-selenium = "4.1.0"
+selenium = "4.42.0"
 axe_core_selenium = "4.11.1"
 webdrivermanager = "6.3.4"
 restassured =  "5.5.6"
