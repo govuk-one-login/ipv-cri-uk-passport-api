@@ -11,6 +11,9 @@ import org.apache.http.impl.client.CloseableHttpClient;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import software.amazon.awssdk.http.HttpStatusCode;
+import uk.gov.account.ipv.cri.lime.limeade.util.http.HTTPReply;
+import uk.gov.account.ipv.cri.lime.limeade.util.http.HTTPReplyHelper;
+import uk.gov.account.ipv.cri.lime.limeade.util.timing.StopWatch;
 import uk.gov.di.ipv.cri.common.library.util.EventProbe;
 import uk.gov.di.ipv.cri.passport.library.domain.PassportFormData;
 import uk.gov.di.ipv.cri.passport.library.dvad.domain.request.GraphQLRequest;
@@ -22,9 +25,6 @@ import uk.gov.di.ipv.cri.passport.library.dvad.domain.result.endpoints.GraphQLSe
 import uk.gov.di.ipv.cri.passport.library.dvad.services.DvadAPIHeaderValues;
 import uk.gov.di.ipv.cri.passport.library.error.ErrorResponse;
 import uk.gov.di.ipv.cri.passport.library.exceptions.OAuthErrorResponseException;
-import uk.gov.di.ipv.cri.passport.library.util.HTTPReply;
-import uk.gov.di.ipv.cri.passport.library.util.HTTPReplyHelper;
-import uk.gov.di.ipv.cri.passport.library.util.StopWatch;
 
 import java.io.IOException;
 import java.net.URI;
@@ -136,8 +136,7 @@ public class GraphQLRequestService {
             eventProbe.counterMetric(DVAD_GRAPHQL_REQUEST_SEND_OK.withEndpointPrefix());
 
             // throws OAuthErrorResponseException on error
-            httpReply =
-                    HTTPReplyHelper.retrieveStatusCodeAndBodyFromResponse(response, ENDPOINT_NAME);
+            httpReply = HTTPReplyHelper.retrieveResponse(response, ENDPOINT_NAME);
         } catch (IOException e) {
             // No Response Latency
             eventProbe.counterMetric(
@@ -157,18 +156,18 @@ public class GraphQLRequestService {
         eventProbe.counterMetric(
                 DVAD_GRAPHQL_RESPONSE_LATENCY.withEndpointPrefix(), stopWatch.stop());
 
-        if (httpReply.statusCode == 200) {
+        if (httpReply.statusCode() == 200) {
 
-            LOGGER.info("GraphQL status code {}", httpReply.statusCode);
+            LOGGER.info("GraphQL status code {}", httpReply.statusCode());
 
             eventProbe.counterMetric(
                     DVAD_GRAPHQL_RESPONSE_TYPE_EXPECTED_HTTP_STATUS.withEndpointPrefix());
 
-            LOGGER.debug("performGraphQLQuery response {}", httpReply.responseBody);
+            LOGGER.debug("performGraphQLQuery response {}", httpReply.responseBody());
 
             try {
                 GraphQLAPIResponse graphQLAPIResponse =
-                        objectMapper.readValue(httpReply.responseBody, GraphQLAPIResponse.class);
+                        objectMapper.readValue(httpReply.responseBody(), GraphQLAPIResponse.class);
 
                 return GraphQLServiceResult.builder()
                         .graphQLAPIResponse(graphQLAPIResponse)
@@ -190,8 +189,8 @@ public class GraphQLRequestService {
             // GraphQL endpoint responded but with an unexpected status code
             LOGGER.error(
                     "GraphQL response status code {} content - {}",
-                    httpReply.statusCode,
-                    httpReply.responseBody);
+                    httpReply.statusCode(),
+                    httpReply.responseBody());
 
             eventProbe.counterMetric(
                     DVAD_GRAPHQL_RESPONSE_TYPE_UNEXPECTED_HTTP_STATUS.withEndpointPrefix());

@@ -19,6 +19,7 @@ import org.mockito.Mock;
 import org.mockito.Mockito;
 import org.mockito.junit.jupiter.MockitoExtension;
 import software.amazon.awssdk.http.HttpStatusCode;
+import uk.gov.account.ipv.cri.lime.limeade.strategy.Strategy;
 import uk.gov.di.ipv.cri.common.library.exception.SessionExpiredException;
 import uk.gov.di.ipv.cri.common.library.exception.SessionNotFoundException;
 import uk.gov.di.ipv.cri.common.library.persistence.DataStore;
@@ -31,14 +32,11 @@ import uk.gov.di.ipv.cri.passport.checkpassport.services.DocumentDataVerificatio
 import uk.gov.di.ipv.cri.passport.checkpassport.util.DocumentDataVerificationServiceResultDataGenerator;
 import uk.gov.di.ipv.cri.passport.library.PassportFormTestDataGenerator;
 import uk.gov.di.ipv.cri.passport.library.domain.PassportFormData;
-import uk.gov.di.ipv.cri.passport.library.domain.Strategy;
 import uk.gov.di.ipv.cri.passport.library.error.CommonExpressOAuthError;
 import uk.gov.di.ipv.cri.passport.library.exceptions.OAuthErrorResponseException;
 import uk.gov.di.ipv.cri.passport.library.persistence.DocumentCheckResultItem;
-import uk.gov.di.ipv.cri.passport.library.service.ApacheHTTPClientFactoryService;
 import uk.gov.di.ipv.cri.passport.library.service.ParameterStoreService;
 import uk.gov.di.ipv.cri.passport.library.service.ServiceFactory;
-import uk.gov.di.ipv.cri.passport.library.service.ThirdPartyAPIService;
 import uk.org.webcompere.systemstubs.environment.EnvironmentVariables;
 import uk.org.webcompere.systemstubs.jupiter.SystemStub;
 import uk.org.webcompere.systemstubs.jupiter.SystemStubsExtension;
@@ -80,21 +78,12 @@ class CheckPassportHandlerTest {
     private final ObjectMapper realObjectMapper =
             new ObjectMapper().registerModule(new JavaTimeModule());
 
-    private String testStrategyRawEndpointValue =
-            """
-            {
-                "STUB": "http://localhostStub",
-                "UAT": "http://localhostUat",
-                "LIVE": "http://localhostLive"
-            }
-            """;
     @SystemStub private EnvironmentVariables environmentVariables = new EnvironmentVariables();
 
     @Mock private Context mockLambdaContext;
 
     // Returned via the ServiceFactory
     @Mock private EventProbe mockEventProbe;
-    @Mock private ApacheHTTPClientFactoryService mockApacheHTTPClientFactoryService;
     @Mock private ParameterStoreService mockParameterStoreService;
     @Mock private SessionService mockSessionService;
     @Mock private PersonIdentityService mockPersonIdentityService;
@@ -108,20 +97,13 @@ class CheckPassportHandlerTest {
     private CheckPassportHandler checkPassportHandler;
 
     @BeforeEach
-    void setup() throws JsonProcessingException {
+    void setup() {
         environmentVariables.set("AWS_REGION", "eu-west-2");
         environmentVariables.set("AWS_STACK_NAME", "TEST_STACK");
         environmentVariables.set("POWERTOOLS_METRICS_NAMESPACE", "StackName");
         environmentVariables.set("DVAD_PERFORMANCE_STUB_IN_USE", "false");
         environmentVariables.set("DEV_ENVIRONMENT_ONLY_ENHANCED_DEBUG", "false");
         environmentVariables.set("SESSION_TTL", 7200L);
-
-        when(mockParameterStoreService.getParameterValue("HMPODVAD/API/EndpointUrl"))
-                .thenReturn("http://localhost");
-
-        when(mockParameterStoreService.getParameterValue(
-                        "HMPODVAD/API/TestStrategy/EndpointUrl")) // pragma: allowlist secret
-                .thenReturn(testStrategyRawEndpointValue);
 
         mockServiceFactoryBehaviour();
 
@@ -166,11 +148,10 @@ class CheckPassportHandlerTest {
         when(mockSessionService.validateSessionId(SESSION_ID)).thenReturn(sessionItem);
 
         when(mockDocumentDataVerificationService.verifyData(
-                        any(ThirdPartyAPIService.class),
+                        eq(Strategy.NO_CHANGE),
                         any(PassportFormData.class),
                         eq(sessionItem),
-                        eq(requestHeaders),
-                        eq(Strategy.NO_CHANGE)))
+                        eq(requestHeaders)))
                 .thenReturn(testDocumentDataVerificationResult);
 
         mockLambdaContext();
@@ -188,11 +169,10 @@ class CheckPassportHandlerTest {
         verifyNoMoreInteractions(mockEventProbe);
         verify(mockDocumentDataVerificationService)
                 .verifyData(
-                        any(ThirdPartyAPIService.class),
+                        eq(Strategy.NO_CHANGE),
                         eq(passportFormData),
                         any(SessionItem.class),
-                        eq(requestHeaders),
-                        eq(Strategy.NO_CHANGE));
+                        eq(requestHeaders));
 
         DocumentCheckResultItem documentCheckResultItem =
                 mapDocumentDataVerificationResultToDocumentCheckResultItem(
@@ -260,11 +240,10 @@ class CheckPassportHandlerTest {
             // parsePassportFormRequest
             when(mockRequestEvent.getBody()).thenReturn(testRequestBody);
             when(mockDocumentDataVerificationService.verifyData(
-                            any(ThirdPartyAPIService.class),
+                            eq(Strategy.NO_CHANGE),
                             any(PassportFormData.class),
                             any(SessionItem.class),
-                            eq(requestHeaders),
-                            eq(Strategy.NO_CHANGE)))
+                            eq(requestHeaders)))
                     .thenReturn(testDocumentDataVerificationResult);
         }
 
@@ -300,11 +279,10 @@ class CheckPassportHandlerTest {
             verify(mockDocumentCheckResultStore).create(documentCheckResultItem);
             verify(mockDocumentDataVerificationService)
                     .verifyData(
-                            any(ThirdPartyAPIService.class),
+                            eq(Strategy.NO_CHANGE),
                             eq(passportFormData),
                             any(SessionItem.class),
-                            eq(requestHeaders),
-                            eq(Strategy.NO_CHANGE));
+                            eq(requestHeaders));
 
         } else if (sessionItem.getAttemptCount() < MAX_ATTEMPTS && !documentVerified) {
             // Any attempt below max attempts where the document is NOT verified
@@ -314,11 +292,10 @@ class CheckPassportHandlerTest {
                     .counterMetric(LAMBDA_CHECK_PASSPORT_ATTEMPT_STATUS_RETRY);
             verify(mockDocumentDataVerificationService)
                     .verifyData(
-                            any(ThirdPartyAPIService.class),
+                            eq(Strategy.NO_CHANGE),
                             eq(passportFormData),
                             any(SessionItem.class),
-                            eq(requestHeaders),
-                            eq(Strategy.NO_CHANGE));
+                            eq(requestHeaders));
 
             assertEquals(RESULT_RETRY, responseTreeRootNode.get(RESULT).textValue());
         } else if (sessionItem.getAttemptCount() == MAX_ATTEMPTS && !documentVerified) {
@@ -338,11 +315,10 @@ class CheckPassportHandlerTest {
             verify(mockDocumentCheckResultStore).create(documentCheckResultItem);
             verify(mockDocumentDataVerificationService)
                     .verifyData(
-                            any(ThirdPartyAPIService.class),
+                            eq(Strategy.NO_CHANGE),
                             eq(passportFormData),
                             any(SessionItem.class),
-                            eq(requestHeaders),
-                            eq(Strategy.NO_CHANGE));
+                            eq(requestHeaders));
 
         } else {
             // A form is submitted but max attempts is already reached.
@@ -528,11 +504,10 @@ class CheckPassportHandlerTest {
         when(mockSessionService.validateSessionId(SESSION_ID)).thenReturn(sessionItem);
 
         when(mockDocumentDataVerificationService.verifyData(
-                        any(ThirdPartyAPIService.class),
+                        eq(Strategy.NO_CHANGE),
                         any(PassportFormData.class),
                         eq(sessionItem),
-                        eq(requestHeaders),
-                        eq(Strategy.NO_CHANGE)))
+                        eq(requestHeaders)))
                 .thenThrow(new RuntimeException("An Unhandled exception that has occurred"));
 
         mockLambdaContext();
@@ -542,11 +517,10 @@ class CheckPassportHandlerTest {
 
         verify(mockDocumentDataVerificationService)
                 .verifyData(
-                        any(ThirdPartyAPIService.class),
+                        eq(Strategy.NO_CHANGE),
                         eq(passportFormData),
                         any(SessionItem.class),
-                        eq(requestHeaders),
-                        eq(Strategy.NO_CHANGE));
+                        eq(requestHeaders));
 
         JsonNode responseTreeRootNode = realObjectMapper.readTree(responseEvent.getBody());
         JsonNode oauthErrorNode = responseTreeRootNode.get("oauth_error");
@@ -676,11 +650,6 @@ class CheckPassportHandlerTest {
     private void mockServiceFactoryBehaviour() {
         when(mockServiceFactory.getObjectMapper()).thenReturn(realObjectMapper);
         when(mockServiceFactory.getEventProbe()).thenReturn(mockEventProbe);
-
-        when(mockServiceFactory.getApacheHTTPClientFactoryService())
-                .thenReturn(mockApacheHTTPClientFactoryService);
-
-        when(mockServiceFactory.getParameterStoreService()).thenReturn(mockParameterStoreService);
 
         when(mockServiceFactory.getSessionService()).thenReturn(mockSessionService);
 

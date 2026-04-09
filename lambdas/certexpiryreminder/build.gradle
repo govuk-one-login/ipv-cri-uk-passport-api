@@ -1,6 +1,3 @@
-import org.gradle.api.tasks.testing.logging.TestExceptionFormat
-import org.gradle.api.tasks.testing.logging.TestLogEvent
-
 plugins {
 	id "java"
 	id "idea"
@@ -8,74 +5,25 @@ plugins {
 }
 
 dependencies {
-	implementation project(":lib-dvad")
+
+	aspect libs.powertools.metrics,
+			libs.powertools.logging
+
+	implementation libs.aspectjrt,
+			libs.powertools.parameters.ssm,
+			libs.powertools.logging.log4j,
+			project(":lib"),
+			libs.limeade,
+			project(":lib-dvad"),
+			libs.cri.common.lib,
+			platform(libs.aws.sdk.bom),
+			libs.aws.sdk.crt.client
 
 	testImplementation testFixtures(project(":lib")),
-			platform("org.junit:junit-bom:${dependencyVersions.junit_version}"),
-			"org.junit.platform:junit-platform-launcher:${dependencyVersions.junit_version}",
-			"org.junit.jupiter:junit-jupiter-engine",
-			"org.junit.jupiter:junit-jupiter-api",
-			"org.junit.jupiter:junit-jupiter-params",
-			"org.mockito:mockito-junit-jupiter:${dependencyVersions.mockito_version}",
-			"org.mockito:mockito-core:${dependencyVersions.mockito_version}",
-			"uk.org.webcompere:system-stubs-core:${dependencyVersions.webcompere_version}",
-			"uk.org.webcompere:system-stubs-jupiter:${dependencyVersions.webcompere_version}"
-}
-
-tasks.register('buildZip', Zip) {
-	from compileJava
-	from processResources
-	destinationDirectory = file("$rootDir/dist")
-	into("lib") {
-		from configurations.runtimeClasspath
-	}
-}
-
-test {
-	useJUnitPlatform ()
-	finalizedBy jacocoTestReport, jacocoTestCoverageVerification
-}
-
-jacocoTestReport {
-	dependsOn test
-	reports {
-		xml.required.set(true)
-	}
-}
-
-tasks.withType(Test).configureEach {
-	testLogging {
-		events TestLogEvent.FAILED,
-				TestLogEvent.PASSED,
-				TestLogEvent.SKIPPED
-
-		exceptionFormat TestExceptionFormat.FULL
-		showExceptions true
-		showCauses true
-		showStackTraces true
-
-		afterSuite { suite, result ->
-			if (!suite.parent) {
-				def output = "Results: ${result.resultType} (${result.testCount} tests, ${result.successfulTestCount} passed, ${result.failedTestCount} failed, ${result.skippedTestCount} skipped)"
-				def startItem = "|  ", endItem = "  |"
-				def repeatLength = startItem.length() + output.length() + endItem.length()
-				println("\n" + ("-" * repeatLength) + "\n" + startItem + output + endItem + "\n" + ("-" * repeatLength))
-			}
-		}
-	}
-}
-
-jacocoTestCoverageVerification {
-	violationRules {
-		rule {
-			limit {
-				counter = 'LINE'
-				minimum = minUnitTestLineCoverage
-			}
-			limit {
-				counter = 'BRANCH'
-				minimum = minUnitTestBranchCoverage
-			}
-		}
-	}
+			platform(libs.junit.platform.bom),
+			libs.bundles.unit.testing,
+			platform(libs.aws.sdk.bom),
+			libs.aws.lambda.java.core,
+			platform(libs.jackson.bom),
+			libs.bundles.jackson
 }

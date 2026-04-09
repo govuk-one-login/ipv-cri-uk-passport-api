@@ -2,7 +2,7 @@ package uk.gov.di.ipv.cri.passport.library.service;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
-import uk.gov.di.ipv.cri.common.library.annotations.ExcludeFromGeneratedCoverageReport;
+import uk.gov.account.ipv.cri.lime.limeade.annotation.ExcludeConstructorFromGeneratedCoverageReport;
 import uk.gov.di.ipv.cri.common.library.persistence.DataStore;
 import uk.gov.di.ipv.cri.common.library.service.AuditEventFactory;
 import uk.gov.di.ipv.cri.common.library.service.AuditService;
@@ -22,7 +22,6 @@ public class ServiceFactory {
     private ObjectMapper objectMapper;
     private EventProbe eventProbe;
     private ClientProviderFactory clientProviderFactory;
-    private ApacheHTTPClientFactoryService apacheHTTPClientFactoryService;
     private ParameterStoreService parameterStoreService;
     private ConfigurationService commonLibConfigurationService;
     private SessionService sessionService;
@@ -40,7 +39,7 @@ public class ServiceFactory {
     }
 
     @SuppressWarnings("java:S107")
-    @ExcludeFromGeneratedCoverageReport
+    @ExcludeConstructorFromGeneratedCoverageReport
     public ServiceFactory(
             ObjectMapper objectMapper,
             EventProbe eventProbe,
@@ -88,14 +87,6 @@ public class ServiceFactory {
         }
 
         return clientProviderFactory;
-    }
-
-    public ApacheHTTPClientFactoryService getApacheHTTPClientFactoryService() {
-        if (apacheHTTPClientFactoryService == null) {
-            apacheHTTPClientFactoryService = new ApacheHTTPClientFactoryService();
-        }
-
-        return apacheHTTPClientFactoryService;
     }
 
     public ParameterStoreService getParameterStoreService() {

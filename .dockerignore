@@ -1,0 +1,22 @@
+*/**/Dockerfile*
+
+*/.gradle
+*/.idea
+*/.vscode
+*/build
+*/bin
+*/.dockerignore
+*/.gitignore
+*/.sdkmanrc
+
+# Non AC test folders
+*/lambda
+*/lib
+
+*/README.md
+*/LICENSE
+*/run-dev-perf-test.sh
+*/run-local-tests.sh
+*/chromedriver.log
+*/scenarios.json
+*/test-args.conf

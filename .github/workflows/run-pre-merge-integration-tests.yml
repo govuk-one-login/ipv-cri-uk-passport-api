@@ -27,21 +27,22 @@ jobs:
       sha_short: ${{ steps.vars.outputs.sha_short }}
       repo_base_dir : ${{ steps.vars.outputs.repo_base_dir }}
     steps:
-      - name: Set up JDK 17
-        uses: actions/setup-java@v5
+      - name: Check out repository code
+        uses: actions/checkout@v6
         with:
-          java-version: 17
-          distribution: zulu
+          fetch-depth: 0
 
-      - uses: gradle/actions/setup-gradle@4d9f0ba0025fe599b4ebab900eb7f3a1d93ef4c2
+      - name: Set up JDK
+        uses: actions/setup-java@be666c2fcd27ec809703dec50e508c2fdc7f6654 # v5.2.0
+        with:
+          java-version-file: '.sdkmanrc'
+          distribution: corretto
+          cache: gradle
+
+      - uses: gradle/actions/setup-gradle@0723195856401067f7a2779048b490ace7a47d7c # v5.0.2
         with:
           gradle-version: wrapper
           cache-overwrite-existing: true
-
-      - name: Check out repository code
-        uses: actions/checkout@v5
-        with:
-          fetch-depth: 0
 
       - name: Get output variables
         id: vars
@@ -50,10 +51,10 @@ jobs:
           echo "repo_base_dir=$(pwd)" >> $GITHUB_OUTPUT
 
       - name: Build SAM application
-        uses: govuk-one-login/github-actions/sam/build-application@a531d6d1728c39ebc292abf2cf1738d4e43ebd44
+        uses: govuk-one-login/github-actions/sam/build-application@3b0015c58dd0e19e1572fda59dda4184df387d1e
         id: build
         with:
-          sam-version: "1.134.0"
+          sam-version: "1.157.1"
           base-dir: ${{ steps.vars.outputs.repo_base_dir }}
           template: infrastructure/lambda/template.yaml
           cache-name: ipv-cri-uk-passport-api-${{ steps.vars.outputs.sha_short }}
@@ -76,7 +77,7 @@ jobs:
       contents: read
     steps:
       - name: Deploy stack
-        uses: govuk-one-login/github-actions/sam/deploy-stack@a531d6d1728c39ebc292abf2cf1738d4e43ebd44
+        uses: govuk-one-login/github-actions/sam/deploy-stack@3b0015c58dd0e19e1572fda59dda4184df387d1e
         id: deploy
         with:
           sam-deployment-bucket: ${{ secrets.AWS_PRE_MERGE_S3_BUCKET_NAME }}
@@ -107,22 +108,24 @@ jobs:
       contents: read
     steps:
       - name: Check out repository code
-        uses: actions/checkout@v5
+        uses: actions/checkout@v6
         with:
           fetch-depth: 0 # Shallow clones should be disabled for a better relevancy of analysis
           submodules: true
-      - name: Set up JDK 17
-        uses: actions/setup-java@v5
+
+      - name: Set up JDK
+        uses: actions/setup-java@be666c2fcd27ec809703dec50e508c2fdc7f6654 # v5.2.0
         with:
-          java-version: 17
-          distribution: zulu
-          cache: gradle
-      - uses: gradle/actions/setup-gradle@4d9f0ba0025fe599b4ebab900eb7f3a1d93ef4c2
+          java-version-file: '.sdkmanrc'
+          distribution: corretto
+
+      - uses: gradle/actions/setup-gradle@0723195856401067f7a2779048b490ace7a47d7c # v5.0.2
         with:
           gradle-version: wrapper
           cache-overwrite-existing: true
+
       - name: Build Cache
-        uses: actions/cache@v4
+        uses: actions/cache@v5
         with:
           path: |
             .gradle/
@@ -133,13 +136,13 @@ jobs:
           key: ${{ runner.os }}-build-${{ github.sha }}
 
       - name: Setup SAM
-        uses: aws-actions/setup-sam@f664fad9e12492edfc187a31f575537dfbb0ff63
+        uses: aws-actions/setup-sam@d78e1a4a9656d3b223e59b80676a797f20093133 # v2
         with:
           use-installer: true
-          version: "1.134.0"
+          version: "1.157.1"
 
       - name: Assume temporary AWS role
-        uses: aws-actions/configure-aws-credentials@00943011d9042930efac3dcd3a170e4273319bc8
+        uses: aws-actions/configure-aws-credentials@8df5847569e6427dd6c4fb1cf565c83acfa8afa7 # v6.0.0
         with:
           role-to-assume: ${{ secrets.AWS_PRE_MERGE_ROLE_ARN }}
           aws-region: eu-west-2
@@ -161,7 +164,7 @@ jobs:
           export API_GATEWAY_ID_PRIVATE=$API_GATEWAY_ID_PRIVATE
           export API_GATEWAY_ID_PUBLIC=$API_GATEWAY_ID_PUBLIC
           export API_GATEWAY_KEY=${{ secrets.API_KEY_DEV }}
-          cd acceptance-tests && ./gradlew cucumber -P tags=@pre-merge
+          AC_TEST_ONLY=true ./gradlew acceptance-tests:cucumber -P tags=@pre-merge
 
       - name: Delete pre-merge test stack
         if: always()

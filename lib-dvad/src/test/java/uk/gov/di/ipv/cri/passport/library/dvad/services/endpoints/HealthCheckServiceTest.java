@@ -57,7 +57,7 @@ import static uk.gov.di.ipv.cri.passport.library.metrics.ThirdPartyAPIEndpointMe
 @ExtendWith(MockitoExtension.class)
 class HealthCheckServiceTest {
 
-    private final String TEST_END_POINT = "http://127.0.0.1";
+    private static final String TEST_END_POINT = "http://127.0.0.1";
     @Mock private CloseableHttpClient mockCloseableHttpClient;
     @Mock private RequestConfig mockRequestConfig;
     private ObjectMapper realObjectMapper;
@@ -178,8 +178,6 @@ class HealthCheckServiceTest {
         when(mockCloseableHttpClient.execute(httpRequestCaptor.capture()))
                 .thenReturn(healthCheckResponse);
 
-        String requestId = UUID.randomUUID().toString();
-
         boolean apiIsUp = healthCheckService.checkRemoteApiIsUp(realDvadAPIHeaderValues);
 
         // (GET) Health, (POST) Token, (POST) GraphQL
@@ -221,8 +219,6 @@ class HealthCheckServiceTest {
         // HttpClient response
         when(mockCloseableHttpClient.execute(httpRequestCaptor.capture()))
                 .thenReturn(healthCheckResponse);
-
-        String requestId = UUID.randomUUID().toString();
 
         OAuthErrorResponseException expectedReturnedException =
                 new OAuthErrorResponseException(
@@ -267,8 +263,6 @@ class HealthCheckServiceTest {
     @Test
     void shouldReturnOAuthErrorResponseExceptionWhenHealthEndpointDoesNotRespond()
             throws IOException {
-        String requestId = UUID.randomUUID().toString();
-
         Exception exceptionCaught = new IOException("Health Endpoint Timed out");
 
         doThrow(exceptionCaught).when(mockCloseableHttpClient).execute(any(HttpGet.class));

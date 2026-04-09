@@ -16,9 +16,9 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 
 class JsonValidationUtilityTest {
 
-    private static List<String> TEST_LIST;
-    private static String TEST_STRING;
-    private static int TEST_INT;
+    private static List<String> testList;
+    private static String testString;
+    private static int testInt;
     private static final int TEST_INT_RANGE_MIN = 0;
     private static final int TEST_INT_RANGE_MAX = 127;
     private static List<String> validationErrors;
@@ -28,10 +28,10 @@ class JsonValidationUtilityTest {
     private static final String TEST_INTEGER_NAME = "TestInteger";
 
     @BeforeEach
-    public void PreEachTestSetup() {
-        TEST_LIST = new ArrayList<>();
-        TEST_STRING = "";
-        TEST_INT = 0;
+    void PreEachTestSetup() {
+        testList = new ArrayList<>();
+        testString = "";
+        testInt = 0;
         validationErrors = new ArrayList<>();
     }
 
@@ -59,38 +59,38 @@ class JsonValidationUtilityTest {
     void validateListDataEmptyIsAllowed_PassesWithEmptyList() {
         boolean result =
                 JsonValidationUtility.validateListDataEmptyIsAllowed(
-                        TEST_LIST, TEST_LIST_NAME, validationErrors);
+                        testList, TEST_LIST_NAME, validationErrors);
 
-        assertEquals(0, TEST_LIST.size());
+        assertEquals(0, testList.size());
         assertEquals(0, validationErrors.size());
         assertTrue(result);
     }
 
     @Test
     void validateListDataEmptyIsAllowed_PassesWithFilledList() {
-        TEST_STRING = "Test";
-        TEST_LIST.add(TEST_STRING);
+        testString = "Test";
+        testList.add(testString);
 
         boolean result =
                 JsonValidationUtility.validateListDataEmptyIsAllowed(
-                        TEST_LIST, TEST_LIST_NAME, validationErrors);
+                        testList, TEST_LIST_NAME, validationErrors);
 
-        assertEquals(1, TEST_LIST.size());
-        assertEquals(TEST_STRING, TEST_LIST.get(0));
+        assertEquals(1, testList.size());
+        assertEquals(testString, testList.get(0));
         assertEquals(0, validationErrors.size());
         assertTrue(result);
     }
 
     @Test
     void validateListDataEmptyIsAllowed_FailsWithNullList() {
-        TEST_LIST = null;
+        testList = null;
 
         final String EXPECTED_ERROR =
                 TEST_LIST_NAME + JsonValidationUtility.IS_NULL_ERROR_MESSAGE_SUFFIX;
 
         boolean result =
                 JsonValidationUtility.validateListDataEmptyIsAllowed(
-                        TEST_LIST, TEST_LIST_NAME, validationErrors);
+                        testList, TEST_LIST_NAME, validationErrors);
 
         assertEquals(1, validationErrors.size());
         assertEquals(EXPECTED_ERROR, validationErrors.get(0));
@@ -99,29 +99,29 @@ class JsonValidationUtilityTest {
 
     @Test
     void validateListDataEmptyIsFail_PassesWithFilledList() {
-        TEST_STRING = "Test";
-        TEST_LIST.add(TEST_STRING);
+        testString = "Test";
+        testList.add(testString);
 
         boolean result =
                 JsonValidationUtility.validateListDataEmptyIsFail(
-                        TEST_LIST, TEST_LIST_NAME, validationErrors);
+                        testList, TEST_LIST_NAME, validationErrors);
 
-        assertEquals(1, TEST_LIST.size());
-        assertEquals(TEST_STRING, TEST_LIST.get(0));
+        assertEquals(1, testList.size());
+        assertEquals(testString, testList.get(0));
         assertEquals(0, validationErrors.size());
         assertTrue(result);
     }
 
     @Test
     void validateListDataEmptyIsFail_FailsWithNullList() {
-        TEST_LIST = null;
+        testList = null;
 
         final String EXPECTED_ERROR =
                 TEST_LIST_NAME + JsonValidationUtility.IS_NULL_ERROR_MESSAGE_SUFFIX;
 
         boolean result =
                 JsonValidationUtility.validateListDataEmptyIsFail(
-                        TEST_LIST, TEST_LIST_NAME, validationErrors);
+                        testList, TEST_LIST_NAME, validationErrors);
 
         assertEquals(1, validationErrors.size());
         assertEquals(EXPECTED_ERROR, validationErrors.get(0));
@@ -130,14 +130,14 @@ class JsonValidationUtilityTest {
 
     @Test
     void validateListDataEmptyIsFail_FailsWithEmptyList() {
-        TEST_LIST = new ArrayList<>();
+        testList = new ArrayList<>();
 
         final String EXPECTED_ERROR =
                 TEST_LIST_NAME + JsonValidationUtility.IS_EMPTY_ERROR_MESSAGE_SUFFIX;
 
         boolean result =
                 JsonValidationUtility.validateListDataEmptyIsFail(
-                        TEST_LIST, TEST_LIST_NAME, validationErrors);
+                        testList, TEST_LIST_NAME, validationErrors);
 
         assertEquals(1, validationErrors.size());
         assertEquals(EXPECTED_ERROR, validationErrors.get(0));
@@ -146,12 +146,12 @@ class JsonValidationUtilityTest {
 
     @Test
     void validateStringDataEmptyIsFail_PassesWithFilledString() {
-        TEST_STRING = "Test";
-        final int TEST_LENGTH = TEST_STRING.length();
+        testString = "Test";
+        final int TEST_LENGTH = testString.length();
 
         boolean result =
                 JsonValidationUtility.validateStringDataEmptyIsFail(
-                        TEST_STRING, TEST_LENGTH, TEST_STRING_NAME, validationErrors);
+                        testString, TEST_LENGTH, TEST_STRING_NAME, validationErrors);
 
         assertEquals(0, validationErrors.size());
         assertTrue(result);
@@ -159,7 +159,7 @@ class JsonValidationUtilityTest {
 
     @Test
     void validateStringDataEmptyIsFail_FailsWithEmptyString() {
-        TEST_STRING = "";
+        testString = "";
         final int TEST_LENGTH = Integer.MAX_VALUE;
 
         final String EXPECTED_ERROR =
@@ -167,7 +167,7 @@ class JsonValidationUtilityTest {
 
         boolean result =
                 JsonValidationUtility.validateStringDataEmptyIsFail(
-                        TEST_STRING, TEST_LENGTH, TEST_STRING_NAME, validationErrors);
+                        testString, TEST_LENGTH, TEST_STRING_NAME, validationErrors);
 
         assertEquals(1, validationErrors.size());
         assertEquals(EXPECTED_ERROR, validationErrors.get(0));
@@ -176,7 +176,7 @@ class JsonValidationUtilityTest {
 
     @Test
     void validateStringDataEmptyIsFail_FailsWithNullString() {
-        TEST_STRING = null;
+        testString = null;
         final int TEST_LENGTH = Integer.MAX_VALUE;
 
         final String EXPECTED_ERROR =
@@ -184,7 +184,7 @@ class JsonValidationUtilityTest {
 
         boolean result =
                 JsonValidationUtility.validateStringDataEmptyIsFail(
-                        TEST_STRING, TEST_LENGTH, TEST_STRING_NAME, validationErrors);
+                        testString, TEST_LENGTH, TEST_STRING_NAME, validationErrors);
 
         assertEquals(1, validationErrors.size());
         assertEquals(EXPECTED_ERROR, validationErrors.get(0));
@@ -194,15 +194,15 @@ class JsonValidationUtilityTest {
     @Test
     void validateStringDataEmptyIsFail_FailsWithTooLongString() {
 
-        TEST_STRING = "Test";
-        final int TEST_LENGTH = TEST_STRING.length() - 1;
+        testString = "Test";
+        final int TEST_LENGTH = testString.length() - 1;
 
         final String EXPECTED_ERROR =
                 TEST_STRING_NAME + JsonValidationUtility.IS_TOO_LONG_ERROR_MESSAGE_SUFFIX;
 
         boolean result =
                 JsonValidationUtility.validateStringDataEmptyIsFail(
-                        TEST_STRING, TEST_LENGTH, TEST_STRING_NAME, validationErrors);
+                        testString, TEST_LENGTH, TEST_STRING_NAME, validationErrors);
 
         assertEquals(1, validationErrors.size());
         assertEquals(EXPECTED_ERROR, validationErrors.get(0));
@@ -211,12 +211,12 @@ class JsonValidationUtilityTest {
 
     @Test
     void validateStringDataEmptyIsAllowed_PassesWithFilledString() {
-        TEST_STRING = "Test";
-        final int TEST_LENGTH = TEST_STRING.length();
+        testString = "Test";
+        final int TEST_LENGTH = testString.length();
 
         boolean result =
                 JsonValidationUtility.validateStringDataEmptyIsAllowed(
-                        TEST_STRING, TEST_LENGTH, TEST_STRING_NAME, validationErrors);
+                        testString, TEST_LENGTH, TEST_STRING_NAME, validationErrors);
 
         assertEquals(0, validationErrors.size());
         assertTrue(result);
@@ -224,12 +224,12 @@ class JsonValidationUtilityTest {
 
     @Test
     void validateStringDataEmptyIsAllowed_PassesWithEmptyString() {
-        TEST_STRING = "";
-        final int TEST_LENGTH = TEST_STRING.length();
+        testString = "";
+        final int TEST_LENGTH = testString.length();
 
         boolean result =
                 JsonValidationUtility.validateStringDataEmptyIsAllowed(
-                        TEST_STRING, TEST_LENGTH, TEST_STRING_NAME, validationErrors);
+                        testString, TEST_LENGTH, TEST_STRING_NAME, validationErrors);
 
         assertEquals(0, validationErrors.size());
         assertTrue(result);
@@ -237,7 +237,7 @@ class JsonValidationUtilityTest {
 
     @Test
     void validateStringDataEmptyIsAllowed_FailsWithNullString() {
-        TEST_STRING = null;
+        testString = null;
         final int TEST_LENGTH = Integer.MAX_VALUE;
 
         final String EXPECTED_ERROR =
@@ -245,7 +245,7 @@ class JsonValidationUtilityTest {
 
         boolean result =
                 JsonValidationUtility.validateStringDataEmptyIsAllowed(
-                        TEST_STRING, TEST_LENGTH, TEST_STRING_NAME, validationErrors);
+                        testString, TEST_LENGTH, TEST_STRING_NAME, validationErrors);
 
         assertEquals(1, validationErrors.size());
         assertEquals(EXPECTED_ERROR, validationErrors.get(0));
@@ -254,15 +254,15 @@ class JsonValidationUtilityTest {
 
     @Test
     void validateStringDataEmptyIsAllowed_FailsWithTooLongString() {
-        TEST_STRING = "Test";
-        final int TEST_LENGTH = TEST_STRING.length() - 1;
+        testString = "Test";
+        final int TEST_LENGTH = testString.length() - 1;
 
         final String EXPECTED_ERROR =
                 TEST_STRING_NAME + JsonValidationUtility.IS_TOO_LONG_ERROR_MESSAGE_SUFFIX;
 
         boolean result =
                 JsonValidationUtility.validateStringDataEmptyIsAllowed(
-                        TEST_STRING, TEST_LENGTH, TEST_STRING_NAME, validationErrors);
+                        testString, TEST_LENGTH, TEST_STRING_NAME, validationErrors);
 
         assertEquals(1, validationErrors.size());
         assertEquals(EXPECTED_ERROR, validationErrors.get(0));
@@ -271,12 +271,12 @@ class JsonValidationUtilityTest {
 
     @Test
     void validateStringDataNullAndEmptyIsAllowedPassesWithFilledString() {
-        TEST_STRING = "Test";
-        final int TEST_LENGTH = TEST_STRING.length();
+        testString = "Test";
+        final int TEST_LENGTH = testString.length();
 
         boolean result =
                 JsonValidationUtility.validateStringDataNullAndEmptyIsAllowed(
-                        TEST_STRING, TEST_LENGTH, TEST_STRING_NAME, validationErrors);
+                        testString, TEST_LENGTH, TEST_STRING_NAME, validationErrors);
 
         assertEquals(0, validationErrors.size());
         assertTrue(result);
@@ -284,12 +284,12 @@ class JsonValidationUtilityTest {
 
     @Test
     void validateStringDataNullAndEmptyIsAllowed_PassesWithEmptyString() {
-        TEST_STRING = "";
-        final int TEST_LENGTH = TEST_STRING.length();
+        testString = "";
+        final int TEST_LENGTH = testString.length();
 
         boolean result =
                 JsonValidationUtility.validateStringDataNullAndEmptyIsAllowed(
-                        TEST_STRING, TEST_LENGTH, TEST_STRING_NAME, validationErrors);
+                        testString, TEST_LENGTH, TEST_STRING_NAME, validationErrors);
 
         assertEquals(0, validationErrors.size());
         assertTrue(result);
@@ -297,12 +297,12 @@ class JsonValidationUtilityTest {
 
     @Test
     void validateStringDataNullAndEmptyIsAllowed_PassesWithNullString() {
-        TEST_STRING = null;
+        testString = null;
         final int TEST_LENGTH = Integer.MAX_VALUE;
 
         boolean result =
                 JsonValidationUtility.validateStringDataNullAndEmptyIsAllowed(
-                        TEST_STRING, TEST_LENGTH, TEST_STRING_NAME, validationErrors);
+                        testString, TEST_LENGTH, TEST_STRING_NAME, validationErrors);
 
         assertEquals(0, validationErrors.size());
         assertTrue(result);
@@ -310,15 +310,15 @@ class JsonValidationUtilityTest {
 
     @Test
     void validateStringDataNullAndEmptyIsAllowed_FailsWithTooLongString() {
-        TEST_STRING = "Test";
-        final int TEST_LENGTH = TEST_STRING.length() - 1;
+        testString = "Test";
+        final int TEST_LENGTH = testString.length() - 1;
 
         final String EXPECTED_ERROR =
                 TEST_STRING_NAME + JsonValidationUtility.IS_TOO_LONG_ERROR_MESSAGE_SUFFIX;
 
         boolean result =
                 JsonValidationUtility.validateStringDataNullAndEmptyIsAllowed(
-                        TEST_STRING, TEST_LENGTH, TEST_STRING_NAME, validationErrors);
+                        testString, TEST_LENGTH, TEST_STRING_NAME, validationErrors);
 
         assertEquals(1, validationErrors.size());
         assertEquals(EXPECTED_ERROR, validationErrors.get(0));
@@ -327,11 +327,11 @@ class JsonValidationUtilityTest {
 
     @Test
     void validateTimeStampData_PassesWithValidTimeStamp() {
-        TEST_STRING = "2022-01-01T00:00:01Z";
+        testString = "2022-01-01T00:00:01Z";
 
         boolean result =
                 JsonValidationUtility.validateTimeStampData(
-                        TEST_STRING, TEST_STRING_NAME, validationErrors);
+                        testString, TEST_STRING_NAME, validationErrors);
 
         assertEquals(0, validationErrors.size());
         assertTrue(result);
@@ -339,11 +339,11 @@ class JsonValidationUtilityTest {
 
     @Test
     void validateTimeStampData_FailsWithNullString() {
-        TEST_STRING = null;
+        testString = null;
 
         boolean result =
                 JsonValidationUtility.validateTimeStampData(
-                        TEST_STRING, TEST_STRING_NAME, validationErrors);
+                        testString, TEST_STRING_NAME, validationErrors);
 
         final String EXPECTED_ERROR =
                 TEST_STRING_NAME + JsonValidationUtility.IS_NULL_ERROR_MESSAGE_SUFFIX;
@@ -355,11 +355,11 @@ class JsonValidationUtilityTest {
 
     @Test
     void validateTimeStampData_FailsWithEmptyString() {
-        TEST_STRING = "";
+        testString = "";
 
         boolean result =
                 JsonValidationUtility.validateTimeStampData(
-                        TEST_STRING, TEST_STRING_NAME, validationErrors);
+                        testString, TEST_STRING_NAME, validationErrors);
 
         final String EXPECTED_ERROR =
                 TEST_STRING_NAME + JsonValidationUtility.IS_EMPTY_ERROR_MESSAGE_SUFFIX;
@@ -371,11 +371,11 @@ class JsonValidationUtilityTest {
 
     @Test
     void validateTimeStampData_FailsWithInvalidTimeStamp() {
-        TEST_STRING = "123";
+        testString = "123";
 
         boolean result =
                 JsonValidationUtility.validateTimeStampData(
-                        TEST_STRING, TEST_STRING_NAME, validationErrors);
+                        testString, TEST_STRING_NAME, validationErrors);
 
         final String EXPECTED_ERROR =
                 TEST_STRING_NAME
@@ -388,11 +388,11 @@ class JsonValidationUtilityTest {
 
     @Test
     void validateIntegerRangeData_PassesWithinRange() {
-        TEST_INT = 63;
+        testInt = 63;
 
         boolean result =
                 JsonValidationUtility.validateIntegerRangeData(
-                        TEST_INT,
+                        testInt,
                         TEST_INT_RANGE_MIN,
                         TEST_INT_RANGE_MAX,
                         "TEST_INTEGER_NAME",
@@ -404,11 +404,11 @@ class JsonValidationUtilityTest {
 
     @Test
     void validateIntegerRangeData_PassesAtMinRange() {
-        TEST_INT = TEST_INT_RANGE_MIN;
+        testInt = TEST_INT_RANGE_MIN;
 
         boolean result =
                 JsonValidationUtility.validateIntegerRangeData(
-                        TEST_INT,
+                        testInt,
                         TEST_INT_RANGE_MIN,
                         TEST_INT_RANGE_MAX,
                         "TEST_INTEGER_NAME",
@@ -420,11 +420,11 @@ class JsonValidationUtilityTest {
 
     @Test
     void validateIntegerRangeData_PassesAtMaxRange() {
-        TEST_INT = TEST_INT_RANGE_MAX;
+        testInt = TEST_INT_RANGE_MAX;
 
         boolean result =
                 JsonValidationUtility.validateIntegerRangeData(
-                        TEST_INT,
+                        testInt,
                         TEST_INT_RANGE_MIN,
                         TEST_INT_RANGE_MAX,
                         "TEST_INTEGER_NAME",
@@ -436,11 +436,11 @@ class JsonValidationUtilityTest {
 
     @Test
     void validateIntegerRangeData_FailsUnderMinRange() {
-        TEST_INT = TEST_INT_RANGE_MIN - 1;
+        testInt = TEST_INT_RANGE_MIN - 1;
 
         boolean result =
                 JsonValidationUtility.validateIntegerRangeData(
-                        TEST_INT,
+                        testInt,
                         TEST_INT_RANGE_MIN,
                         TEST_INT_RANGE_MAX,
                         TEST_INTEGER_NAME,
@@ -448,7 +448,7 @@ class JsonValidationUtilityTest {
 
         final String EXPECTED_ERROR =
                 JsonValidationUtility.createIntegerRangeErrorMessage(
-                        TEST_INT, TEST_INT_RANGE_MIN, TEST_INT_RANGE_MAX, TEST_INTEGER_NAME);
+                        testInt, TEST_INT_RANGE_MIN, TEST_INT_RANGE_MAX, TEST_INTEGER_NAME);
 
         assertEquals(1, validationErrors.size());
         assertEquals(EXPECTED_ERROR, validationErrors.get(0));
@@ -457,11 +457,11 @@ class JsonValidationUtilityTest {
 
     @Test
     void validateIntegerRangeData_FailsOverMaxRange() {
-        TEST_INT = TEST_INT_RANGE_MAX + 1;
+        testInt = TEST_INT_RANGE_MAX + 1;
 
         boolean result =
                 JsonValidationUtility.validateIntegerRangeData(
-                        TEST_INT,
+                        testInt,
                         TEST_INT_RANGE_MIN,
                         TEST_INT_RANGE_MAX,
                         TEST_INTEGER_NAME,
@@ -469,7 +469,7 @@ class JsonValidationUtilityTest {
 
         final String EXPECTED_ERROR =
                 JsonValidationUtility.createIntegerRangeErrorMessage(
-                        TEST_INT, TEST_INT_RANGE_MIN, TEST_INT_RANGE_MAX, TEST_INTEGER_NAME);
+                        testInt, TEST_INT_RANGE_MIN, TEST_INT_RANGE_MAX, TEST_INTEGER_NAME);
 
         assertEquals(1, validationErrors.size());
         assertEquals(EXPECTED_ERROR, validationErrors.get(0));

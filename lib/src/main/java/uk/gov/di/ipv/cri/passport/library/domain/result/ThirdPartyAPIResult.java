@@ -1,10 +1,11 @@
 package uk.gov.di.ipv.cri.passport.library.domain.result;
 
-import uk.gov.di.ipv.cri.common.library.annotations.ExcludeFromGeneratedCoverageReport;
+import uk.gov.account.ipv.cri.lime.limeade.annotation.ExcludeClassFromGeneratedCoverageReport;
 import uk.gov.di.ipv.cri.passport.library.domain.result.fields.APIResultSource;
 
 import java.util.Map;
 
+@ExcludeClassFromGeneratedCoverageReport
 public class ThirdPartyAPIResult {
 
     private APIResultSource apiResultSource;
@@ -16,7 +17,6 @@ public class ThirdPartyAPIResult {
 
     private Map<String, String> flags;
 
-    @ExcludeFromGeneratedCoverageReport
     public ThirdPartyAPIResult() {
         // intended
     }

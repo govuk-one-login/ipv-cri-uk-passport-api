@@ -13,6 +13,8 @@ import software.amazon.awssdk.http.HttpStatusCode;
 import software.amazon.lambda.powertools.logging.CorrelationIdPaths;
 import software.amazon.lambda.powertools.logging.Logging;
 import software.amazon.lambda.powertools.metrics.FlushMetrics;
+import uk.gov.account.ipv.cri.lime.limeade.strategy.Strategy;
+import uk.gov.account.ipv.cri.lime.limeade.util.LoggingSupport;
 import uk.gov.di.ipv.cri.common.library.annotations.ExcludeFromGeneratedCoverageReport;
 import uk.gov.di.ipv.cri.common.library.domain.personidentity.BirthDate;
 import uk.gov.di.ipv.cri.common.library.domain.personidentity.SharedClaims;
@@ -30,16 +32,13 @@ import uk.gov.di.ipv.cri.passport.checkpassport.services.DocumentDataVerificatio
 import uk.gov.di.ipv.cri.passport.checkpassport.services.FormDataValidator;
 import uk.gov.di.ipv.cri.passport.checkpassport.services.ThirdPartyAPIServiceFactory;
 import uk.gov.di.ipv.cri.passport.library.domain.PassportFormData;
-import uk.gov.di.ipv.cri.passport.library.domain.Strategy;
 import uk.gov.di.ipv.cri.passport.library.error.CommonExpressOAuthError;
 import uk.gov.di.ipv.cri.passport.library.error.ErrorResponse;
 import uk.gov.di.ipv.cri.passport.library.exceptions.OAuthErrorResponseException;
 import uk.gov.di.ipv.cri.passport.library.helpers.PersonIdentityDetailedHelperMapper;
-import uk.gov.di.ipv.cri.passport.library.logging.LoggingSupport;
 import uk.gov.di.ipv.cri.passport.library.metrics.Definitions;
 import uk.gov.di.ipv.cri.passport.library.persistence.DocumentCheckResultItem;
 import uk.gov.di.ipv.cri.passport.library.service.ServiceFactory;
-import uk.gov.di.ipv.cri.passport.library.service.ThirdPartyAPIService;
 
 import java.time.Clock;
 import java.time.Duration;
@@ -95,8 +94,6 @@ public class CheckPassportHandler
     // Shared DataStore (Write)
     private DataStore<DocumentCheckResultItem> documentCheckResultStore;
 
-    private ThirdPartyAPIServiceFactory thirdPartyAPIServiceFactory;
-
     private long functionInitMetricLatchedValue = 0;
     private boolean functionInitMetricCaptured = false;
 
@@ -105,10 +102,14 @@ public class CheckPassportHandler
         // A reference to serviceFactory is not held in this class
         ServiceFactory serviceFactory = new ServiceFactory();
 
+        final ThirdPartyAPIServiceFactory thirdPartyAPIServiceFactory =
+                new ThirdPartyAPIServiceFactory(serviceFactory);
+
         // DocumentDataVerificationService is internal to CheckPassportHandler
         DocumentDataVerificationService documentDataVerificationServiceNotAssignedYet =
                 new DocumentDataVerificationService(
                         serviceFactory,
+                        thirdPartyAPIServiceFactory,
                         new FormDataValidator(),
                         new ContraIndicatorMapper(serviceFactory));
 
@@ -118,15 +119,13 @@ public class CheckPassportHandler
 
     public CheckPassportHandler(
             ServiceFactory serviceFactory,
-            DocumentDataVerificationService documentDataVerificationService)
-            throws JsonProcessingException {
+            DocumentDataVerificationService documentDataVerificationService) {
         initializeLambdaServices(serviceFactory, documentDataVerificationService);
     }
 
     private void initializeLambdaServices(
             ServiceFactory serviceFactory,
-            DocumentDataVerificationService documentDataVerificationService)
-            throws JsonProcessingException {
+            DocumentDataVerificationService documentDataVerificationService) {
         this.objectMapper = serviceFactory.getObjectMapper();
 
         this.eventProbe = serviceFactory.getEventProbe();
@@ -136,8 +135,6 @@ public class CheckPassportHandler
         this.documentDataVerificationService = documentDataVerificationService;
 
         this.documentCheckResultStore = serviceFactory.getDocumentCheckResultStore();
-
-        this.thirdPartyAPIServiceFactory = new ThirdPartyAPIServiceFactory(serviceFactory);
 
         // Runtime/SnapStart function init duration
         functionInitMetricLatchedValue =
@@ -189,9 +186,9 @@ public class CheckPassportHandler
             LOGGER.info("Persistent Logging keys now attached to sessionId {}", sessionId);
 
             String clientId = sessionItem.getClientId();
-            Strategy thirdPartyRouting = Strategy.fromClientIdString(clientId);
+            Strategy strategy = Strategy.fromClientIdString(clientId);
 
-            LOGGER.info("IPV Core Client Id {}, Routing set to {}", clientId, thirdPartyRouting);
+            LOGGER.info("IPV Core Client Id {}, Routing set to {}", clientId, strategy);
 
             // Attempt start
             sessionItem.setAttemptCount(sessionItem.getAttemptCount() + 1);
@@ -215,26 +212,13 @@ public class CheckPassportHandler
                 // Use the completed OK exit sequence
                 return lambdaCompletedOK(responseEvent);
             }
-            ThirdPartyAPIService thirdPartyAPIService;
+
             PassportFormData passportFormData = parsePassportFormRequest(input.getBody());
             eventProbe.counterMetric(FORM_DATA_PARSE_PASS);
-            // ClientID dictates switch conditional, return new api service based on clientID value
-            if (thirdPartyRouting == Strategy.STUB) {
-                thirdPartyAPIService =
-                        thirdPartyAPIServiceFactory.getDvadThirdPartyAPIServiceForStub();
-            } else {
-                thirdPartyAPIService = thirdPartyAPIServiceFactory.getDvadThirdPartyAPIService();
-            }
-
-            LOGGER.info("Thirdparty API service is {}", thirdPartyAPIService.getServiceName());
 
             DocumentDataVerificationResult documentDataVerificationResult =
                     documentDataVerificationService.verifyData(
-                            thirdPartyAPIService,
-                            passportFormData,
-                            sessionItem,
-                            requestHeaders,
-                            thirdPartyRouting);
+                            strategy, passportFormData, sessionItem, requestHeaders);
 
             saveAttempt(sessionItem, passportFormData, documentDataVerificationResult);
 
