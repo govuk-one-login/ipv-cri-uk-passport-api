@@ -14,11 +14,11 @@ import org.mockito.InOrder;
 import org.mockito.Mock;
 import org.mockito.Mockito;
 import org.mockito.junit.jupiter.MockitoExtension;
+import uk.gov.account.ipv.cri.lime.limeade.strategy.Strategy;
 import uk.gov.di.ipv.cri.common.library.util.EventProbe;
 import uk.gov.di.ipv.cri.passport.library.PassportFormTestDataGenerator;
 import uk.gov.di.ipv.cri.passport.library.config.ParameterStoreParameters;
 import uk.gov.di.ipv.cri.passport.library.domain.PassportFormData;
-import uk.gov.di.ipv.cri.passport.library.domain.Strategy;
 import uk.gov.di.ipv.cri.passport.library.domain.result.ThirdPartyAPIResult;
 import uk.gov.di.ipv.cri.passport.library.dvad.domain.response.AccessTokenResponse;
 import uk.gov.di.ipv.cri.passport.library.dvad.domain.response.GraphQLAPIResponse;
@@ -437,39 +437,30 @@ class DvadThirdPartyAPIServiceTest {
         GraphQLAPIResponse testGraphQLAPIResponseObject = null;
 
         switch (forcedFailure) {
-            case "API Response Data is null":
-                testGraphQLAPIResponseObject = GraphQLAPIResponse.builder().data(null).build();
-                break;
-            case "API Response ValidatePassport is null":
-                {
-                    ResponseData responseData =
-                            ResponseData.builder().validatePassport(null).build();
-                    testGraphQLAPIResponseObject =
-                            GraphQLAPIResponse.builder().data(responseData).build();
-                    break;
-                }
-            case "API Response ValidatePassport is empty":
-                {
-                    ResponseData responseData =
-                            ResponseData.builder().validatePassport(new HashMap<>()).build();
-                    testGraphQLAPIResponseObject =
-                            GraphQLAPIResponse.builder().data(responseData).build();
-                    break;
-                }
-            case "API Response ValidatePassport is missing validationResult":
-                {
-                    Map<String, String> testValidatePassportMissingValidationResult =
-                            new HashMap<>();
-                    testValidatePassportMissingValidationResult.put("Flag", "true");
+            case "API Response Data is null" ->
+                    testGraphQLAPIResponseObject = GraphQLAPIResponse.builder().data(null).build();
+            case "API Response ValidatePassport is null" -> {
+                ResponseData responseData = ResponseData.builder().validatePassport(null).build();
+                testGraphQLAPIResponseObject =
+                        GraphQLAPIResponse.builder().data(responseData).build();
+            }
+            case "API Response ValidatePassport is empty" -> {
+                ResponseData responseData =
+                        ResponseData.builder().validatePassport(new HashMap<>()).build();
+                testGraphQLAPIResponseObject =
+                        GraphQLAPIResponse.builder().data(responseData).build();
+            }
+            case "API Response ValidatePassport is missing validationResult" -> {
+                Map<String, String> testValidatePassportMissingValidationResult = new HashMap<>();
+                testValidatePassportMissingValidationResult.put("Flag", "true");
 
-                    ResponseData responseData =
-                            ResponseData.builder()
-                                    .validatePassport(testValidatePassportMissingValidationResult)
-                                    .build();
-                    testGraphQLAPIResponseObject =
-                            GraphQLAPIResponse.builder().data(responseData).build();
-                    break;
-                }
+                ResponseData responseData =
+                        ResponseData.builder()
+                                .validatePassport(testValidatePassportMissingValidationResult)
+                                .build();
+                testGraphQLAPIResponseObject =
+                        GraphQLAPIResponse.builder().data(responseData).build();
+            }
         }
         testGraphQLServiceResult =
                 GraphQLServiceResult.builder()
@@ -589,19 +580,14 @@ class DvadThirdPartyAPIServiceTest {
 
         // Check the messageParts contents for each scenario
         switch (scenario) {
-            case "ClassificationIsString":
-                assertClassificationIsStringMessageParts(messagePartMap);
-                break;
-            case "ClassificationIsObject":
-                assertClassificationIsObjectMessagePart(messagePartMap);
-                break;
-            case "MinimalTestCaseError":
-            case "NullTestCaseError":
-            case "EmptyTestCaseError":
-                // Only difference is data null/empty/present
-                // tested cases added to confirm no crash
-                assertMinimalTestErrorMessageParts(messagePartMap);
-                break;
+            case "ClassificationIsString" ->
+                    assertClassificationIsStringMessageParts(messagePartMap);
+            case "ClassificationIsObject" ->
+                    assertClassificationIsObjectMessagePart(messagePartMap);
+            case "MinimalTestCaseError", "NullTestCaseError", "EmptyTestCaseError" ->
+                    // Only difference is data null/empty/present
+                    // tested cases added to confirm no crash
+                    assertMinimalTestErrorMessageParts(messagePartMap);
         }
     }
 

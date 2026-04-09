@@ -2,12 +2,10 @@ package uk.gov.di.ipv.cri.passport.checkpassport.services;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import org.apache.http.impl.client.CloseableHttpClient;
 import uk.gov.di.ipv.cri.common.library.util.EventProbe;
 import uk.gov.di.ipv.cri.passport.library.dvad.services.DVADCloseableHttpClientFactory;
 import uk.gov.di.ipv.cri.passport.library.dvad.services.DvadThirdPartyAPIService;
 import uk.gov.di.ipv.cri.passport.library.dvad.services.endpoints.DvadAPIEndpointFactory;
-import uk.gov.di.ipv.cri.passport.library.service.ApacheHTTPClientFactoryService;
 import uk.gov.di.ipv.cri.passport.library.service.ParameterStoreService;
 import uk.gov.di.ipv.cri.passport.library.service.ServiceFactory;
 import uk.gov.di.ipv.cri.passport.library.service.ThirdPartyAPIService;
@@ -17,8 +15,6 @@ public class ThirdPartyAPIServiceFactory {
     private final ObjectMapper objectMapper;
 
     private final ParameterStoreService parameterStoreService;
-
-    public final ApacheHTTPClientFactoryService apacheHTTPClientFactoryService;
 
     // UAT/LIVE DVAD(0) - STUB DVAD(1)
     private static final int DVAD = 0;
@@ -30,47 +26,41 @@ public class ThirdPartyAPIServiceFactory {
         this.parameterStoreService = serviceFactory.getParameterStoreService();
         this.eventProbe = serviceFactory.getEventProbe();
         this.objectMapper = serviceFactory.getObjectMapper();
-        this.apacheHTTPClientFactoryService = serviceFactory.getApacheHTTPClientFactoryService();
-
-        // Done this way to allow switching if needed to lazy init + singletons
-        thirdPartyAPIServices[DVAD] = createDvadThirdPartyAPIService();
-        thirdPartyAPIServices[STUB] = createDvadThirdPartyAPIServiceForStub();
-    }
-
-    private ThirdPartyAPIService createDvadThirdPartyAPIService() throws JsonProcessingException {
-
-        CloseableHttpClient closeableHttpClient =
-                new DVADCloseableHttpClientFactory()
-                        .getClient(true, parameterStoreService, apacheHTTPClientFactoryService);
 
         // Reduces constructor load in DvadThirdPartyAPIService and allow endpoints to be mocked
         DvadAPIEndpointFactory dvadAPIEndpointFactory =
                 new DvadAPIEndpointFactory(parameterStoreService);
 
+        DVADCloseableHttpClientFactory closeableHttpClientFactory =
+                new DVADCloseableHttpClientFactory();
+
+        // Done this way to allow switching if needed to lazy init + singletons
+        thirdPartyAPIServices[DVAD] =
+                createDvadThirdPartyAPIService(dvadAPIEndpointFactory, closeableHttpClientFactory);
+        thirdPartyAPIServices[STUB] =
+                createDvadThirdPartyAPIServiceForStub(
+                        dvadAPIEndpointFactory, closeableHttpClientFactory);
+    }
+
+    private ThirdPartyAPIService createDvadThirdPartyAPIService(
+            DvadAPIEndpointFactory dvadAPIEndpointFactory,
+            DVADCloseableHttpClientFactory closeableHttpClientFactory) {
         return new DvadThirdPartyAPIService(
                 dvadAPIEndpointFactory,
                 parameterStoreService,
                 eventProbe,
-                closeableHttpClient,
+                closeableHttpClientFactory.getClient(true, parameterStoreService),
                 objectMapper);
     }
 
-    private ThirdPartyAPIService createDvadThirdPartyAPIServiceForStub()
-            throws JsonProcessingException {
-
-        CloseableHttpClient closeableHttpClient =
-                new DVADCloseableHttpClientFactory()
-                        .getClient(false, parameterStoreService, apacheHTTPClientFactoryService);
-
-        // Reduces constructor load in DvadThirdPartyAPIService and allow endpoints to be mocked
-        DvadAPIEndpointFactory dvadAPIEndpointFactory =
-                new DvadAPIEndpointFactory(parameterStoreService);
-
+    private ThirdPartyAPIService createDvadThirdPartyAPIServiceForStub(
+            DvadAPIEndpointFactory dvadAPIEndpointFactory,
+            DVADCloseableHttpClientFactory closeableHttpClientFactory) {
         return new DvadThirdPartyAPIService(
                 dvadAPIEndpointFactory,
                 parameterStoreService,
                 eventProbe,
-                closeableHttpClient,
+                closeableHttpClientFactory.getClient(false, parameterStoreService),
                 objectMapper);
     }
 

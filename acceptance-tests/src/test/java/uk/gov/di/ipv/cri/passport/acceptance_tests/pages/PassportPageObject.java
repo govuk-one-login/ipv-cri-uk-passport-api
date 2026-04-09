@@ -13,7 +13,7 @@ import uk.gov.di.ipv.cri.passport.acceptance_tests.utilities.Driver;
 import uk.gov.di.ipv.cri.passport.acceptance_tests.utilities.TestDataCreator;
 import uk.gov.di.ipv.cri.passport.acceptance_tests.utilities.TestInput;
 
-import java.time.LocalDate;
+import java.time.ZonedDateTime;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
@@ -537,9 +537,9 @@ public class PassportPageObject extends UniversalSteps {
         return webElement.findElement(By.tagName("label"));
     }
 
-    private LocalDate subtractMonthsFromCurrentDate(int monthsToSubtract) {
-        LocalDate currentDate = LocalDate.now();
-        LocalDate pastDate = currentDate.minusMonths(monthsToSubtract);
+    private ZonedDateTime subtractMonthsFromCurrentDate(int monthsToSubtract) {
+        ZonedDateTime currentDate = ZonedDateTime.now();
+        ZonedDateTime pastDate = currentDate.minusMonths(monthsToSubtract);
 
         LOGGER.info(
                 "SubtractMonthsFromCurrentDate - monthsToSubtract {}, currentDate {}, pastDate {}",
@@ -558,8 +558,8 @@ public class PassportPageObject extends UniversalSteps {
 
     public void userReEntersExpiryDateAsCurrentDateMinus(int monthsToSubtract, int daysToSubtract) {
 
-        LocalDate resultMinusMonths = subtractMonthsFromCurrentDate(monthsToSubtract);
-        LocalDate resultMinusDays = resultMinusMonths.minusDays(daysToSubtract);
+        ZonedDateTime resultMinusMonths = subtractMonthsFromCurrentDate(monthsToSubtract);
+        ZonedDateTime resultMinusDays = resultMinusMonths.minusDays(daysToSubtract);
 
         LOGGER.info(
                 "UserReEntersExpiryDateAsCurrentDateMinus - monthsToSubtract {}, daysToSubtract {}, resultMinusMonths {}, resultMinusDays {}",

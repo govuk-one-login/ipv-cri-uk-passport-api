@@ -3,6 +3,7 @@ package uk.gov.di.ipv.cri.passport.checkpassport.services;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import software.amazon.awssdk.http.HttpStatusCode;
+import uk.gov.account.ipv.cri.lime.limeade.strategy.Strategy;
 import uk.gov.di.ipv.cri.common.library.domain.AuditEventContext;
 import uk.gov.di.ipv.cri.common.library.domain.AuditEventType;
 import uk.gov.di.ipv.cri.common.library.exception.SqsException;
@@ -13,7 +14,6 @@ import uk.gov.di.ipv.cri.passport.checkpassport.domain.result.DocumentDataVerifi
 import uk.gov.di.ipv.cri.passport.checkpassport.domain.result.fields.ContraIndicatorMapperResult;
 import uk.gov.di.ipv.cri.passport.checkpassport.validation.ValidationResult;
 import uk.gov.di.ipv.cri.passport.library.domain.PassportFormData;
-import uk.gov.di.ipv.cri.passport.library.domain.Strategy;
 import uk.gov.di.ipv.cri.passport.library.domain.result.ThirdPartyAPIResult;
 import uk.gov.di.ipv.cri.passport.library.domain.result.fields.APIResultSource;
 import uk.gov.di.ipv.cri.passport.library.error.ErrorResponse;
@@ -46,16 +46,21 @@ public class DocumentDataVerificationService {
     private final EventProbe eventProbe;
     private final AuditService auditService;
 
+    private final ThirdPartyAPIServiceFactory thirdPartyAPIServiceFactory;
+
     private final FormDataValidator formDataValidator;
     private final ContraIndicatorMapper contraIndicatorMapper;
 
     public DocumentDataVerificationService(
             ServiceFactory serviceFactory,
+            ThirdPartyAPIServiceFactory thirdPartyAPIServiceFactory,
             FormDataValidator formDataValidator,
             ContraIndicatorMapper contraIndicatorMapper) {
 
         this.eventProbe = serviceFactory.getEventProbe();
         this.auditService = serviceFactory.getAuditService();
+
+        this.thirdPartyAPIServiceFactory = thirdPartyAPIServiceFactory;
 
         this.formDataValidator = formDataValidator;
 
@@ -63,11 +68,10 @@ public class DocumentDataVerificationService {
     }
 
     public DocumentDataVerificationResult verifyData(
-            ThirdPartyAPIService thirdPartyAPIService,
+            Strategy strategy,
             PassportFormData passportFormData,
             SessionItem sessionItem,
-            Map<String, String> requestHeaders,
-            Strategy strategy)
+            Map<String, String> requestHeaders)
             throws OAuthErrorResponseException {
         try {
             LOGGER.info("Validating form data...");
@@ -86,6 +90,9 @@ public class DocumentDataVerificationService {
             }
             LOGGER.info("Form data validated");
             eventProbe.counterMetric(FORM_DATA_VALIDATION_PASS);
+
+            ThirdPartyAPIService thirdPartyAPIService = selectThirdPartyService(strategy);
+            LOGGER.info("Third-party API service is {}", thirdPartyAPIService.getServiceName());
 
             LOGGER.info(
                     "Performing data verification using {}", thirdPartyAPIService.getServiceName());
@@ -109,17 +116,21 @@ public class DocumentDataVerificationService {
             ContraIndicatorMapperResult contraIndicatorMapperResult =
                     getContraIndicatorsResult(thirdPartyAPIResult);
 
-            List<String> cis = contraIndicatorMapperResult.contraIndicators();
+            List<String> contraIndicators = contraIndicatorMapperResult.contraIndicators();
             int documentStrengthScore = MAX_PASSPORT_GPG45_STRENGTH_VALUE;
-            int documentValidityScore = calculateValidity(thirdPartyAPIResult, cis);
+            int documentValidityScore = calculateValidity(thirdPartyAPIResult, contraIndicators);
 
             if (null != thirdPartyAPIResult.getFlags()) {
-                LOGGER.info(
-                        "Passport check performed successfully. Flags {}, CIs {}",
+
+                String flags =
                         thirdPartyAPIResult.getFlags().keySet().stream()
                                 .map(key -> key + "=" + thirdPartyAPIResult.getFlags().get(key))
-                                .collect(Collectors.joining(", ", "{", "}")),
-                        String.join(",", cis));
+                                .collect(Collectors.joining(", ", "{", "}"));
+                String cisLogline = String.join(",", contraIndicators);
+                LOGGER.info(
+                        "Passport check performed successfully. Flags {}, CIs {}",
+                        flags,
+                        cisLogline);
             } else {
                 LOGGER.info("No flags returned on request to {}", apiResultSource);
             }
@@ -132,7 +143,7 @@ public class DocumentDataVerificationService {
 
             documentDataVerificationResult.setApiResultSource(apiResultSource);
 
-            documentDataVerificationResult.setContraIndicators(cis);
+            documentDataVerificationResult.setContraIndicators(contraIndicators);
 
             documentDataVerificationResult.setStrengthScore(documentStrengthScore);
             documentDataVerificationResult.setValidityScore(documentValidityScore);
@@ -156,7 +167,9 @@ public class DocumentDataVerificationService {
 
             LOGGER.info(
                     "Document Data Verification Request Completed Indicators {}, Strength Score {}, Validity Score {}",
-                    !cis.isEmpty() ? String.join(", ", cis.toString()) : "[]",
+                    !contraIndicators.isEmpty()
+                            ? String.join(", ", contraIndicators.toString())
+                            : "[]",
                     documentStrengthScore,
                     documentValidityScore);
 
@@ -170,7 +183,7 @@ public class DocumentDataVerificationService {
             eventProbe.counterMetric(DOCUMENT_DATA_VERIFICATION_REQUEST_FAILED);
             // Specific exception for all non-recoverable ThirdPartyAPI related errors
             throw e;
-        } catch (SqsException e) {
+        } catch (SqsException _) {
             // Audit Events are not working
             LOGGER.error(
                     "{}", ErrorResponse.FAILED_TO_SEND_AUDIT_MESSAGE_TO_SQS_QUEUE.getMessage());
@@ -193,29 +206,21 @@ public class DocumentDataVerificationService {
 
         ContraIndicatorMapperResult contraIndicatorMapperResult;
 
-        // should we not check failed first. Why do all this if were going to clear anyway
-        // Legacy API will not set any flags
-        if (thirdPartyAPIResult.getFlags() != null) {
-            Map<String, String> flagMap = thirdPartyAPIResult.getFlags();
+        Map<String, String> flagMap = thirdPartyAPIResult.getFlags();
 
-            for (Map.Entry<String, String> entry : flagMap.entrySet()) {
-                String key = entry.getKey();
-                String value = entry.getValue();
-                String message = String.format("Flag %s : Value %s", key, value);
-                LOGGER.debug(message);
-            }
+        for (Map.Entry<String, String> entry : flagMap.entrySet()) {
+            String key = entry.getKey();
+            String value = entry.getValue();
+            String message = String.format("Flag %s : Value %s", key, value);
+            LOGGER.debug(message);
+        }
 
-            contraIndicatorMapperResult = contraIndicatorMapper.mapFlagsToCIs(flagMap);
+        contraIndicatorMapperResult = contraIndicatorMapper.mapFlagsToCIs(flagMap);
 
-            List<String> flagCIs = contraIndicatorMapperResult.contraIndicators();
-            for (String ci : flagCIs) {
-                String message = String.format("Flag CI's %s ", ci);
-                LOGGER.debug(message);
-            }
-
-        } else {
-            // To maintain legacy compatibility incase DCS needs was re-enabled
-            contraIndicatorMapperResult = ContraIndicatorMapperResult.builder().build();
+        List<String> flagCIs = contraIndicatorMapperResult.contraIndicators();
+        for (String ci : flagCIs) {
+            String message = String.format("Flag CI's %s ", ci);
+            LOGGER.debug(message);
         }
 
         List<String> ciCodes = contraIndicatorMapperResult.contraIndicators();
@@ -246,5 +251,14 @@ public class DocumentDataVerificationService {
         }
 
         return contraIndicatorMapperResult;
+    }
+
+    // ClientID dictates switch conditional, return new api service based on clientID value
+    private ThirdPartyAPIService selectThirdPartyService(Strategy strategy) {
+        if (strategy == Strategy.STUB) {
+            return thirdPartyAPIServiceFactory.getDvadThirdPartyAPIServiceForStub();
+        }
+
+        return thirdPartyAPIServiceFactory.getDvadThirdPartyAPIService();
     }
 }

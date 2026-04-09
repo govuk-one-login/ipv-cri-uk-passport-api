@@ -123,7 +123,6 @@ class GraphQLRequestServiceTest {
                 .thenReturn(graphQLAPIResponse);
 
         // Method args
-        String requestId = UUID.randomUUID().toString();
         AccessTokenResponse accessTokenResponse =
                 AccessTokenResponse.builder()
                         .tokenType("Bearer")
@@ -190,7 +189,6 @@ class GraphQLRequestServiceTest {
                         ErrorResponse.FAILED_TO_PREPARE_GRAPHQL_REQUEST_PAYLOAD);
 
         // Method args
-        String requestId = UUID.randomUUID().toString();
         AccessTokenResponse accessTokenResponse =
                 AccessTokenResponse.builder()
                         .tokenType("Bearer")
@@ -236,7 +234,6 @@ class GraphQLRequestServiceTest {
                         ErrorResponse.ERROR_INVOKING_THIRD_PARTY_API_GRAPHQL_ENDPOINT);
 
         // Method args
-        String requestId = UUID.randomUUID().toString();
         AccessTokenResponse accessTokenResponse =
                 AccessTokenResponse.builder()
                         .tokenType("Bearer")
@@ -302,7 +299,6 @@ class GraphQLRequestServiceTest {
                         ErrorResponse.ERROR_GRAPHQL_ENDPOINT_RETURNED_UNEXPECTED_HTTP_STATUS_CODE);
 
         // Method args
-        String requestId = UUID.randomUUID().toString();
         AccessTokenResponse accessTokenResponse =
                 AccessTokenResponse.builder()
                         .tokenType("Bearer")
@@ -370,7 +366,6 @@ class GraphQLRequestServiceTest {
                         ErrorResponse.FAILED_TO_MAP_GRAPHQL_ENDPOINT_RESPONSE_BODY);
 
         // Method args
-        String requestId = UUID.randomUUID().toString();
         AccessTokenResponse accessTokenResponse =
                 AccessTokenResponse.builder()
                         .tokenType("Bearer")

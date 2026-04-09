@@ -21,16 +21,15 @@ import java.security.spec.InvalidKeySpecException;
 import java.util.UUID;
 
 public class ApacheHTTPClientFactoryService {
-
     // Used internally at runtime when loading/retrieving keys into/from the SSL Keystore
     private static final char[] RANDOM_RUN_TIME_KEYSTORE_PASSWORD =
             UUID.randomUUID().toString().toCharArray();
 
-    public CloseableHttpClient generatePublicHttpClient() {
-        return HttpClients.custom().build();
+    private ApacheHTTPClientFactoryService() {
+        /* This utility class should not be instantiated */
     }
 
-    public CloseableHttpClient generateHTTPClientFromExternalApacheHttpClient(
+    public static CloseableHttpClient generateMTLSHttpClient(
             String base64TLSCertString,
             String base64TLSKeyString,
             String base64TLSRootCertString,
@@ -60,7 +59,7 @@ public class ApacheHTTPClientFactoryService {
         return HttpClients.custom().setSSLContext(sslContext).build();
     }
 
-    private SSLContext sslContextSetup(KeyStore clientTls, KeyStore caBundle)
+    private static SSLContext sslContextSetup(KeyStore clientTls, KeyStore caBundle)
             throws UnrecoverableKeyException,
                     NoSuchAlgorithmException,
                     KeyStoreException,
@@ -71,7 +70,7 @@ public class ApacheHTTPClientFactoryService {
                 .build();
     }
 
-    private KeyStore createKeyStore(Certificate cert, Key key)
+    private static KeyStore createKeyStore(Certificate cert, Key key)
             throws KeyStoreException, CertificateException, IOException, NoSuchAlgorithmException {
         final KeyStore keyStore = KeyStore.getInstance("JKS");
         keyStore.load(null, RANDOM_RUN_TIME_KEYSTORE_PASSWORD);
@@ -82,7 +81,7 @@ public class ApacheHTTPClientFactoryService {
         return keyStore;
     }
 
-    private KeyStore createTrustStore(Certificate[] certificates)
+    private static KeyStore createTrustStore(Certificate[] certificates)
             throws KeyStoreException, CertificateException, IOException, NoSuchAlgorithmException {
         final KeyStore keyStore = KeyStore.getInstance("JKS");
         keyStore.load(null, null);

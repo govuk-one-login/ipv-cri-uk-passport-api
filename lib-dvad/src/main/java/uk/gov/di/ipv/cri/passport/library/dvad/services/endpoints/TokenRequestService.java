@@ -11,15 +11,15 @@ import org.apache.http.impl.client.CloseableHttpClient;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import software.amazon.awssdk.http.HttpStatusCode;
+import uk.gov.account.ipv.cri.lime.limeade.util.http.HTTPReply;
+import uk.gov.account.ipv.cri.lime.limeade.util.http.HTTPReplyHelper;
+import uk.gov.account.ipv.cri.lime.limeade.util.timing.StopWatch;
 import uk.gov.di.ipv.cri.common.library.util.EventProbe;
 import uk.gov.di.ipv.cri.passport.library.dvad.domain.response.AccessTokenResponse;
 import uk.gov.di.ipv.cri.passport.library.dvad.services.AccessTokenResponseCache;
 import uk.gov.di.ipv.cri.passport.library.dvad.services.DvadAPIHeaderValues;
 import uk.gov.di.ipv.cri.passport.library.error.ErrorResponse;
 import uk.gov.di.ipv.cri.passport.library.exceptions.OAuthErrorResponseException;
-import uk.gov.di.ipv.cri.passport.library.util.HTTPReply;
-import uk.gov.di.ipv.cri.passport.library.util.HTTPReplyHelper;
-import uk.gov.di.ipv.cri.passport.library.util.StopWatch;
 
 import java.io.IOException;
 import java.net.URI;
@@ -186,8 +186,7 @@ public class TokenRequestService {
             eventProbe.counterMetric(DVAD_TOKEN_REQUEST_SEND_OK.withEndpointPrefix());
 
             // throws OAuthErrorResponseException on error
-            httpReply =
-                    HTTPReplyHelper.retrieveStatusCodeAndBodyFromResponse(response, ENDPOINT_NAME);
+            httpReply = HTTPReplyHelper.retrieveResponse(response, ENDPOINT_NAME);
         } catch (IOException e) {
             // No Response Latency
             eventProbe.counterMetric(
@@ -207,19 +206,19 @@ public class TokenRequestService {
         eventProbe.counterMetric(
                 DVAD_TOKEN_RESPONSE_LATENCY.withEndpointPrefix(), stopWatch.stop());
 
-        if (httpReply.statusCode == 200) {
-            LOGGER.info("Token status code {}", httpReply.statusCode);
+        if (httpReply.statusCode() == 200) {
+            LOGGER.info("Token status code {}", httpReply.statusCode());
 
             eventProbe.counterMetric(
                     DVAD_TOKEN_RESPONSE_TYPE_EXPECTED_HTTP_STATUS.withEndpointPrefix());
 
             try {
-                LOGGER.debug("Token ResponseBody - {}", httpReply.responseBody);
+                LOGGER.debug("Token ResponseBody - {}", httpReply.responseBody());
 
                 // DVAD_TOKEN_RESPONSE_TYPE_VALID not captured here as the token contents is
                 // validated later
 
-                return objectMapper.readValue(httpReply.responseBody, AccessTokenResponse.class);
+                return objectMapper.readValue(httpReply.responseBody(), AccessTokenResponse.class);
             } catch (JsonProcessingException e) {
                 LOGGER.error("JsonProcessingException mapping Token response");
                 LOGGER.debug(e.getMessage());
@@ -234,8 +233,8 @@ public class TokenRequestService {
             // The token request responded but with an unexpected status code
             LOGGER.error(
                     "Token response status code {} content - {}",
-                    httpReply.statusCode,
-                    httpReply.responseBody);
+                    httpReply.statusCode(),
+                    httpReply.responseBody());
 
             eventProbe.counterMetric(
                     DVAD_TOKEN_RESPONSE_TYPE_UNEXPECTED_HTTP_STATUS.withEndpointPrefix());

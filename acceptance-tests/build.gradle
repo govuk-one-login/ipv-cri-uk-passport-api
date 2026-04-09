@@ -1,15 +1,10 @@
 plugins {
-	id 'java'
-	id 'io.freefair.aspectj.post-compile-weaving' version '8.12.1'
+	alias(libs.plugins.java)
+	alias(libs.plugins.post.compile.weaving)
+	alias(libs.plugins.spotless)
 }
 
-defaultTasks 'clean', 'build'
-
-repositories {
-	maven {
-		url 'https://gds.jfrog.io/artifactory/di-allowed-repos'
-	}
-}
+defaultTasks 'clean', 'spotlessApply', 'build'
 
 configurations {
 	cucumberRuntime {
@@ -17,92 +12,28 @@ configurations {
 	}
 }
 
-
 dependencies {
+	implementation libs.aspectjrt,
+			libs.powertools.logging.log4j,
+			platform(libs.aws.sdk.bom),
+			libs.aws.lambda.java.core,
+			libs.aws.lambda.java.events,
+			libs.cri.common.lib,
+			platform(libs.jackson.bom),
+			libs.bundles.jackson,
+			libs.jackson.dataformat.yaml,
+			libs.nimbus.oauth,
+			platform(libs.junit.platform.bom),
+			libs.bundles.unit.testing,
+			libs.aws.cdk.lib,
+			"org.json:json:20250517" // Migration to jackson only in progress - DO not use org.json in new code
 
-	var aws_powertools_version = "2.10.0"
-	var java_cucumber_version = "7.33.0"
-	var aws_cdk_version = "2.120.0"
-	var dependencyVersions = [
+	implementation libs.bundles.actest.cucumber
 
-		cri_common_lib_version             : "8.3.3",
-
-		// CRI_LIB aws
-		aws_sdk_version                    : "2.42.16",
-		aws_lambda_events_version          : "3.16.0",
-
-		// CRI_LIB nimbus
-		nimbusds_oauth_version             : "11.29.1",
-
-		// CRI_LIB powertools
-		aws_powertools_logging_version     : "${aws_powertools_version}",
-		aws_powertools_metrics_version     : "${aws_powertools_version}",
-		aws_powertools_parameters_version  : "${aws_powertools_version}",
-
-		// ---------------------------------------------------------
-		// AC Test Dependencies (Passport CRI)
-		// ---------------------------------------------------------
-
-		aws_lambda_core_version            : "1.3.0",
-		// Object mapper
-		jackson_version                    : "2.21.1",
-		// Code weaving (powertools)
-		aspectjrt_version                  : "1.9.22.1",
-
-		// Test
-		junit_version                      : "6.0.3",
-		mockito_version                    : "5.17.0",
-		// testFixturesImplementation
-
-		// acceptance tests Implementation
-		// Update these together
-		cucumber_version                   : "${java_cucumber_version}",
-		selenium_version                   : "4.40.0",
-		axe_core_selenium_version          : "4.11.0",
-		webdrivermanager_version           : "6.3.3",
-
-		// acceptance tests testImplementation
-		rest_assured_version               : "5.5.6",
-		cucumber_junit_version             : "${java_cucumber_version}",
-		aws_cdk_version                    : "${aws_cdk_version}"
-	]
-
-	implementation platform("software.amazon.awssdk:bom:${dependencyVersions.aws_sdk_version}"),
-			platform("com.fasterxml.jackson:jackson-bom:${dependencyVersions.jackson_version}"),
-			"org.aspectj:aspectjrt:${dependencyVersions.aspectjrt_version}",
-			"com.fasterxml.jackson.datatype:jackson-datatype-jsr310",
-			"com.fasterxml.jackson.datatype:jackson-datatype-jdk8",
-			"com.fasterxml.jackson.core:jackson-databind",
-			"com.fasterxml.jackson.core:jackson-annotations",
-			"software.amazon.awssdk:kms",
-			"com.nimbusds:oauth2-oidc-sdk:${dependencyVersions.nimbusds_oauth_version}" ,
-			platform("org.junit:junit-bom:${dependencyVersions.junit_version}"),
-			"org.junit.platform:junit-platform-launcher:${dependencyVersions.junit_version}",
-			"org.junit.jupiter:junit-jupiter-engine",
-			"org.junit.jupiter:junit-jupiter-api",
-			"org.junit.jupiter:junit-jupiter-params",
-			"org.mockito:mockito-junit-jupiter:${dependencyVersions.mockito_version}",
-			"org.mockito:mockito-core:${dependencyVersions.mockito_version}",
-			"com.google.code.gson:gson:${dependencyVersions.gson_version}",
-			"org.json:json:20250107"
-
-	implementation "io.cucumber:cucumber-java:${dependencyVersions.cucumber_version}",
-			"org.seleniumhq.selenium:selenium-java:${dependencyVersions.selenium_version}",
-			"io.github.bonigarcia:webdrivermanager:${dependencyVersions.webdrivermanager_version}",
-			"com.deque.html.axe-core:selenium:${dependencyVersions.axe_core_selenium_version}",
-			"software.amazon.lambda:powertools-logging-log4j:${dependencyVersions.aws_powertools_logging_version}",
-			"software.amazon.lambda:powertools-metrics:${dependencyVersions.aws_powertools_metrics_version}",
-			"software.amazon.lambda:powertools-parameters:${dependencyVersions.aws_powertools_parameters_version}"
-
-	testImplementation "io.rest-assured:rest-assured:${dependencyVersions.rest_assured_version}",
-			"io.cucumber:cucumber-junit:${dependencyVersions.cucumber_junit_version}",
-			"com.fasterxml.jackson.dataformat:jackson-dataformat-yaml:${dependencyVersions.jackson_version}",
-			"software.amazon.awscdk:aws-cdk-lib:${dependencyVersions.aws_cdk_version}"
-}
-
-java {
-	sourceCompatibility = JavaVersion.VERSION_17
-	targetCompatibility = JavaVersion.VERSION_17
+	testImplementation libs.actest.rest.assured,
+			libs.actest.cucumber.junit,
+			libs.aws.cdk.lib,
+			libs.jackson.dataformat.yaml
 }
 
 test {
@@ -116,6 +47,11 @@ tasks.register("infra-test", Test) {
 	useJUnitPlatform {
 		includeTags "InfraTest"
 	}
+	testLogging {
+		showStandardStreams = true
+		events "passed", "skipped", "failed", "standardOut", "standardError"
+		exceptionFormat "full"
+	}
 }
 
 //*************************************//
@@ -124,75 +60,60 @@ tasks.register("infra-test", Test) {
 //                                     //
 //*************************************//
 
-tasks.register('cucumber') {
+tasks.register('cucumber', JavaExec) {
 	dependsOn assemble, testClasses
-
-	doLast {
-		javaexec {
-			systemProperties = [
-				'cucumber.tags': "${tags}"
-			]
-			main = "io.cucumber.core.cli.Main"
-			classpath = configurations.cucumberRuntime + sourceSets.main.output + sourceSets.test.output
-			args = [
-				'--plugin',
-				'pretty',
-				'--plugin',
-				'html:target/cucumber-report/index.html',
-				'--tags',
-				"${tags}",
-				'--glue',
-				'uk/gov/di/ipv/cri/passport/acceptance_tests/step_definitions',
-				'src/test/resources',
-				'--plugin',
-				'html:build/test-results/cucumber.html',
-				'--plugin',
-				'json:build/test-results/cucumber.json'
-			]
-		}
-	}
+	mainClass = "io.cucumber.core.cli.Main"
+	classpath = configurations.cucumberRuntime + sourceSets.main.output + sourceSets.test.output
+	systemProperty 'log4j.configurationFile', "${projectDir}/src/test/resources/log4j2.xml"
+	args = [
+		'--plugin',
+		'pretty',
+		'--plugin',
+		'html:target/cucumber-report/index.html',
+		'--tags',
+		"${tags}",
+		'--glue',
+		'uk/gov/di/ipv/cri/passport/acceptance_tests/step_definitions',
+		'src/test/resources/features/',
+		'--plugin',
+		'html:build/test-results/cucumber.html',
+		'--plugin',
+		'json:build/test-results/cucumber.json'
+	]
 }
 
-tasks.register('smokeTestBuild') {
+tasks.register('smokeTestBuild', JavaExec) {
 	dependsOn assemble, compileTestJava
-	doLast {
-		javaexec {
-			main = "io.cucumber.core.cli.Main"
-			classpath = configurations.cucumberRuntime + sourceSets.main.output + sourceSets.test.output
-			args = [
-				'--plugin',
-				'pretty',
-				'--plugin',
-				'html:target/cucumber-report/index.html',
-				'--glue',
-				'uk/gov/di/ipv/cri/passport/acceptance_tests/step_definitions',
-				'src/test/resources/features/',
-				'--tags',
-				'@smoke-build'
-			]
-		}
-	}
+	mainClass = "io.cucumber.core.cli.Main"
+	classpath = configurations.cucumberRuntime + sourceSets.main.output + sourceSets.test.output
+	systemProperty 'log4j.configurationFile', "${projectDir}/src/test/resources/log4j2.xml"
+	args = [
+		'--plugin',
+		'pretty',
+		'--plugin',
+		'html:target/cucumber-report/index.html',
+		'--glue',
+		'uk/gov/di/ipv/cri/passport/acceptance_tests/step_definitions',
+		'src/test/resources/features/',
+		'--tags',
+		'@smoke-build'
+	]
 }
 
-tasks.register('smokeTestStaging') {
+tasks.register('smokeTestStaging', JavaExec) {
 	dependsOn assemble, compileTestJava
-	doLast {
-		javaexec {
-			main = "io.cucumber.core.cli.Main"
-			classpath = configurations.cucumberRuntime + sourceSets.main.output + sourceSets.test.output
-			args = [
-				'--plugin',
-				'pretty',
-				'--plugin',
-				'html:target/cucumber-report/index.html',
-				'--glue',
-				'uk/gov/di/ipv/cri/passport/acceptance_tests/step_definitions',
-				'src/test/resources/features/',
-				'--tags',
-				'@smoke-staging'
-			]
-		}
-	}
+	mainClass = "io.cucumber.core.cli.Main"
+	classpath = configurations.cucumberRuntime + sourceSets.main.output + sourceSets.test.output
+	systemProperty 'log4j.configurationFile', "${projectDir}/src/test/resources/log4j2.xml"
+	args = [
+		'--plugin',
+		'pretty',
+		'--glue',
+		'uk/gov/di/ipv/cri/passport/acceptance_tests/step_definitions',
+		'src/test/resources/features/',
+		'--tags',
+		'@smoke-staging'
+	]
 }
 
 tasks.withType(JavaCompile).configureEach {
