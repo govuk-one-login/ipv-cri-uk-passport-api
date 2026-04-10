@@ -5,7 +5,7 @@ sonarqube = "7.2.3.7755"
 post_compile_weaving = "9.2.0"
 
 # Lambdas
-aws_sdk = "2.42.31"
+aws_sdk = "2.42.32"
 aws_lambda_events = "3.16.0"
 aws_lambda_core = "1.4.0" # https://github.com/aws/aws-lambda-java-libs
 cri_common_lib = "8.3.4"
