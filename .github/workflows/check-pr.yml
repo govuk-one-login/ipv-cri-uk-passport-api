@@ -49,9 +49,6 @@ jobs:
       PACT_BROKER_HOST: ${{ secrets.PACT_BROKER_HOST }}
       PACT_BROKER_USERNAME: ${{ secrets.PACT_BROKER_USERNAME }}
       PACT_BROKER_PASSWORD: ${{ secrets.PACT_BROKER_PASSWORD }}
-    permissions:
-      id-token: write
-      contents: read
 
   infra-tests:
     name: Run Infra tests

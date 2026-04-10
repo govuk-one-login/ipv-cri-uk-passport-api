@@ -5,6 +5,8 @@ on:
       - main
   workflow_dispatch: # deploy manually
 
+permissions: {}
+
 jobs:
   sonar-scan-main:
     runs-on: ubuntu-latest

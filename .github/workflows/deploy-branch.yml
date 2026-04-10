@@ -15,15 +15,12 @@ on:
         description: The region in which the stack was deployed
         value: ${{ jobs.deploy.outputs.aws-region }}
 
-permissions:
-  id-token: write
-  contents: read
+permissions: {}
 
 jobs:
   build:
     name: Build SAM app
     runs-on: ubuntu-latest
-    permissions: {}
     concurrency:
       group: build-development-${{ github.head_ref || github.ref_name }}
     outputs:
@@ -65,6 +62,9 @@ jobs:
   deploy:
     name: Deploy stack
     runs-on: ubuntu-latest
+    permissions:
+      id-token: write
+      contents: read
     timeout-minutes: 15
     needs: build
     concurrency:

@@ -4,6 +4,9 @@ on:
     secrets:
       github-token: { required: true }
       SONAR_TOKEN: { required: true }
+
+permissions: {}
+
 jobs:
   sonar-scan:
     runs-on: ubuntu-latest

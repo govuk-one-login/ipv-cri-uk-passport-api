@@ -5,6 +5,8 @@ on:
       - main
   workflow_dispatch: # deploy manually
 
+permissions: {}
+
 jobs:
   deploy:
     name: Deploy to dev
@@ -15,7 +17,6 @@ jobs:
       STACK_NAME: ipv-cri-passport-api-pipeline
     permissions:
       id-token: write
-      contents: read
     steps:
       - name: Check out repository code
         uses: actions/checkout@v6

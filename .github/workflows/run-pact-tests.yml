@@ -16,9 +16,7 @@ defaults:
   run:
     shell: bash
 
-permissions:
-  id-token: write
-  contents: read
+permissions: {}
 
 jobs:
   run-pact-tests:

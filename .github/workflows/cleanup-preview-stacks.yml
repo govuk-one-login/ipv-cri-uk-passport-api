@@ -7,9 +7,7 @@ on:
     # Every weekday at 10am (9am is used by pre-merge-cleanup - deletion rate limits)
     - cron: "0 10 * * 1-5"
 
-permissions:
-  id-token: write
-  contents: read
+permissions: {}
 
 concurrency: cleanup-dev-${{ github.head_ref || github.ref_name }}
 
@@ -17,6 +15,8 @@ jobs:
   delete-stacks:
     name: Delete stale stacks
     runs-on: ubuntu-latest
+    permissions:
+      id-token: write
     environment: development
     steps:
       - name: Assume AWS Role

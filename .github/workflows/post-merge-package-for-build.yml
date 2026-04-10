@@ -4,6 +4,8 @@ on:
     branches:
       - main
 
+permissions: {}
+
 jobs:
   deploy:
     name: Package for build
@@ -14,7 +16,6 @@ jobs:
       ENVIRONMENT: build
     permissions:
       id-token: write
-      contents: read
     steps:
       - name: Check out repository code
         uses: actions/checkout@v6
