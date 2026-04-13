@@ -38,7 +38,7 @@ selenium = "4.1.0"
 axe_core_selenium = "4.11.1"
 webdrivermanager = "6.3.4"
 restassured =  "5.5.6"
-aws_cdk_lib = "2.133.0"
+aws_cdk_lib = "2.248.0"
 
 [libraries]
 # AWS SDK
