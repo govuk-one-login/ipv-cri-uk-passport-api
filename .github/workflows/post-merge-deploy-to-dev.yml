@@ -5,6 +5,8 @@ on:
       - main
   workflow_dispatch: # deploy manually
 
+permissions: {}
+
 jobs:
   deploy:
     name: Deploy to dev
@@ -19,8 +21,6 @@ jobs:
     steps:
       - name: Check out repository code
         uses: actions/checkout@v6
-        with:
-          submodules: true
 
       - name: Set up JDK
         uses: actions/setup-java@be666c2fcd27ec809703dec50e508c2fdc7f6654 # v5.2.0
@@ -50,9 +50,12 @@ jobs:
         uses: aws-actions/amazon-ecr-login@261fc3d4806db1fa66a15cc11113c456db8870a7 # v2.1.0
 
       - name: Install Cosign
-        uses: sigstore/cosign-installer@7e8b541eb2e61bf99390e1afd4be13a184e9ebc5 #v3.10.1
+        uses: sigstore/cosign-installer@cad07c2e89fa2edd6e2d7bab4c1aa38e53f76003 # v4.1.1
         with:
-          cosign-release: "v2.5.1"
+          cosign-release: "v3.0.5"
+
+      - name: Create shared signing config
+        run: cosign signing-config create --with-default-services=true --no-default-rekor=true --out signing.config
 
       - name: Build, tag, and push traffic test image to ECR
         env:
@@ -60,14 +63,11 @@ jobs:
           ECR_REGISTRY: ${{ steps.login-ecr.outputs.registry }}
           ECR_REPOSITORY_TRAFFIC_DEV: ${{ secrets.ECR_REPOSITORY_TRAFFIC_TEST_DEV }}
           IMAGE_TAG: latest
+          DOCKER_TARGET: traffic_test_image
         run: |
-          docker build -t $ECR_REGISTRY/$ECR_REPOSITORY_TRAFFIC_DEV:$IMAGE_TAG -f acceptance-tests/Dockerfile --target traffic_test_image .
+          docker build -t $ECR_REGISTRY/$ECR_REPOSITORY_TRAFFIC_DEV:$IMAGE_TAG -f acceptance-tests/Dockerfile --target $DOCKER_TARGET .
           docker push $ECR_REGISTRY/$ECR_REPOSITORY_TRAFFIC_DEV:$IMAGE_TAG
-          cosign sign --yes --tlog-upload=false --key awskms:///${CONTAINER_SIGN_KMS_KEY_DEV} $ECR_REGISTRY/$ECR_REPOSITORY_TRAFFIC_DEV:$IMAGE_TAG
-          docker tag $ECR_REGISTRY/$ECR_REPOSITORY_TRAFFIC_DEV:$IMAGE_TAG $ECR_REGISTRY/$ECR_REPOSITORY_TRAFFIC_DEV:$IMAGE_TAG
-
-      - name: reset to working directory
-        run: cd ${GITHUB_WORKSPACE}
+          cosign sign --yes --signing-config signing.config --key awskms:///${CONTAINER_SIGN_KMS_KEY_DEV} $ECR_REGISTRY/$ECR_REPOSITORY_TRAFFIC_DEV:$IMAGE_TAG
 
       - name: Build, tag, and push testing images to Amazon ECR
         env:
@@ -75,14 +75,11 @@ jobs:
           ECR_REGISTRY: ${{ steps.login-ecr.outputs.registry }}
           ECR_REPOSITORY_DEV: ${{ secrets.ECR_REPOSITORY_DEV }}
           IMAGE_TAG: latest
+          DOCKER_TARGET: ac_test_image
         run: |
-          docker build -t $ECR_REGISTRY/$ECR_REPOSITORY_DEV:$IMAGE_TAG -f acceptance-tests/Dockerfile --target ac_test_image .
+          docker build -t $ECR_REGISTRY/$ECR_REPOSITORY_DEV:$IMAGE_TAG -f acceptance-tests/Dockerfile --target $DOCKER_TARGET .
           docker push $ECR_REGISTRY/$ECR_REPOSITORY_DEV:$IMAGE_TAG
-          cosign sign --yes --tlog-upload=false --key awskms:///${CONTAINER_SIGN_KMS_KEY_DEV} $ECR_REGISTRY/$ECR_REPOSITORY_DEV:$IMAGE_TAG
-          docker tag $ECR_REGISTRY/$ECR_REPOSITORY_DEV:$IMAGE_TAG $ECR_REGISTRY/$ECR_REPOSITORY_DEV:$IMAGE_TAG
-
-      - name: reset to working directory
-        run: cd ${GITHUB_WORKSPACE}
+          cosign sign --yes --signing-config signing.config --key awskms:///${CONTAINER_SIGN_KMS_KEY_DEV} $ECR_REGISTRY/$ECR_REPOSITORY_DEV:$IMAGE_TAG
 
       - name: SAM Validate
         run: sam validate --region ${{ env.AWS_REGION }} -t infrastructure/lambda/template.yaml --lint

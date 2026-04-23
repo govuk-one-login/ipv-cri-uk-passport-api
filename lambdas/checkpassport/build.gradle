@@ -19,10 +19,11 @@ dependencies {
 			platform(libs.aws.sdk.bom),
 			libs.aws.sdk.crt.client,
 			libs.aws.sdk.dynamodb.enhanced,
+			platform(libs.jackson.bom),
+			libs.bundles.jackson,
 			libs.nimbus.oauth,
 			libs.apache.httpcomponents.httpcore,
 			libs.apache.httpcomponents.httpclient
-
 
 	testImplementation testFixtures(project(":lib")), testFixtures(this.project),
 			platform(libs.junit.platform.bom),

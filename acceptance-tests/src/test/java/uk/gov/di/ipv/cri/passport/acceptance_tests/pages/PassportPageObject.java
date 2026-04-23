@@ -344,12 +344,12 @@ public class PassportPageObject extends UniversalSteps {
     }
 
     public void assertInvalidValidToDateInErrorSummary(String expectedText) {
-        BrowserUtils.waitForVisibility(invalidValidToDateErrorInSummary, 10);
+        BrowserUtils.waitForVisibility(invalidValidToDateErrorInSummary, MAX_WAIT_SEC);
         Assert.assertEquals(expectedText, invalidValidToDateErrorInSummary.getText());
     }
 
     public void assertInvalidValidToDateOnField(String expectedText) {
-        BrowserUtils.waitForVisibility(invalidValidToDateFieldError, 10);
+        BrowserUtils.waitForVisibility(invalidValidToDateFieldError, MAX_WAIT_SEC);
         Assert.assertEquals(
                 expectedText, invalidValidToDateFieldError.getText().trim().replace("\n", ""));
     }
@@ -551,7 +551,7 @@ public class PassportPageObject extends UniversalSteps {
     }
 
     public void userNotFoundInThirdPartyErrorIsDisplayed() {
-        BrowserUtils.waitForVisibility(userNotFoundInThirdPartyBanner, 10);
+        BrowserUtils.waitForVisibility(userNotFoundInThirdPartyBanner, MAX_WAIT_SEC);
         Assert.assertTrue(userNotFoundInThirdPartyBanner.isDisplayed());
         LOGGER.info(userNotFoundInThirdPartyBanner.getText());
     }

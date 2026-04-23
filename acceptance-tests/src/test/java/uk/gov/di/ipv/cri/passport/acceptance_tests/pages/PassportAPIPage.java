@@ -22,9 +22,7 @@ import java.io.IOException;
 import java.lang.reflect.Field;
 import java.net.URI;
 import java.net.URISyntaxException;
-import java.net.http.HttpClient;
 import java.net.http.HttpRequest;
-import java.net.http.HttpResponse;
 import java.nio.charset.StandardCharsets;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
@@ -38,6 +36,7 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.junit.jupiter.api.Assertions.fail;
+import static uk.gov.di.ipv.cri.passport.acceptance_tests.utilities.BrowserUtils.sendHttpRequest;
 
 public class PassportAPIPage extends CommonPageObject {
 
@@ -215,7 +214,7 @@ public class PassportAPIPage extends CommonPageObject {
 
             LOGGER.info("Found a CheckPassportSuccessResponse");
 
-        } catch (JsonMappingException e) {
+        } catch (JsonMappingException _) {
             LOGGER.info("Not a CheckPassportSuccessResponse");
 
             retry = passportCheckResponse;
@@ -288,7 +287,7 @@ public class PassportAPIPage extends CommonPageObject {
 
             LOGGER.info("Found a CheckPassportSuccessResponse");
 
-        } catch (JsonMappingException e) {
+        } catch (JsonMappingException _) {
             LOGGER.info("Not a CheckPassportSuccessResponse");
 
             retry = passportCheckResponse;
@@ -639,14 +638,7 @@ public class PassportAPIPage extends CommonPageObject {
         return sendHttpRequest(request).body();
     }
 
-    private HttpResponse<String> sendHttpRequest(HttpRequest request)
-            throws IOException, InterruptedException {
-        HttpClient client = HttpClient.newBuilder().build();
-        HttpResponse<String> response = client.send(request, HttpResponse.BodyHandlers.ofString());
-        return response;
-    }
-
-    private static final String getBasicAuthenticationHeader(String username, String password) {
+    private static String getBasicAuthenticationHeader(String username, String password) {
         String valueToEncode = username + ":" + password;
         return "Basic " + Base64.getEncoder().encodeToString(valueToEncode.getBytes());
     }

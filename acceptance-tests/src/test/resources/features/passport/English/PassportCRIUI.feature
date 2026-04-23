@@ -10,158 +10,147 @@ Feature: Passport CRI - UI Tests
     And I assert the url path contains details
     And I set the document checking route
 
-  @smoke-build @stub @uat
+  @smoke-build @stub @uat @traffic
   Scenario Outline: Passport details page happy path
     Given User enters data as a <PassportSubject>
-    When User clicks on continue
+    When User clicks on continue and waits for page navigation
     Then I navigate to the passport verifiable issuer to check for a Valid response
     And JSON payload should contain validity score 2 and strength score 4
     And JSON response should contain documentNumber 321654987 same as given passport
     And Passport VC should contain JTI field
-    And The test is complete and I close the driver
 
     Examples:
       | PassportSubject             |
       | PassportSubjectHappyKenneth |
 
-  @stub @uat
+  @stub @uat @traffic
   Scenario Outline: Passport details page unhappy path with IncorrectPassportNumber
     Given User enters data as a <PassportSubject>
     And User re-enters passport number as <InvalidPassportNumber>
-    When User clicks on continue
+    When User clicks on continue and waits for page navigation
     Then Proper error message for Could not find your details is displayed
-    When User clicks on continue
+    When User clicks on continue and waits for page navigation
     Then I navigate to the passport verifiable issuer to check for a Valid response
     And JSON payload should contain ci D02, validity score 0 and strength score 4
     And JSON response should contain documentNumber 887766551 same as given passport
-    And The test is complete and I close the driver
 
     Examples:
       | PassportSubject             | InvalidPassportNumber |
       | PassportSubjectHappyKenneth | 887766551             |
 
-  @stub @uat
+  @stub @uat @traffic
   Scenario Outline: Passport details page unhappy path with IncorrectDateOfBirth
     Given User enters data as a <PassportSubject>
     And User re-enters birth day as <InvalidBirthDay>
     And User re-enters birth month as <InvalidBirthMonth>
     And User re-enters birth year as <InvalidBirthYear>
-    When User clicks on continue
+    When User clicks on continue and waits for page navigation
     Then Proper error message for Could not find your details is displayed
-    When User clicks on continue
+    When User clicks on continue and waits for page navigation
     Then I navigate to the passport verifiable issuer to check for a Valid response
     And JSON payload should contain ci D02, validity score 0 and strength score 4
-    And The test is complete and I close the driver
 
     Examples:
       | PassportSubject             | InvalidBirthDay | InvalidBirthMonth | InvalidBirthYear |
       | PassportSubjectHappyKenneth | 12              | 08                | 1985             |
 
-  @stub @uat
+  @stub @uat @traffic
   Scenario Outline: Passport details page unhappy path with IncorrectFirstName
     Given User enters data as a <PassportSubject>
     And User re-enters first name as <InvalidFirstName>
-    When User clicks on continue
+    When User clicks on continue and waits for page navigation
     Then Proper error message for Could not find your details is displayed
-    When User clicks on continue
+    When User clicks on continue and waits for page navigation
     Then I navigate to the passport verifiable issuer to check for a Valid response
     And JSON payload should contain ci D02, validity score 0 and strength score 4
-    And The test is complete and I close the driver
 
     Examples:
       | PassportSubject             | InvalidFirstName |
       | PassportSubjectHappyKenneth | SELINA           |
 
-  @stub @uat
+  @stub @uat @traffic
   Scenario Outline: Passport details page unhappy path with IncorrectLastName
     Given User enters data as a <PassportSubject>
     And User re-enters last name as <InvalidLastName>
-    When User clicks on continue
+    When User clicks on continue and waits for page navigation
     Then Proper error message for Could not find your details is displayed
-    When User clicks on continue
+    When User clicks on continue and waits for page navigation
     Then I navigate to the passport verifiable issuer to check for a Valid response
     And JSON payload should contain ci D02, validity score 0 and strength score 4
-    And The test is complete and I close the driver
 
     Examples:
       | PassportSubject             | InvalidLastName |
       | PassportSubjectHappyKenneth | KYLE            |
 
-  @stub @uat
+  @stub @uat @traffic
   Scenario Outline: Passport Retry Test Happy Path
     Given User enters invalid passport details
-    When User clicks on continue
+    When User clicks on continue and waits for page navigation
     Then Proper error message for Could not find your details is displayed
     When User Re-enters data as a <PassportSubject>
-    And User clicks on continue
+    And User clicks on continue and waits for page navigation
     Then I navigate to the passport verifiable issuer to check for a Valid response
     And JSON payload should contain validity score 2 and strength score 4
-    And The test is complete and I close the driver
 
     Examples:
       | PassportSubject             |
       | PassportSubjectHappyKenneth |
 
-  @stub @uat
+  @stub @uat @traffic
   Scenario Outline: Passport User failed second attempt
     Given User enters invalid passport details
-    When User clicks on continue
+    When User clicks on continue and waits for page navigation
     And I assert the url path contains details
     Then Proper error message for Could not find your details is displayed
     When User Re-enters data as a <PassportSubject>
     And User re-enters passport number as <InvalidPassportNumber>
-    And User clicks on continue
+    And User clicks on continue and waits for page navigation
     Then I navigate to the passport verifiable issuer to check for a Valid response
     And JSON payload should contain ci D02, validity score 0 and strength score 4
-    And The test is complete and I close the driver
 
     Examples:
       | PassportSubject             | InvalidPassportNumber |
       | PassportSubjectHappyKenneth | 887766551             |
 
-  @stub @uat
+  @stub @uat @traffic
   Scenario: Passport User cancels after failed first attempt
     Given User enters invalid passport details
-    When User clicks on continue
+    When User clicks on continue and waits for page navigation
     Then Proper error message for Could not find your details is displayed
     When User click on ‘prove your identity another way' Link
     Then I navigate to the passport verifiable issuer to check for a Valid response
     And JSON payload should contain ci D02, validity score 0 and strength score 4
-    And The test is complete and I close the driver
 
   @smoke
   Scenario: Passport User cancels before first attempt via prove your identity another way route
     Given User click on ‘prove your identity another way' Link
     Then I navigate to the passport verifiable issuer to check for a Invalid response
     And JSON response should contain error description Authorization permission denied and status code as 302
-    And The test is complete and I close the driver
 # ##########   Field Validations ##########
 
-  @stub @uat
+  @stub @uat @traffic
   Scenario Outline: Passport Generate VC with invalid Passport number and prove in another way unhappy path
     Given User enters data as a <PassportSubject>
     And User re-enters passport number as <InvalidPassportNumber>
-    When User clicks on continue
+    When User clicks on continue and waits for page navigation
     And I assert the url path contains details
     Then Proper error message for Could not find your details is displayed
     When User click on ‘prove your identity another way' Link
     Then I navigate to the passport verifiable issuer to check for a Valid response
     And JSON response should contain documentNumber 887766551 same as given passport
-    And The test is complete and I close the driver
 
     Examples:
       | PassportSubject             | InvalidPassportNumber |
       | PassportSubjectHappyKenneth | 887766551             |
 
-  @stub @uat
+  @stub @uat @traffic
   Scenario Outline: Passport expiry date valid
     Given User enters data as a <PassportSubject>
     Then User enters expiry date as current date minus <months> months and minus <daysToSubtract> days
-    When User clicks on continue
+    When User clicks on continue and waits for page navigation
     Then I navigate to the passport verifiable issuer to check for a Valid response
     And JSON payload should contain validity score 2 and strength score 4
     And JSON response should contain documentNumber 321654987 same as given passport
-    And The test is complete and I close the driver
 
     Examples:
       | PassportSubject             | months | daysToSubtract |
@@ -171,11 +160,10 @@ Feature: Passport CRI - UI Tests
   Scenario Outline: Passport expiry date invalid
     Given User enters data as a <PassportSubject>
     Then User enters expiry date as current date minus <months> months and minus <daysToSubtract> days
-    When User clicks on continue
+    When User clicks on continue and waits for page navigation
     And I assert the url path contains details
     Then I can see the valid to date error in the error summary as Your passport must not have expired more than 18 months ago
     And I can see the Valid to date field error as Error:Your passport must not have expired more than 18 months ago
-    And The test is complete and I close the driver
 
     Examples:
       | PassportSubject             | months | daysToSubtract |
@@ -186,7 +174,6 @@ Feature: Passport CRI - UI Tests
   Scenario: Check the Unrecoverable error/ Unknown error in Passport CRI
     Given I delete the service_session cookie to get the unexpected error
     When I check the page title is Sorry, there is a problem – GOV.UK One Login
-    And The test is complete and I close the driver
 
   @stub
   Scenario Outline: Error tab title validation
@@ -201,9 +188,8 @@ Feature: Passport CRI - UI Tests
     And User re-enters valid to day as <InvalidValidToDay>
     And User re-enters valid to month as <InvalidValidToMonth>
     And User re-enters valid to year as <InvalidValidToYear>
-    And User clicks on continue
+    And User clicks on continue and waits for page navigation
     Then I check the page title is Error: Enter your details exactly as they appear on your UK passport – GOV.UK One Login
-    And The test is complete and I close the driver
 
     Examples:
       | PassportSubject             | InvalidPassportNumber | InvalidLastName | InvalidFirstName | InvalidBirthDay | InvalidBirthMonth | InvalidBirthYear | InvalidValidToDay | InvalidValidToMonth | InvalidValidToYear | Scenario                              |
@@ -221,19 +207,18 @@ Feature: Passport CRI - UI Tests
       | PassportSubjectHappyKenneth | 321654987             | DECERQUEIRA     | KENNETH          | 08              | 07                | 1965             | 10                | 01                  | 2010               | ValidToDateInPast                     |
       | PassportSubjectHappyKenneth | 555667^&*             | DECERQUEIRA     | KENNETH          | 08              | 07                | 1965             | 01                | 10                  | 2042               | PassportNumberWithSpecialChar         |
 
-  @language-regression
+  @language-regression @traffic
   Scenario Outline: Language Title validation
     Given User clicks on language toggle and switches to Welsh
     Then I check the page title is Rhowch eich manylion yn union fel maent yn ymddangos ar eich pasbort y DU – GOV.UK One Login
     And User clicks language toggle and switches to English
     Then User enters data as a <PassportSubject>
-    When User clicks on continue
+    When User clicks on continue and waits for page navigation
     Then I navigate to the passport verifiable issuer to check for a Valid response
     And JSON payload should contain validity score 2 and strength score 4
     And JSON response should contain documentNumber 321654987 same as given passport
     And Passport VC should contain JTI field
     And exp should be absent in the JSON payload
-    And The test is complete and I close the driver
 
     Examples:
       | PassportSubject             |

@@ -99,16 +99,16 @@ class PreLambdaHandler implements HttpHandler {
     }
 
     public static Map<String, String> getQueryStringParams(URI url) {
-        Map<String, String> query_pairs = new HashMap<>();
+        Map<String, String> queryPairs = new HashMap<>();
         String query = url.getQuery();
         String[] pairs = query.split("&");
         for (String pair : pairs) {
             int idx = pair.indexOf("=");
-            query_pairs.put(
+            queryPairs.put(
                     URLDecoder.decode(pair.substring(0, idx), StandardCharsets.UTF_8),
                     URLDecoder.decode(pair.substring(idx + 1), StandardCharsets.UTF_8));
         }
-        return query_pairs;
+        return queryPairs;
     }
 
     private APIGatewayProxyRequestEvent translateRequest(HttpExchange request) throws IOException {
@@ -173,8 +173,7 @@ class PreLambdaHandler implements HttpHandler {
                 Map<String, Object> credentialSubject =
                         (Map<String, Object>) vc.get("credentialSubject");
                 List<Object> evidence = (List<Object>) vc.get("evidence");
-                List<Object> sortedEvidence =
-                        evidence.stream().sorted().collect(Collectors.toList());
+                List<Object> sortedEvidence = evidence.stream().sorted().toList();
                 TreeMap<Object, Object> sortedCredentialSubject = new TreeMap<>(credentialSubject);
 
                 vc.put("credentialSubject", sortedCredentialSubject);
@@ -183,8 +182,7 @@ class PreLambdaHandler implements HttpHandler {
                 SignedJWT signedJWT = amendClaimSet(jwt, nbf, jtiId, vc, claimsSet);
 
                 body = signedJWT.serialize();
-            } catch (ParseException e) {
-
+            } catch (ParseException _) {
                 // Continue
             }
 
@@ -220,10 +218,6 @@ class PreLambdaHandler implements HttpHandler {
         Base64URL jwtHeader = Base64URL.encode(new ObjectMapper().writeValueAsString(test));
         String[] serialize = signedJWT.serialize().split("\\.");
 
-        SignedJWT signedJWTNew =
-                new SignedJWT(
-                        jwtHeader, Base64URL.from(serialize[1]), Base64URL.from(serialize[2]));
-
-        return signedJWTNew;
+        return new SignedJWT(jwtHeader, Base64URL.from(serialize[1]), Base64URL.from(serialize[2]));
     }
 }

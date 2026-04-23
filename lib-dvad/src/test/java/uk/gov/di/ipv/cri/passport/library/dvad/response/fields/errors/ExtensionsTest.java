@@ -15,10 +15,11 @@ class ExtensionsTest {
     // Extensions tested to ensure Deserialization can handle
     // incoming classification field as object or string
 
-    private static final String ExtensionsWithClassificationObject =
+    private static final String EXTENSIONS_WITH_CLASSIFICATION_OBJECT =
             "{\"classification\": {\"StringField1\":\"StringField1 Value\",\"StringArray\":[\"StringArray1\",\"StringArray2\",\"StringArray3\"],\"constraint\":\"StringField2 Value\"} }";
-    private static final String ExpectedResultWithExtensionsWithClassificationObjectInsideString =
-            "{\"classification\":\"{\"StringField1\":\"StringField1 Value\",\"StringArray\":[\"StringArray1\",\"StringArray2\",\"StringArray3\"],\"constraint\":\"StringField2 Value\"}\"}";
+    private static final String
+            EXPECTED_RESULT_WITH_EXTENSIONS_WITH_CLASSIFICATION_OBJECT_INSIDE_STRING =
+                    "{\"classification\":\"{\"StringField1\":\"StringField1 Value\",\"StringArray\":[\"StringArray1\",\"StringArray2\",\"StringArray3\"],\"constraint\":\"StringField2 Value\"}\"}";
 
     private static final ObjectMapper realObjectMapper = new ObjectMapper();
 
@@ -31,7 +32,7 @@ class ExtensionsTest {
                 () ->
                         arExtensions.set(
                                 realObjectMapper.readValue(
-                                        ExtensionsWithClassificationObject, Extensions.class)));
+                                        EXTENSIONS_WITH_CLASSIFICATION_OBJECT, Extensions.class)));
 
         assertNotNull(arExtensions.get());
 
@@ -40,7 +41,9 @@ class ExtensionsTest {
                 realObjectMapper.writeValueAsString(arExtensions.get()).replaceAll("\\\\", "");
 
         // Classification Object is intended to be converted to a string during mapping
-        assertEquals(ExpectedResultWithExtensionsWithClassificationObjectInsideString, extString);
+        assertEquals(
+                EXPECTED_RESULT_WITH_EXTENSIONS_WITH_CLASSIFICATION_OBJECT_INSIDE_STRING,
+                extString);
     }
 
     @Test

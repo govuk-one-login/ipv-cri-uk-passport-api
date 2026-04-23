@@ -17,7 +17,9 @@ dependencies {
 			project(":lib-dvad"),
 			libs.cri.common.lib,
 			platform(libs.aws.sdk.bom),
-			libs.aws.sdk.crt.client
+			libs.aws.sdk.crt.client,
+			platform(libs.jackson.bom),
+			libs.bundles.jackson
 
 	testImplementation testFixtures(project(":lib")),
 			platform(libs.junit.platform.bom),

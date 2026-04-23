@@ -16,9 +16,9 @@ public class PassportAPIStepDefs extends PassportAPIPage {
     @Given(
             "Passport user has the user identity in the form of a signed JWT string for CRI Id (.*) and row number (.*)$")
     public void passport_user_has_the_user_identity_in_the_form_of_a_signed_jwt_string(
-            String criId, Integer LindaDuffExperianRowNumber)
+            String criId, Integer rowNumber)
             throws URISyntaxException, IOException, InterruptedException {
-        userIdentityAsJwtString(criId, LindaDuffExperianRowNumber);
+        userIdentityAsJwtString(criId, rowNumber);
     }
 
     @And("Passport user sends a POST request to session endpoint")
@@ -65,9 +65,9 @@ public class PassportAPIStepDefs extends PassportAPIPage {
     }
 
     @And("Passport user sends a POST request to Access Token endpoint (.*)$")
-    public void passport_user_requests_access_token(String CRIId)
+    public void passport_user_requests_access_token(String criId)
             throws IOException, InterruptedException {
-        postRequestToAccessTokenEndpoint(CRIId);
+        postRequestToAccessTokenEndpoint(criId);
     }
 
     @And(

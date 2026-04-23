@@ -22,7 +22,6 @@ import java.time.LocalDateTime;
 import java.time.ZoneOffset;
 import java.util.Arrays;
 import java.util.List;
-import java.util.stream.Collectors;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
@@ -96,61 +95,41 @@ public class CommonPageObject extends UniversalSteps {
     }
 
     public void navigateToPassportCRIOnTestEnv() {
-        visitCredentialIssuers.click();
+        BrowserUtils.clickAndWaitForNavigation(visitCredentialIssuers);
         String passportCRITestEnvironment = configurationService.getPassportCRITestEnvironment();
         LOGGER.info("passportCRITestEnvironment = {}", passportCRITestEnvironment);
 
-        boolean sharedDev = passportCRITestEnvironment.toLowerCase().contains("shared");
-
-        boolean isUsingLocalStub = configurationService.isUsingLocalStub();
-        LOGGER.info("isUsingLocalStub = {}", isUsingLocalStub);
-
-        if (isUsingLocalStub) {
-            // Local Stub - Passport CRI dev V1 or Passport CRI Shared dev V1
-            if (!sharedDev) {
-                passportCRIDevLocalStub.click();
-            } else {
-                passportCRISharedDevLocalStub.click();
-            }
-        } else if (passportCRITestEnvironment.toLowerCase().contains("dev")) {
-            // Hosted Stub - Passport CRI Dev V1 or Passport CRI Shared Dev V1
-            if (!sharedDev) {
-                passportCRIDev.click();
-            } else {
-                passportCRISharedDev.click();
-            }
-        } else if (passportCRITestEnvironment.toLowerCase().contains("build")) {
-            passportCRIBuild.click();
-        } else if (passportCRITestEnvironment.toLowerCase().contains("staging")) {
-            passportCRIStaging.click();
-        } else if (passportCRITestEnvironment.toLowerCase().contains("integration")) {
-            passportCRIIntegration.click();
-        } else {
-            LOGGER.info("No test environment is set");
+        switch (passportCRITestEnvironment.toLowerCase()) {
+            case "dev", "local" -> BrowserUtils.clickAndWaitForNavigation(passportCRIDev);
+            case "build" -> BrowserUtils.clickAndWaitForNavigation(passportCRIBuild);
+            case "staging" -> BrowserUtils.clickAndWaitForNavigation(passportCRIStaging);
+            case "integration" -> BrowserUtils.clickAndWaitForNavigation(passportCRIIntegration);
+            default -> LOGGER.info("No test environment is set");
         }
     }
 
+    // Selects a UAT user row and clicks search, triggering a redirect chain
+    // through to the passport credential issuer.
     public void searchForUATUser(String number) {
         assertURLContains(
                 "credential-issuer?cri="
                         + "passport-v1-cri-"
                         + System.getenv("ENVIRONMENT").toLowerCase());
         selectRow.sendKeys(number);
-        searchButton.click();
+        BrowserUtils.clickAndWaitForNavigation(searchButton);
+        assertURLContains("details");
     }
 
     public void navigateToPassportResponse(String validOrInvalid) {
-        assertURLContains("callback");
+        assertURLContains(configurationService.getCoreStubEndpoint() + "/callback");
 
         if ("Invalid".equalsIgnoreCase(validOrInvalid)) {
             assertExpectedPage(STUB_ERROR_PAGE_TITLE, true);
-            assertURLContains("callback");
-            BrowserUtils.waitForVisibility(errorResponse, 10);
+            BrowserUtils.waitForVisibility(errorResponse, MAX_WAIT_SEC);
             errorResponse.click();
         } else {
             assertExpectedPage(STUB_VC_PAGE_TITLE, true);
-            assertURLContains("callback");
-            BrowserUtils.waitForVisibility(viewResponse, 10);
+            BrowserUtils.waitForVisibility(viewResponse, MAX_WAIT_SEC);
             viewResponse.click();
         }
     }
@@ -188,10 +167,10 @@ public class CommonPageObject extends UniversalSteps {
         JsonNode vcNode = getJsonNode(result, "vc");
         List<JsonNode> evidence = getListOfNodes(vcNode, "evidence");
 
-        String evidenceValidityScore = evidence.get(0).get("validityScore").asText();
+        String evidenceValidityScore = evidence.getFirst().get("validityScore").asText();
         assertEquals(evidenceValidityScore, validityScore);
 
-        String evidenceStrengthScore = evidence.get(0).get("strengthScore").asText();
+        String evidenceStrengthScore = evidence.getFirst().get("strengthScore").asText();
         assertEquals(evidenceStrengthScore, strengthScore);
     }
 
@@ -204,9 +183,9 @@ public class CommonPageObject extends UniversalSteps {
 
         String checkDetails = null;
         if (checkDetailsType.equals("success")) {
-            checkDetails = evidence.get(0).get("checkDetails").toString();
+            checkDetails = evidence.getFirst().get("checkDetails").toString();
         } else {
-            checkDetails = evidence.get(0).get("failedCheckDetails").toString();
+            checkDetails = evidence.getFirst().get("failedCheckDetails").toString();
         }
         assertEquals("[{\"checkMethod\":\"data\"}]", checkDetails);
     }
@@ -241,11 +220,7 @@ public class CommonPageObject extends UniversalSteps {
         ObjectReader objectReader = OBJECT_MAPPER.readerFor(new TypeReference<List<JsonNode>>() {});
         List<JsonNode> evidence = objectReader.readValue(evidenceNode);
 
-        List<String> cis =
-                getListOfNodes(evidence.get(0), "ci").stream()
-                        .map(JsonNode::asText)
-                        .collect(Collectors.toList());
-        return cis;
+        return getListOfNodes(evidence.getFirst(), "ci").stream().map(JsonNode::asText).toList();
     }
 
     private JsonNode getJsonNode(String result, String vc) throws JsonProcessingException {
@@ -257,8 +232,7 @@ public class CommonPageObject extends UniversalSteps {
         JsonNode credentialSubject = vcNode.findValue("credentialSubject");
         List<JsonNode> evidence = getListOfNodes(credentialSubject, "passport");
 
-        String passportNumber = evidence.get(0).get("documentNumber").asText();
-        return passportNumber;
+        return evidence.getFirst().get("documentNumber").asText();
     }
 
     private List<JsonNode> getListOfNodes(JsonNode vcNode, String evidence) throws IOException {

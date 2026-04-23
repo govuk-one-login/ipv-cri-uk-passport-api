@@ -7,6 +7,8 @@ jobs:
   pre-commit:
     name: pre-commit
     runs-on: ubuntu-latest
+    permissions:
+      contents: read
     continue-on-error: true
     concurrency:
       group: pre-commit-${{ github.head_ref || github.ref_name }}
@@ -21,47 +23,57 @@ jobs:
     name: Run Java build check
     needs: pre-commit
     uses: ./.github/workflows/run-java-build-check.yml
+    permissions:
+      contents: read
 
   java-style-check:
     name: Run Java style check
     needs: java-build-check
     uses: ./.github/workflows/run-java-style-check.yml
+    permissions:
+      contents: read
 
   unit-tests:
     name: Run Unit tests
     needs: java-build-check
     uses: ./.github/workflows/run-unit-tests.yml
+    permissions:
+      contents: read
 
   sonar-scan:
     name: Sonar Scan
     needs: unit-tests
     uses: ./.github/workflows/run-sonar-scan.yml
+    permissions:
+      contents: read
     secrets:
-      github-token: ${{ secrets.github-token }}
       SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
 
   pact-tests:
     name: Run Pact tests
     needs: java-build-check
     uses: ./.github/workflows/run-pact-tests.yml
+    permissions:
+      contents: read
     secrets:
-      github-token: ${{ secrets.github-token }}
       PACT_BROKER_HOST: ${{ secrets.PACT_BROKER_HOST }}
       PACT_BROKER_USERNAME: ${{ secrets.PACT_BROKER_USERNAME }}
       PACT_BROKER_PASSWORD: ${{ secrets.PACT_BROKER_PASSWORD }}
-    permissions:
-      id-token: write
-      contents: read
 
   infra-tests:
     name: Run Infra tests
     needs: java-build-check
     uses: ./.github/workflows/run-infra-tests.yml
+    permissions:
+      contents: read
 
   pre-merge-integration-tests:
     name: Run pre-merge integration tests
     needs: java-build-check
     uses: ./.github/workflows/run-pre-merge-integration-tests.yml
+    permissions:
+      id-token: write
+      contents: read
     secrets:
       AWS_PRE_MERGE_ROLE_ARN: ${{ secrets.AWS_PRE_MERGE_ROLE_ARN }}
       PREMERGE_PARAMETER_PREFIX_STACK_NAME: ${{ secrets.PREMERGE_PARAMETER_PREFIX_STACK_NAME }}
@@ -71,6 +83,3 @@ jobs:
       CORE_STUB_PASSWORD: ${{ secrets.CORE_STUB_PASSWORD }}
       ORCHESTRATOR_STUB_URL: ${{ secrets.ORCHESTRATOR_STUB_URL }}
       AWS_PRE_MERGE_S3_BUCKET_NAME: ${{ secrets.AWS_PRE_MERGE_S3_BUCKET_NAME }}
-    permissions:
-      id-token: write
-      contents: read

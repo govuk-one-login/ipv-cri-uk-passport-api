@@ -3,7 +3,6 @@ name: Pact tests
 on:
   workflow_call:
     secrets:
-      github-token: { required: true }
       PACT_BROKER_HOST: { required: true }
       PACT_BROKER_USERNAME: { required: true }
       PACT_BROKER_PASSWORD: { required: true }
@@ -16,19 +15,18 @@ defaults:
   run:
     shell: bash
 
-permissions:
-  id-token: write
-  contents: read
+permissions: {}
 
 jobs:
   run-pact-tests:
     runs-on: ubuntu-latest
+    permissions:
+      contents: read
     steps:
       - name: Check out repository code
         uses: actions/checkout@v6
         with:
           fetch-depth: 0 # Shallow clones should be disabled for a better relevancy of analysis
-          submodules: true
 
       - name: Set up JDK
         uses: actions/setup-java@be666c2fcd27ec809703dec50e508c2fdc7f6654 # v5.2.0
@@ -55,7 +53,6 @@ jobs:
 
       - name: Run pact tests
         env:
-          GITHUB_TOKEN: ${{ inputs.github-token || secrets.github-token }}
           PACT_BROKER_HOST: ${{ inputs.PACT_BROKER_HOST || secrets.PACT_BROKER_HOST }}
           PACT_BROKER_USERNAME: ${{ inputs.PACT_BROKER_USERNAME || secrets.PACT_BROKER_USERNAME }}
           PACT_BROKER_PASSWORD: ${{ inputs.PACT_BROKER_PASSWORD || secrets.PACT_BROKER_PASSWORD }}

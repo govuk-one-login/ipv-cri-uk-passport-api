@@ -94,7 +94,7 @@ class ThirdPartyAPIEndpointMetricTest {
         int enumGenerated = enumGeneratedMetricsStrings.size();
 
         // Assert the two lists are same size
-        assertEquals(expectedSize, enumGeneratedMetricsStrings.size());
+        assertEquals(expectedSize, enumGenerated);
 
         // Assert the two lists are identical (both sorted)
         for (int m = 0; m < expectedSize; m++) {

@@ -2,17 +2,20 @@ name: Sonar scan
 on:
   workflow_call:
     secrets:
-      github-token: { required: true }
       SONAR_TOKEN: { required: true }
+
+permissions: {}
+
 jobs:
   sonar-scan:
     runs-on: ubuntu-latest
+    permissions:
+      contents: read
     steps:
       - name: Check out repository code
         uses: actions/checkout@v6
         with:
           fetch-depth: 0 # Shallow clones should be disabled for a better relevancy of analysis
-          submodules: true
 
       - name: Set up JDK
         uses: actions/setup-java@be666c2fcd27ec809703dec50e508c2fdc7f6654 # v5.2.0
@@ -48,6 +51,6 @@ jobs:
       - name: Run SonarCloud Analysis
         if: ${{ github.actor != 'dependabot[bot]' }}
         env:
-          GITHUB_TOKEN: ${{ secrets.github-token }}
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
         run: ./gradlew sonar -x test -x spotlessApply -x spotlessCheck
