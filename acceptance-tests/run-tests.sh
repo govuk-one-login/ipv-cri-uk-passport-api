@@ -16,7 +16,7 @@ if [ "$TRAFFIC_TEST" = "true" ]; then
   # It must not run beyond the stack deploy duration,
   # or will be running at the same time as the AC test suite.
   # Leading to the smaller dev F.E containers getting overwhelmed.
-  TEST_RUNS=3
+  TEST_RUNS=6
   CUCUMBER_SSM_PARAMETER="TrafficTestTag"
   echo "Traffic Test selected with ${TEST_RUNS} iterations"
 fi
