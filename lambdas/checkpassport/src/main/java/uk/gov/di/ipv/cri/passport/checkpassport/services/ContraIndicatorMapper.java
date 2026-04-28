@@ -13,7 +13,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
-import java.util.stream.Collectors;
 
 import static uk.gov.di.ipv.cri.passport.library.config.ParameterStoreParameters.CONTRAINDICATION_MAPPINGS;
 
@@ -172,15 +171,17 @@ public class ContraIndicatorMapper {
         // Could also potentially be absorbed above
         // Checks Passed
         List<String> presentNotMatchingCiChecks =
-                presentNotMatchingCiMappings.stream()
-                        .map(ContraIndicatorComplexMapping::getCheck)
-                        .collect(Collectors.toList());
+                new ArrayList<>(
+                        presentNotMatchingCiMappings.stream()
+                                .map(ContraIndicatorComplexMapping::getCheck)
+                                .toList());
 
         // Check Failed
         List<String> matchingCiChecks =
-                matchingCiMappings.stream()
-                        .map(ContraIndicatorComplexMapping::getCheck)
-                        .collect(Collectors.toList());
+                new ArrayList<>(
+                        matchingCiMappings.stream()
+                                .map(ContraIndicatorComplexMapping::getCheck)
+                                .toList());
 
         // Results of processing - lists never null
         return ContraIndicatorMapperResult.builder()

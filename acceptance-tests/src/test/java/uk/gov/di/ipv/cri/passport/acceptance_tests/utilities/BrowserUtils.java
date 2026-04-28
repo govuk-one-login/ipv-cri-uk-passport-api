@@ -12,6 +12,8 @@ import org.openqa.selenium.WebElement;
 import org.openqa.selenium.interactions.Actions;
 import org.openqa.selenium.support.ui.ExpectedCondition;
 import org.openqa.selenium.support.ui.ExpectedConditions;
+import org.openqa.selenium.support.ui.FluentWait;
+import org.openqa.selenium.support.ui.Wait;
 import org.openqa.selenium.support.ui.WebDriverWait;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -33,6 +35,7 @@ import static uk.gov.di.ipv.cri.passport.acceptance_tests.pages.UniversalSteps.M
 public class BrowserUtils {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(BrowserUtils.class);
+    private static final HttpClient httpClient = HttpClient.newBuilder().build();
 
     /**
      * Switches to new window by the exact title. Returns to original window if target title not
@@ -185,24 +188,6 @@ public class BrowserUtils {
     public static boolean waitForSpecificPageWithTitleToFullyLoad(
             String expectedTitle, boolean exactTitleMatchRequired, long timeOutInSeconds) {
 
-        ExpectedCondition<Boolean> pageLoadedExpectation =
-                new ExpectedCondition<Boolean>() {
-                    public Boolean apply(WebDriver driver) {
-                        return ((JavascriptExecutor) driver)
-                                .executeScript("return document.readyState")
-                                .equals("complete");
-                    }
-                };
-
-        try {
-            WebDriverWait wait =
-                    new WebDriverWait(Driver.get(), Duration.ofSeconds(timeOutInSeconds));
-            wait.until(pageLoadedExpectation);
-        } catch (Throwable error) {
-            error.printStackTrace();
-            return false;
-        }
-
         ExpectedCondition<Boolean> titleExpectation =
                 new ExpectedCondition<Boolean>() {
                     public Boolean apply(WebDriver driver) {
@@ -245,24 +230,6 @@ public class BrowserUtils {
      * @param timeOutInSeconds
      */
     public static boolean waitForUrlToContain(String expectedText, long timeOutInSeconds) {
-
-        ExpectedCondition<Boolean> pageLoadedExpectation =
-                new ExpectedCondition<Boolean>() {
-                    public Boolean apply(WebDriver driver) {
-                        return ((JavascriptExecutor) driver)
-                                .executeScript("return document.readyState")
-                                .equals("complete");
-                    }
-                };
-
-        try {
-            WebDriverWait wait =
-                    new WebDriverWait(Driver.get(), Duration.ofSeconds(timeOutInSeconds));
-            wait.until(pageLoadedExpectation);
-        } catch (Throwable error) {
-            error.printStackTrace();
-            return false;
-        }
 
         ExpectedCondition<Boolean> urlCheckExpectation =
                 new ExpectedCondition<Boolean>() {
@@ -314,6 +281,12 @@ public class BrowserUtils {
         }
     }
 
+    public static void clickAndWaitForNavigation(WebElement element) {
+        WebElement htmlElement = Driver.get().findElement(By.tagName("html"));
+        element.click();
+        waitForStaleElement(Driver.get(), htmlElement);
+    }
+
     /**
      * Verifies whether the element matching the provided locator is NOT displayed on page
      *
@@ -350,28 +323,17 @@ public class BrowserUtils {
      *
      * @param element
      */
-    public static void waitForStaleElement(WebElement element) {
-        int y = 0;
-        while (y <= 15) {
-            if (y == 1)
-                try {
-                    element.isDisplayed();
-                    break;
-                } catch (StaleElementReferenceException st) {
-                    y++;
-                    try {
-                        Thread.sleep(300);
-                    } catch (InterruptedException e) {
-                        LOGGER.error("Error: ", e);
-                    }
-                } catch (WebDriverException we) {
-                    y++;
-                    try {
-                        Thread.sleep(300);
-                    } catch (InterruptedException e) {
-                        LOGGER.error("Error: ", e);
-                    }
-                }
+    public static void waitForStaleElement(WebDriver driver, WebElement element) {
+        Wait<WebDriver> wait =
+                new FluentWait<>(driver)
+                        .withTimeout(Duration.ofSeconds(MAX_WAIT_SEC))
+                        .pollingEvery(Duration.ofMillis(300)) // Optional: Adjust polling frequency
+                        .ignoring(StaleElementReferenceException.class, WebDriverException.class);
+
+        try {
+            wait.until(ExpectedConditions.stalenessOf(element));
+        } catch (Exception e) {
+            LOGGER.error("Error waiting for element to become stale: ", e);
         }
     }
 
@@ -468,7 +430,7 @@ public class BrowserUtils {
             try {
                 element.click();
                 return;
-            } catch (WebDriverException e) {
+            } catch (WebDriverException _) {
                 waitFor(1);
             }
         }
@@ -590,9 +552,7 @@ public class BrowserUtils {
 
     public static HttpResponse<String> sendHttpRequest(HttpRequest request)
             throws IOException, InterruptedException {
-        HttpClient client = HttpClient.newBuilder().build();
-        HttpResponse<String> response = client.send(request, HttpResponse.BodyHandlers.ofString());
-        return response;
+        return httpClient.send(request, HttpResponse.BodyHandlers.ofString());
     }
 
     public static void checkOkHttpResponseOnLink(String link) {
@@ -601,8 +561,8 @@ public class BrowserUtils {
         try {
             httpResponse = sendHttpRequest(request);
             int statusCode = httpResponse.statusCode();
-            assertEquals(statusCode, 200);
-        } catch (IOException | InterruptedException e) {
+            assertEquals(200, statusCode);
+        } catch (IOException | InterruptedException _) {
             fail("Failed to get 200 back on request to url");
         }
     }

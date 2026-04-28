@@ -1,0 +1,2 @@
+ignored:
+  - DL3041  # Disable must Specify version with DNF (we want latest)

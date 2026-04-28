@@ -41,10 +41,6 @@ public class UniversalSteps {
         assertTrue(success);
     }
 
-    public static void driverClose() {
-        Driver.closeDriver();
-    }
-
     public void assertURLContains(String expected) {
         boolean status = waitForUrlToContain(expected, MAX_WAIT_SEC);
 

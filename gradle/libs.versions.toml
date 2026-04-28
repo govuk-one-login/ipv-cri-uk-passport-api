@@ -36,7 +36,6 @@ commons_io = "2.21.0"
 cucumber = "7.34.3"
 selenium = "4.1.0"
 axe_core_selenium = "4.11.1"
-webdrivermanager = "6.3.4"
 restassured =  "5.5.6"
 aws_cdk_lib = "2.133.0"
 
@@ -112,7 +111,6 @@ commons-io = { module = "commons-io:commons-io", version.ref = "commons_io" }
 actest-cucumber-java = { module = "io.cucumber:cucumber-java", version.ref = "cucumber" }
 actest-selenium-java = { module = "org.seleniumhq.selenium:selenium-java", version.ref = "selenium" }
 actest-axe_core-selenium = { module = "com.deque.html.axe-core:selenium", version.ref = "axe_core_selenium" }
-actest-bonigarcia-webdrivermanager = { module = "io.github.bonigarcia:webdrivermanager", version.ref = "webdrivermanager" }
 actest-rest-assured = { module = "io.rest-assured:rest-assured", version.ref = "restassured" }
 actest-cucumber-junit = { module = "io.cucumber:cucumber-junit", version.ref = "cucumber" }
 
@@ -120,7 +118,7 @@ actest-cucumber-junit = { module = "io.cucumber:cucumber-junit", version.ref = "
 unit-testing = [ "mockito-core" , "mockito-junit-jupiter", "junit-platform-launcher", "junit-api", "junit-engine", "junit-params", "webcompere-system-stubs-core","webcompere-system-stubs-jupiter"]
 jackson = [ "jackson-annotations" , "jackson-core", "jackson-databind", "jackson-jdk8", "jackson-jsr310"]
 pact = [ "pact-provider", "pact-junit5", "commons-io" ]
-actest-cucumber = [ "actest-cucumber-java", "actest-selenium-java", "actest-axe_core-selenium", "actest-bonigarcia-webdrivermanager"]
+actest-cucumber = [ "actest-cucumber-java", "actest-selenium-java", "actest-axe_core-selenium"]
 
 [plugins]
 java = { id = "java" }

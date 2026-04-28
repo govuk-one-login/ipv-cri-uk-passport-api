@@ -101,22 +101,22 @@ public class PassportStepDefs extends PassportPageObject {
 
     @Given("User click on ‘prove your identity another way' Link")
     public void userClickOnProveYourIdentityAnotherWayLink() {
-        proveAnotherWay.click();
+        BrowserUtils.clickAndWaitForNavigation(proveAnotherWay);
     }
 
     @Given("User clicks on language toggle and switches to Welsh")
     public void userClickOnLanguageToggle() {
-        languageToggle.click();
+        BrowserUtils.clickAndWaitForNavigation(languageToggle);
     }
 
     @Given("User clicks language toggle and switches to English")
     public void userClickOnLanguageToggleWales() {
-        languageToggleWales.click();
+        BrowserUtils.clickAndWaitForNavigation(languageToggleWales);
     }
 
-    @When("User clicks on continue")
-    public void user_clicks_on_continue() {
-        continueButton.click();
+    @When("User clicks on continue and waits for page navigation")
+    public void user_clicks_on_continue_and_waits_for_page_navigation() {
+        BrowserUtils.clickAndWaitForNavigation(continueButton);
     }
 
     @Then("User enters expiry date as current date minus (.*) months and minus (.*) days$")

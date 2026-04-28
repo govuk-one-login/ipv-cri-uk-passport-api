@@ -16,12 +16,13 @@ permissions: {}
 jobs:
   java-build-check:
     runs-on: ubuntu-latest
+    permissions:
+      contents: read
     steps:
       - name: Check out repository code
         uses: actions/checkout@v6
         with:
           fetch-depth: 0 # Shallow clones should be disabled for a better relevancy of analysis
-          submodules: true
 
       - name: Set up JDK
         uses: actions/setup-java@be666c2fcd27ec809703dec50e508c2fdc7f6654 # v5.2.0
@@ -45,5 +46,6 @@ jobs:
             !*/build/reports
             !*/build/jacoco
           key: ${{ runner.os }}-build-${{ github.sha }}
+
       - name: Run Build
         run: ./gradlew --parallel build -x test -x spotlessApply -x spotlessCheck && AC_TEST_ONLY=true ./gradlew --parallel build -x test -x spotlessApply -x spotlessCheck

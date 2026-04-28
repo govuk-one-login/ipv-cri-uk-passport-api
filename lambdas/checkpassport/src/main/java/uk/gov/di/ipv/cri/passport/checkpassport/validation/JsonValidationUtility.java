@@ -148,7 +148,7 @@ public final class JsonValidationUtility {
             if (!variable.isBlank()) {
                 try {
                     Instant.parse(variable);
-                } catch (DateTimeParseException e) {
+                } catch (DateTimeParseException _) {
                     validationErrors.add(name + FAIL_PARSING_TIMESTAMP_ERROR_MESSAGE_SUFFIX);
                     return false;
                 }
@@ -179,7 +179,7 @@ public final class JsonValidationUtility {
             if (!variable.isBlank()) {
                 try {
                     Integer.parseInt(variable);
-                } catch (NumberFormatException e) {
+                } catch (NumberFormatException _) {
                     validationErrors.add(name + FAIL_PARSING_INTEGER_ERROR_MESSAGE_SUFFIX);
                 }
             } else {

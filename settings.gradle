@@ -3,9 +3,6 @@ import org.gradle.api.initialization.resolve.RepositoriesMode
 pluginManagement {
 	repositories {
 		gradlePluginPortal()
-		//flatDir {
-		//	dirs '<Location of your projects absolute path>/di-ipv-cri-lib/build/libs'
-		//}
 	}
 }
 
@@ -14,6 +11,9 @@ dependencyResolutionManagement {
 	repositories {
 		// mavenLocal() // Uncomment if using locally published libs
 		mavenCentral()
+		//flatDir {
+		//	dirs '<Location of your projects absolute path>/di-ipv-cri-lib/build/libs'
+		//}
 	}
 }
 
@@ -22,7 +22,8 @@ rootProject.name = 'di-ipv-cri-uk-passport-api'
 if (System.getenv('AC_TEST_ONLY')) {
 	include "acceptance-tests"
 } else {
-	include "lib",
+	include "acceptance-tests",
+			"lib",
 			"lib-dvad",
 			"lambdas:checkpassport",
 			"lambdas:issuecredential",

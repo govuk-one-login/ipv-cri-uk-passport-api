@@ -461,6 +461,7 @@ class DvadThirdPartyAPIServiceTest {
                 testGraphQLAPIResponseObject =
                         GraphQLAPIResponse.builder().data(responseData).build();
             }
+            default -> throw new IllegalStateException("Unexpected value: " + forcedFailure);
         }
         testGraphQLServiceResult =
                 GraphQLServiceResult.builder()
@@ -588,6 +589,7 @@ class DvadThirdPartyAPIServiceTest {
                     // Only difference is data null/empty/present
                     // tested cases added to confirm no crash
                     assertMinimalTestErrorMessageParts(messagePartMap);
+            default -> throw new IllegalStateException("Unexpected value: " + scenario);
         }
     }
 

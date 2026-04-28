@@ -6,9 +6,7 @@ on:
   pull_request:
     types: [closed]
 
-permissions:
-  id-token: write
-  contents: read
+permissions: {}
 
 concurrency: deploy-development-${{ github.head_ref || github.ref_name }}
 
@@ -16,6 +14,8 @@ jobs:
   delete-stack:
     name: Delete stack
     runs-on: ubuntu-latest
+    permissions:
+      id-token: write
     environment: development
 
     steps:
