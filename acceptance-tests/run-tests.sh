@@ -2,27 +2,6 @@
 
 set -e
 
-TRAFFIC_TEST="${TRAFFIC_TEST:-false}"
-TEST_RUNS=1 # default is 1 for the ac tests
-CUCUMBER_SSM_PARAMETER="TestTag"
-if [ "$TRAFFIC_TEST" = "true" ]; then
-  # Passport CRI -
-  # For a 5min lambda canary test to be meaningful the @traffic test suite
-  # needs to match the length of the stack deploy duration.
-  #
-  # With @traffic tagged tests hitting all the journey lambdas.
-  # The traffic test is triggered at the start of the deployment,
-  # with the lambda canary period some time latter during the stack update.
-  # It must not run beyond the stack deploy duration,
-  # or will be running at the same time as the AC test suite.
-  # Leading to the smaller dev F.E containers getting overwhelmed.
-  TEST_RUNS=6
-  CUCUMBER_SSM_PARAMETER="TrafficTestTag"
-  echo "Traffic Test selected with ${TEST_RUNS} iterations"
-fi
-
-REPORT_DIR="${TEST_REPORT_DIR:=$PWD}"
-
 export BROWSER="${BROWSER:-chrome-headless}"
 export NO_CHROME_SANDBOX=true
 
@@ -51,6 +30,27 @@ fi
 
 echo "ENVIRONMENT ${ENVIRONMENT}"
 echo "STACK_NAME ${STACK_NAME}"
+
+TRAFFIC_TEST="${TRAFFIC_TEST:-false}"
+TEST_RUNS=1 # default is 1 for the ac tests
+CUCUMBER_SSM_PARAMETER="TestTag"
+if [ "$TRAFFIC_TEST" = "true" ]; then
+  # Passport CRI -
+  # For a 5min lambda canary test to be meaningful the @traffic test suite
+  # needs to match the length of the stack deploy duration.
+  #
+  # With @traffic tagged tests hitting all the journey lambdas.
+  # The traffic test is triggered at the start of the deployment,
+  # with the lambda canary period some time latter during the stack update.
+  # It must not run beyond the stack deploy duration,
+  # or will be running at the same time as the AC test suite.
+  # Leading to the smaller dev F.E containers getting overwhelmed.
+  TEST_RUNS=$(aws ssm get-parameter --name "/tests/$STACK_NAME/TrafficTestRuns" --region eu-west-2 | jq -r '.Parameter.Value')
+  CUCUMBER_SSM_PARAMETER="TrafficTestTag"
+  echo "Traffic Test selected with ${TEST_RUNS} iterations"
+fi
+
+REPORT_DIR="${TEST_REPORT_DIR:=$PWD}"
 
 if [ "${STACK_NAME}" != "local" ]; then
   export JOURNEY_TAG=$(aws ssm get-parameter --name "/tests/${STACK_NAME}/${CUCUMBER_SSM_PARAMETER}" | jq -r ".Parameter.Value")
