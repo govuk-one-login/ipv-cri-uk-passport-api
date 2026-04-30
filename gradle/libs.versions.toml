@@ -30,7 +30,7 @@ webcompere = "2.1.8"
 
 # Contract tests
 pact_provider = "4.6.19"
-commons_io = "2.21.0"
+commons_io = "2.22.0"
 
 # AC tests
 cucumber = "7.34.3"
