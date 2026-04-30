@@ -21,7 +21,7 @@ apache_httpcomponents_httpcore = "4.4.16"
 apache_httpcomponents_httpclient = "4.5.14"
 
 # Lambdas OpenTel
-opentelemetry_bom_alpha = "2.20.1-alpha"
+opentelemetry_bom_alpha = "2.27.0-alpha"
 
 # Unit tests
 junit = "6.0.3"
