@@ -1,7 +1,7 @@
 [versions]
 # Gradle Plugins
 spotless = "8.4.0"
-sonarqube = "7.2.3.7755"
+sonarqube = "7.3.0.8198"
 post_compile_weaving = "9.2.0"
 
 # Lambdas
