@@ -1,10 +1,11 @@
 package uk.gov.di.ipv.cri.passport.acceptance_tests.pages;
 
-import org.json.JSONObject;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import org.openqa.selenium.support.PageFactory;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import uk.gov.di.ipv.cri.passport.acceptance_tests.utilities.Driver;
+import uk.gov.di.ipv.cri.passport.acceptance_tests.utilities.ObjectMapperFactory;
 
 import java.nio.file.Files;
 import java.nio.file.Paths;
@@ -16,6 +17,7 @@ import static uk.gov.di.ipv.cri.passport.acceptance_tests.utilities.BrowserUtils
 public class UniversalSteps {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(UniversalSteps.class);
+    private static final ObjectMapper OBJECT_MAPPER = ObjectMapperFactory.MAPPER;
 
     public static final int MAX_WAIT_SEC = 15;
 
@@ -55,8 +57,7 @@ public class UniversalSteps {
         String filePath = "src/test/resources/Data/" + fileName + ".json";
         try {
             String content = new String(Files.readAllBytes(Paths.get(filePath)));
-            JSONObject jsonObject = new JSONObject(content);
-            return jsonObject.toString();
+            return OBJECT_MAPPER.readTree(content).toString();
         } catch (Exception e) {
             e.printStackTrace();
             return null;
