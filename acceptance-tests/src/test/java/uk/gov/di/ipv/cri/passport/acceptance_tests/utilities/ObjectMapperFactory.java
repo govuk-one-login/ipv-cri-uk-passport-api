@@ -4,7 +4,8 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 
 public class ObjectMapperFactory {
-    public static final ObjectMapper MAPPER = new ObjectMapper().registerModule(new JavaTimeModule());
+    public static final ObjectMapper MAPPER =
+            new ObjectMapper().registerModule(new JavaTimeModule());
 
     private ObjectMapperFactory() {}
 }
