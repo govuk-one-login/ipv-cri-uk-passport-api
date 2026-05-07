@@ -14,7 +14,7 @@ nimbusds_oauth = "11.37"
 aspect_jrt = "1.9.25.1"
 aws_powertools = "2.10.0"
 jackson = "2.21.2"
-jackson_jr = "2.21.2"
+jackson_jr = "2.21.3"
 
 # Lambdas Apache HTTP Client https://hc.apache.org/httpcomponents-client-4.5.x/current/httpclient/dependencies.html
 apache_httpcomponents_httpcore = "4.4.16"
