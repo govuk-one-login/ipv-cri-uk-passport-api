@@ -25,8 +25,7 @@ dependencies {
 			libs.nimbus.oauth,
 			platform(libs.junit.platform.bom),
 			libs.bundles.unit.testing,
-			libs.aws.cdk.lib,
-			"org.json:json:20250517" // Migration to jackson only in progress - DO not use org.json in new code
+			libs.aws.cdk.lib
 
 	implementation libs.bundles.actest.cucumber
 

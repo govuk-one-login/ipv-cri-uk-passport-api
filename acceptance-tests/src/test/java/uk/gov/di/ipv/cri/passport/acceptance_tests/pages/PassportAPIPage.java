@@ -5,10 +5,8 @@ import com.fasterxml.jackson.databind.JsonMappingException;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ObjectNode;
-import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import com.nimbusds.jwt.SignedJWT;
 import org.apache.commons.lang3.StringUtils;
-import org.json.JSONObject;
 import org.junit.Assert;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -16,6 +14,7 @@ import uk.gov.di.ipv.cri.passport.acceptance_tests.model.AuthorisationResponse;
 import uk.gov.di.ipv.cri.passport.acceptance_tests.model.CheckPassportSuccessResponse;
 import uk.gov.di.ipv.cri.passport.acceptance_tests.model.PassportFormData;
 import uk.gov.di.ipv.cri.passport.acceptance_tests.service.ConfigurationService;
+import uk.gov.di.ipv.cri.passport.acceptance_tests.utilities.ObjectMapperFactory;
 
 import java.io.File;
 import java.io.IOException;
@@ -50,8 +49,7 @@ public class PassportAPIPage extends CommonPageObject {
     private static String vcBody;
     private static final String KID_PREFIX = "did:web:review-p.dev.account.gov.uk#";
     private static String retry;
-    private static final ObjectMapper OBJECT_MAPPER =
-            new ObjectMapper().registerModule(new JavaTimeModule());
+    private static final ObjectMapper OBJECT_MAPPER = ObjectMapperFactory.MAPPER;
 
     private final ConfigurationService configurationService =
             new ConfigurationService(System.getenv("ENVIRONMENT"));
@@ -408,9 +406,9 @@ public class PassportAPIPage extends CommonPageObject {
         vcBody = signedJWT.getJWTClaimsSet().toString();
         LOGGER.info("VC Body = {}", vcBody);
 
-        JSONObject jsonHeader;
+        JsonNode jsonHeader;
         try {
-            jsonHeader = new JSONObject(vcHeader);
+            jsonHeader = OBJECT_MAPPER.readTree(vcHeader);
         } catch (Exception e) {
             LOGGER.error("Failed to parse VC Header as JSON", e);
             throw new AssertionError("Failed to parse VC Header as JSON", e);
@@ -423,12 +421,12 @@ public class PassportAPIPage extends CommonPageObject {
         Assert.assertEquals(
                 "The 'typ' field does not have the expected value",
                 "JWT",
-                jsonHeader.getString("typ"));
+                jsonHeader.get("typ").asText());
         Assert.assertEquals(
                 "The 'alg' field does not have the expected value",
                 "ES256",
-                jsonHeader.getString("alg"));
-        String kid = jsonHeader.getString("kid");
+                jsonHeader.get("alg").asText());
+        String kid = jsonHeader.get("kid").asText();
         Assert.assertTrue(
                 "The 'kid' field does not start with the expected prefix",
                 kid.startsWith(KID_PREFIX));
