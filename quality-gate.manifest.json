@@ -1,5 +1,5 @@
 {
-	"$schema": "https://raw.githubusercontent.com/govuk-one-login/quality-gates/refs/tags/v0.1.0/schemas/schema.json",
+	"$schema": "https://raw.githubusercontent.com/govuk-one-login/quality-gates/refs/tags/v0.4.0/schemas/schema.json",
 	"services": [
 		{
 			"quality-gates": [
@@ -92,6 +92,7 @@
 				},
 				{
 					"check-types": [
+						"component",
 						"integration",
 						"regression",
 						"stack"
