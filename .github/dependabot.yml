@@ -1,24 +1,92 @@
 version: 2
 updates:
-  - package-ecosystem: "gradle"
+  - package-ecosystem: gradle
     directory: "/"
     schedule:
-      interval: daily
+      interval: weekly
+      day: monday
       time: "03:00"
-    pull-request-branch-name:
-      separator: "-"
     target-branch: main
     labels:
       - dependabot
-    open-pull-requests-limit: 20
+    open-pull-requests-limit: 10
     commit-message:
       prefix: BAU
-  - package-ecosystem: "github-actions"
+    groups:
+      testing:
+        patterns:
+          - "org.junit*"
+          - "org.mockito*"
+          - "uk.org.webcompere*"
+          - "io.cucumber*"
+          - "org.seleniumhq.selenium*"
+          - "com.deque.html.axe-core*"
+          - "io.github.bonigarcia*"
+          - "io.rest-assured*"
+          - "au.com.dius.pact*"
+          - "org.slf4j*"
+          - "commons-io*"
+      aws-sdk:
+        patterns:
+          - "software.amazon.awssdk*"
+          - "com.amazonaws:aws-lambda*"
+          - "com.fasterxml.jackson*"
+      powertools:
+        patterns:
+          - "software.amazon.lambda:powertools*"
+      jackson:
+        patterns:
+          - "com.fasterxml.jackson*"
+      plugins:
+        patterns:
+          - "com.diffplug.spotless*"
+          - "org.sonarqube*"
+          - "io.freefair*"
+
+  - package-ecosystem: docker
     directory: "/"
     schedule:
-      interval: "weekly"
+      interval: weekly
+      day: monday
+      time: "03:00"
     target-branch: main
     labels:
       - dependabot
     commit-message:
       prefix: BAU
+    groups:
+      pre-commit-hooks:
+        patterns:
+          - "*"
+
+  - package-ecosystem: github-actions
+    directory: "/"
+    schedule:
+      interval: weekly
+      day: monday
+      time: "03:00"
+    target-branch: main
+    labels:
+      - dependabot
+    commit-message:
+      prefix: BAU
+    groups:
+      pre-commit-hooks:
+        patterns:
+          - "*"
+
+  - package-ecosystem: pre-commit
+    directory: "/"
+    schedule:
+      interval: weekly
+      day: monday
+      time: "03:00"
+    target-branch: main
+    labels:
+      - dependabot
+    commit-message:
+      prefix: BAU
+    groups:
+      pre-commit-hooks:
+        patterns:
+          - "*"
