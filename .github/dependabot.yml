@@ -55,7 +55,7 @@ updates:
     commit-message:
       prefix: BAU
     groups:
-      pre-commit-hooks:
+      docker:
         patterns:
           - "*"
 
@@ -65,13 +65,16 @@ updates:
       interval: weekly
       day: monday
       time: "03:00"
+    ignore:
+      - dependency-name: "gradle/actions/setup-gradle"
+        versions: ["6.x"] # v6 contains updates to terms which we need to understand and review
     target-branch: main
     labels:
       - dependabot
     commit-message:
       prefix: BAU
     groups:
-      pre-commit-hooks:
+      actions:
         patterns:
           - "*"
 
