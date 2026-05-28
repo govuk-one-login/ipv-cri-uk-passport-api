@@ -5,7 +5,6 @@ import org.apache.http.client.methods.CloseableHttpResponse;
 import uk.gov.di.ipv.cri.passport.library.HttpResponseFixtures;
 import uk.gov.di.ipv.cri.passport.library.dvad.domain.response.AccessTokenResponse;
 import uk.gov.di.ipv.cri.passport.library.dvad.domain.response.GraphQLAPIResponse;
-import uk.gov.di.ipv.cri.passport.library.dvad.domain.response.HealthCheckResponse;
 import uk.gov.di.ipv.cri.passport.library.dvad.domain.response.fields.ResponseData;
 
 import java.io.IOException;
@@ -22,19 +21,6 @@ public class DVADResponseFixtures {
     /* ****************************************************************************************************
     Support Methods for Tests
     ***************************************************************************************************** */
-
-    public static CloseableHttpResponse mockHealthCheckResponse(
-            int statusCode, boolean apiIsUP, boolean validBody) throws IOException {
-        HealthCheckResponse responseBodyObject =
-                HealthCheckResponse.builder().status(apiIsUP ? "UP" : "DOWN").build();
-
-        String responseBody =
-                validBody
-                        ? new ObjectMapper().writeValueAsString(responseBodyObject)
-                        : INVALID_JSON;
-
-        return HttpResponseFixtures.createHttpResponse(statusCode, responseBody, false);
-    }
 
     public static CloseableHttpResponse mockTokenResponse(
             int statusCode, String tokenType, long expiresIn, boolean validBody)

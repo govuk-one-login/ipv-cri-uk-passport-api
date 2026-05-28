@@ -20,7 +20,6 @@ import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.Mockito.when;
 import static uk.gov.di.ipv.cri.passport.library.config.ParameterStoreParameters.HMPO_API_ENDPOINT_GRAPHQL;
-import static uk.gov.di.ipv.cri.passport.library.config.ParameterStoreParameters.HMPO_API_ENDPOINT_HEALTH;
 import static uk.gov.di.ipv.cri.passport.library.config.ParameterStoreParameters.HMPO_API_ENDPOINT_TOKEN;
 import static uk.gov.di.ipv.cri.passport.library.config.ParameterStoreParameters.HMPO_API_ENDPOINT_URL;
 import static uk.gov.di.ipv.cri.passport.library.config.ParameterStoreParameters.TEST_STRATEGY_HMPO_API_ENDPOINT_URL;
@@ -29,7 +28,6 @@ import static uk.gov.di.ipv.cri.passport.library.config.ParameterStoreParameters
 class DvadAPIEndpointFactoryTest {
 
     private static final String TEST_ENDPOINT = "https://test-api.example.com";
-    private static final String TEST_HEALTH_PATH = "/v1/health";
     private static final String TEST_TOKEN_PATH = "/v1/token";
     private static final String TEST_GRAPHQL_PATH = "/v1/graphql";
 
@@ -54,8 +52,6 @@ class DvadAPIEndpointFactoryTest {
                 .thenReturn(TEST_ENDPOINT);
         when(mockParameterStoreService.getParameterValue(TEST_STRATEGY_HMPO_API_ENDPOINT_URL))
                 .thenReturn(endpointMapJson);
-        when(mockParameterStoreService.getParameterValue(HMPO_API_ENDPOINT_HEALTH))
-                .thenReturn(TEST_HEALTH_PATH);
         when(mockParameterStoreService.getParameterValue(HMPO_API_ENDPOINT_TOKEN))
                 .thenReturn(TEST_TOKEN_PATH);
         when(mockParameterStoreService.getParameterValue(HMPO_API_ENDPOINT_GRAPHQL))
@@ -67,7 +63,6 @@ class DvadAPIEndpointFactoryTest {
     @Test
     void shouldInitialiseFieldsFromParameterStore() {
         assertEquals(TEST_ENDPOINT, dvadAPIEndpointFactory.hmpoEndPoint);
-        assertEquals(TEST_HEALTH_PATH, dvadAPIEndpointFactory.healthPath);
         assertEquals(TEST_TOKEN_PATH, dvadAPIEndpointFactory.tokenPath);
         assertEquals(TEST_GRAPHQL_PATH, dvadAPIEndpointFactory.graphQLPath);
         assertEquals(TEST_ENDPOINT, dvadAPIEndpointFactory.hmpoEndPoints.get("NO_CHANGE"));
@@ -83,19 +78,6 @@ class DvadAPIEndpointFactoryTest {
         assertThrows(
                 JsonProcessingException.class,
                 () -> new DvadAPIEndpointFactory(mockParameterStoreService));
-    }
-
-    @Test
-    void shouldCreateHealthCheckService() {
-        HealthCheckService result =
-                dvadAPIEndpointFactory.createHealthCheckService(
-                        mockCloseableHttpClient,
-                        mockRequestConfig,
-                        realObjectMapper,
-                        mockEventProbe,
-                        Strategy.NO_CHANGE);
-
-        assertNotNull(result);
     }
 
     @Test
@@ -126,14 +108,6 @@ class DvadAPIEndpointFactoryTest {
 
     @Test
     void shouldCreateServicesWithStubStrategy() {
-        HealthCheckService healthCheckService =
-                dvadAPIEndpointFactory.createHealthCheckService(
-                        mockCloseableHttpClient,
-                        mockRequestConfig,
-                        realObjectMapper,
-                        mockEventProbe,
-                        Strategy.STUB);
-
         TokenRequestService tokenRequestService =
                 dvadAPIEndpointFactory.createTokenRequestService(
                         mockCloseableHttpClient,
@@ -150,7 +124,6 @@ class DvadAPIEndpointFactoryTest {
                         mockEventProbe,
                         Strategy.STUB);
 
-        assertNotNull(healthCheckService);
         assertNotNull(tokenRequestService);
         assertNotNull(graphQLRequestService);
     }
