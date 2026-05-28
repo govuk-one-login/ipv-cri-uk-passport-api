@@ -17,7 +17,7 @@ import java.util.List;
 import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
-import static uk.gov.di.ipv.cri.passport.library.metrics.ThirdPartyAPIMetricEndpointPrefix.DVAD_THIRD_PARTY_API_HEALTH_ENDPOINT;
+import static uk.gov.di.ipv.cri.passport.library.metrics.ThirdPartyAPIEndpointMetricType.API_RESPONSE_TYPE_ERROR;
 import static uk.gov.di.ipv.cri.passport.library.metrics.ThirdPartyAPIMetricEndpointPrefix.DVAD_THIRD_PARTY_API_TOKEN_ENDPOINT;
 
 @ExtendWith(MockitoExtension.class)
@@ -64,20 +64,15 @@ class ThirdPartyAPIEndpointMetricTest {
             }
         }
 
-        // Remove the two generate error types not created in ThirdPartyAPIEndpointMetric
-        expectedMetricsCaptureList.remove(
-                "dvad_third_party_api_health_endpoint_api_response_type_error"); // Not Used
-        expectedMetricsCaptureList.remove(
-                "dvad_third_party_api_token_endpoint_api_response_type_error"); // Not Used
-
-        // Add the two special case health status metrics added via string in
+        // Remove the test auto generate error types, that are not created in
         // ThirdPartyAPIEndpointMetric
-        expectedMetricsCaptureList.add(
-                String.format(expectedFormat, DVAD_THIRD_PARTY_API_HEALTH_ENDPOINT, "UP")
+        expectedMetricsCaptureList.remove(
+                String.format(
+                                expectedFormat,
+                                DVAD_THIRD_PARTY_API_TOKEN_ENDPOINT,
+                                API_RESPONSE_TYPE_ERROR)
                         .toLowerCase());
-        expectedMetricsCaptureList.add(
-                String.format(expectedFormat, DVAD_THIRD_PARTY_API_HEALTH_ENDPOINT, "DOWN")
-                        .toLowerCase());
+
         // Add Special case token reuse metric
         expectedMetricsCaptureList.add(
                 String.format(
@@ -103,6 +98,11 @@ class ThirdPartyAPIEndpointMetricTest {
 
             String valueFromEnum = enumGeneratedMetricsStrings.get(m);
 
+            // For any one debugging changes/updates
+            // System.out.println(m + " " + expected + " vs " + valueFromEnum);
+
+            // Both lists are sorted,
+            // If there are exact duplicates there is crossing wiring in ThirdPartyAPIEndpointMetric
             assertEquals(expected, valueFromEnum);
         }
     }

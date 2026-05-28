@@ -11,7 +11,6 @@ import uk.gov.di.ipv.cri.passport.library.service.ParameterStoreService;
 import java.util.Map;
 
 import static uk.gov.di.ipv.cri.passport.library.config.ParameterStoreParameters.HMPO_API_ENDPOINT_GRAPHQL;
-import static uk.gov.di.ipv.cri.passport.library.config.ParameterStoreParameters.HMPO_API_ENDPOINT_HEALTH;
 import static uk.gov.di.ipv.cri.passport.library.config.ParameterStoreParameters.HMPO_API_ENDPOINT_TOKEN;
 import static uk.gov.di.ipv.cri.passport.library.config.ParameterStoreParameters.HMPO_API_ENDPOINT_URL;
 import static uk.gov.di.ipv.cri.passport.library.config.ParameterStoreParameters.TEST_STRATEGY_HMPO_API_ENDPOINT_URL;
@@ -21,7 +20,6 @@ public class DvadAPIEndpointFactory {
 
     private static final String END_POINT_PATH_FORMAT = "%s%s";
     final Map<String, String> hmpoEndPoints;
-    final String healthPath;
     final String tokenPath;
     final String graphQLPath;
 
@@ -42,31 +40,8 @@ public class DvadAPIEndpointFactory {
                                 TEST_STRATEGY_HMPO_API_ENDPOINT_URL));
 
         // Paths used to accommodate per endpoint versioning i.e "/v1/service..."
-        healthPath = parameterStoreService.getParameterValue(HMPO_API_ENDPOINT_HEALTH);
         tokenPath = parameterStoreService.getParameterValue(HMPO_API_ENDPOINT_TOKEN);
         graphQLPath = parameterStoreService.getParameterValue(HMPO_API_ENDPOINT_GRAPHQL);
-    }
-
-    /**
-     * NOTE: Lazy initialization, a service will created for each method call
-     *
-     * @param closeableHttpClient
-     * @param requestConfig
-     * @param objectMapper
-     * @return HealthCheckService
-     */
-    public HealthCheckService createHealthCheckService(
-            CloseableHttpClient closeableHttpClient,
-            RequestConfig requestConfig,
-            ObjectMapper objectMapper,
-            EventProbe eventProbe,
-            Strategy strategy) {
-        String hmpoEndpoint = hmpoEndPoints.get(strategy.name());
-        final String healthEndpoint =
-                String.format(END_POINT_PATH_FORMAT, hmpoEndpoint, healthPath);
-
-        return new HealthCheckService(
-                healthEndpoint, closeableHttpClient, requestConfig, objectMapper, eventProbe);
     }
 
     /**

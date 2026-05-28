@@ -13,31 +13,9 @@ import static uk.gov.di.ipv.cri.passport.library.metrics.ThirdPartyAPIEndpointMe
 import static uk.gov.di.ipv.cri.passport.library.metrics.ThirdPartyAPIEndpointMetricType.REQUEST_SEND_ERROR;
 import static uk.gov.di.ipv.cri.passport.library.metrics.ThirdPartyAPIEndpointMetricType.REQUEST_SEND_OK;
 import static uk.gov.di.ipv.cri.passport.library.metrics.ThirdPartyAPIMetricEndpointPrefix.DVAD_THIRD_PARTY_API_GRAPHQL_ENDPOINT;
-import static uk.gov.di.ipv.cri.passport.library.metrics.ThirdPartyAPIMetricEndpointPrefix.DVAD_THIRD_PARTY_API_HEALTH_ENDPOINT;
 import static uk.gov.di.ipv.cri.passport.library.metrics.ThirdPartyAPIMetricEndpointPrefix.DVAD_THIRD_PARTY_API_TOKEN_ENDPOINT;
 
 public enum ThirdPartyAPIEndpointMetric {
-
-    /* *********************************************************************************************************
-     DVAD Health End Point Metrics
-    *********************************************************************************************************** */
-    DVAD_HEALTH_REQUEST_CREATED(DVAD_THIRD_PARTY_API_HEALTH_ENDPOINT, REQUEST_CREATED),
-    DVAD_HEALTH_REQUEST_SEND_OK(DVAD_THIRD_PARTY_API_HEALTH_ENDPOINT, REQUEST_SEND_OK),
-    DVAD_HEALTH_REQUEST_SEND_ERROR(DVAD_THIRD_PARTY_API_HEALTH_ENDPOINT, REQUEST_SEND_ERROR),
-
-    DVAD_HEALTH_RESPONSE_TYPE_VALID(DVAD_THIRD_PARTY_API_HEALTH_ENDPOINT, API_RESPONSE_TYPE_VALID),
-    DVAD_HEALTH_RESPONSE_TYPE_INVALID(
-            DVAD_THIRD_PARTY_API_HEALTH_ENDPOINT, API_RESPONSE_TYPE_INVALID),
-
-    DVAD_HEALTH_RESPONSE_STATUS_UP(DVAD_THIRD_PARTY_API_HEALTH_ENDPOINT, "UP"),
-    DVAD_HEALTH_RESPONSE_STATUS_DOWN(DVAD_THIRD_PARTY_API_HEALTH_ENDPOINT, "DOWN"),
-
-    DVAD_HEALTH_RESPONSE_TYPE_EXPECTED_HTTP_STATUS(
-            DVAD_THIRD_PARTY_API_HEALTH_ENDPOINT, API_RESPONSE_TYPE_EXPECTED_HTTP_STATUS),
-    DVAD_HEALTH_RESPONSE_TYPE_UNEXPECTED_HTTP_STATUS(
-            DVAD_THIRD_PARTY_API_HEALTH_ENDPOINT, API_RESPONSE_TYPE_UNEXPECTED_HTTP_STATUS),
-
-    DVAD_HEALTH_RESPONSE_LATENCY(DVAD_THIRD_PARTY_API_HEALTH_ENDPOINT, API_RESPONSE_LATENCY),
 
     /* *********************************************************************************************************
      DVAD Token End Point Metrics

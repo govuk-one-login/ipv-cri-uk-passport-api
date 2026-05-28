@@ -20,7 +20,6 @@ import uk.gov.di.ipv.cri.passport.library.dvad.domain.response.fields.errors.Loc
 import uk.gov.di.ipv.cri.passport.library.dvad.domain.result.endpoints.GraphQLServiceResult;
 import uk.gov.di.ipv.cri.passport.library.dvad.services.endpoints.DvadAPIEndpointFactory;
 import uk.gov.di.ipv.cri.passport.library.dvad.services.endpoints.GraphQLRequestService;
-import uk.gov.di.ipv.cri.passport.library.dvad.services.endpoints.HealthCheckService;
 import uk.gov.di.ipv.cri.passport.library.dvad.services.endpoints.TokenRequestService;
 import uk.gov.di.ipv.cri.passport.library.error.ErrorResponse;
 import uk.gov.di.ipv.cri.passport.library.exceptions.OAuthErrorResponseException;
@@ -84,13 +83,6 @@ public class DvadThirdPartyAPIService implements ThirdPartyAPIService {
         final RequestConfig defaultRequestConfig =
                 new HttpRequestConfig().getDefaultRequestConfig();
 
-        final HealthCheckService healthCheckService =
-                dvadAPIEndpointFactory.createHealthCheckService(
-                        closeableHttpClient,
-                        defaultRequestConfig,
-                        objectMapper,
-                        eventProbe,
-                        strategy);
         final TokenRequestService tokenRequestService =
                 dvadAPIEndpointFactory.createTokenRequestService(
                         closeableHttpClient,
@@ -105,17 +97,6 @@ public class DvadThirdPartyAPIService implements ThirdPartyAPIService {
                         objectMapper,
                         eventProbe,
                         strategy);
-
-        // Perform API Health Check
-        final boolean remoteAPIsUP = healthCheckService.checkRemoteApiIsUp(dvadAPIHeaderValues);
-
-        if (!remoteAPIsUP) {
-            LOGGER.error("Remote API is down");
-            throw new OAuthErrorResponseException(
-                    HttpStatusCode.INTERNAL_SERVER_ERROR,
-                    ErrorResponse.ERROR_THIRD_PARTY_API_HEALTH_ENDPOINT_NOT_UP);
-        }
-        LOGGER.info("Remote API is UP");
 
         AccessTokenResponse accessTokenResponse =
                 tokenRequestService.requestAccessToken(dvadAPIHeaderValues, true);
