@@ -10,13 +10,13 @@ repos:
     -   id: detect-private-key
 
   - repo: https://github.com/aws-cloudformation/cfn-lint
-    rev:  v1.48.1
+    rev:  v1.51.2
     hooks:
       - id: cfn-lint
         files: template\.ya?ml$
 
   - repo: https://github.com/bridgecrewio/checkov.git
-    rev: 3.2.524
+    rev: 3.2.530
     hooks:
       - id: checkov
         verbose: true
