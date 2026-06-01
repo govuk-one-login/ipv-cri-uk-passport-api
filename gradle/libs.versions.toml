@@ -24,19 +24,19 @@ apache_httpcomponents_httpclient = "4.5.14"
 opentelemetry_bom_alpha = "2.20.1-alpha"
 
 # Unit tests
-junit = "6.0.3"
+junit = "6.1.0"
 mockito = "5.23.0"
 webcompere = "2.1.8"
 
 # Contract tests
 pact_provider = "4.6.19"
-commons_io = "2.21.0"
+commons_io = "2.22.0"
 
 # AC tests
 cucumber = "7.34.3"
-selenium = "4.43.0"
-axe_core_selenium = "4.11.1"
-restassured =  "5.5.6"
+selenium = "4.44.0"
+axe_core_selenium = "4.11.3"
+restassured =  "6.0.0"
 aws_cdk_lib = "2.133.0"
 
 [libraries]
