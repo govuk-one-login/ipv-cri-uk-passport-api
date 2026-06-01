@@ -1,8 +1,8 @@
 [versions]
 # Gradle Plugins
-spotless = "8.4.0"
+spotless = "8.6.0"
 sonarqube = "7.3.0.8198"
-post_compile_weaving = "9.2.0"
+post_compile_weaving = "9.5.0"
 
 # Lambdas
 aws_sdk = "2.42.31"
