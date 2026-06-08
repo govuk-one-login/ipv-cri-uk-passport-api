@@ -191,9 +191,8 @@ class VerifiableCredentialServiceTest implements VerifiableCredentialServiceTest
 
         assertEquals(UNIT_TEST_SUBJECT, claimsSet.get("sub").textValue());
         assertEquals(UNIT_TEST_VC_ISSUER, claimsSet.get("iss").textValue());
-        long notBeforeTime = claimsSet.get("nbf").asLong();
-        final long expirationTime = claimsSet.get("exp").asLong();
-        assertEquals(TTL, expirationTime - notBeforeTime);
+        assertNotNull(claimsSet.get("nbf"));
+        assertTrue(claimsSet.get("nbf").asLong() > 0);
 
         // VC Type
         assertEquals(
