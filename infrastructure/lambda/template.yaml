@@ -247,24 +247,14 @@ Mappings:
 
   FeatureFlagMapping:
     dev:
-      VcExpiryRemoved: "true"
-      VcContainsUniqueIdMapping: "true"
       IncludeKidInVc: "true"
     build:
-      VcExpiryRemoved: "true"
-      VcContainsUniqueIdMapping: "true"
       IncludeKidInVc: "false"
     staging:
-      VcExpiryRemoved: "true"
-      VcContainsUniqueIdMapping: "true"
       IncludeKidInVc: "false"
     integration:
-      VcExpiryRemoved: "true"
-      VcContainsUniqueIdMapping: "true"
       IncludeKidInVc: "false"
     production:
-      VcExpiryRemoved: "true"
-      VcContainsUniqueIdMapping: "true"
       IncludeKidInVc: "false"
 
 Resources:
@@ -600,8 +590,6 @@ Resources:
         Variables:
           POWERTOOLS_SERVICE_NAME: !Sub "${CriIdentifier}-issuecredential"
           ENVIRONMENT: !Ref Environment
-          ENV_VAR_FEATURE_FLAG_VC_EXPIRY_REMOVED: !FindInMap [ FeatureFlagMapping, !Ref Environment, VcExpiryRemoved ]
-          ENV_VAR_FEATURE_FLAG_VC_CONTAINS_UNIQUE_ID: !FindInMap [ FeatureFlagMapping, !Ref Environment, VcContainsUniqueIdMapping ]
           INCLUDE_VC_KID: !FindInMap [ FeatureFlagMapping, !Ref Environment, IncludeKidInVc ]
           SESSION_TABLE: !Sub "{{resolve:ssm:/${CommonStackName}/SessionTableName}}"
           VERIFIABLE_CREDENTIAL_ISSUER: !Sub "{{resolve:ssm:/${CommonStackName}/verifiable-credential/issuer}}"
@@ -645,7 +633,7 @@ Resources:
                 - !Sub "arn:aws:ssm:${AWS::Region}:${AWS::AccountId}:parameter/release-flags/vc-expiry-removed"
                 - !Sub
                   - "arn:aws:ssm:${AWS::Region}:${AWS::AccountId}:parameter/${PREFIX}/release-flags/vc-contains-unique-id"
-                  - PREFIX: !If [IsDeployedFromPipeline, !Ref AWS::StackName , !Ref AWS::StackName]
+                  - PREFIX: !If [ IsDeployedFromPipeline, !Ref AWS::StackName , !Ref AWS::StackName ]
                 - !Sub "arn:aws:ssm:${AWS::Region}:${AWS::AccountId}:parameter/${AWS::StackName}/DocumentCheckResultTableName"
                 - !Sub "arn:aws:ssm:${AWS::Region}:${AWS::AccountId}:parameter/${AWS::StackName}/JwtTtlUnit"
                 - !Sub "arn:aws:ssm:${AWS::Region}:${AWS::AccountId}:parameter/${AWS::StackName}/MaxJwtTtl"
