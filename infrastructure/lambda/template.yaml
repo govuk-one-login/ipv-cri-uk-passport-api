@@ -630,10 +630,6 @@ Resources:
               Action:
                 - ssm:GetParameter
               Resource:
-                - !Sub "arn:aws:ssm:${AWS::Region}:${AWS::AccountId}:parameter/release-flags/vc-expiry-removed"
-                - !Sub
-                  - "arn:aws:ssm:${AWS::Region}:${AWS::AccountId}:parameter/${PREFIX}/release-flags/vc-contains-unique-id"
-                  - PREFIX: !If [ IsDeployedFromPipeline, !Ref AWS::StackName , !Ref AWS::StackName ]
                 - !Sub "arn:aws:ssm:${AWS::Region}:${AWS::AccountId}:parameter/${AWS::StackName}/DocumentCheckResultTableName"
                 - !Sub "arn:aws:ssm:${AWS::Region}:${AWS::AccountId}:parameter/${AWS::StackName}/JwtTtlUnit"
                 - !Sub "arn:aws:ssm:${AWS::Region}:${AWS::AccountId}:parameter/${AWS::StackName}/MaxJwtTtl"
