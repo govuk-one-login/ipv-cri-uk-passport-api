@@ -16,7 +16,7 @@ jobs:
       id-token: write
 
     steps:
-      - uses: govuk-one-login/github-actions/sam/delete-stale-log-groups@3b0015c58dd0e19e1572fda59dda4184df387d1e
+      - uses: govuk-one-login/github-actions/sam/delete-stale-log-groups@8d9b70ea03249a138db2b04c02071d7826cb00d9
         with:
           aws-role-arn: ${{ secrets.AWS_PRE_MERGE_ROLE_ARN }}
           cutoff-days: "30"
