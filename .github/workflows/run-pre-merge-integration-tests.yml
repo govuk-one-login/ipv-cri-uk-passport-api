@@ -38,7 +38,7 @@ jobs:
           distribution: corretto
           cache: gradle
 
-      - uses: gradle/actions/setup-gradle@0723195856401067f7a2779048b490ace7a47d7c # v5.0.2
+      - uses: gradle/actions/setup-gradle@5e2ebd065dc2488b7a6ad670704656cbbe1e8f60 # v6.1.1
         with:
           gradle-version: wrapper
           cache-overwrite-existing: true
@@ -116,7 +116,7 @@ jobs:
           java-version-file: '.sdkmanrc'
           distribution: corretto
 
-      - uses: gradle/actions/setup-gradle@0723195856401067f7a2779048b490ace7a47d7c # v5.0.2
+      - uses: gradle/actions/setup-gradle@5e2ebd065dc2488b7a6ad670704656cbbe1e8f60 # v6.1.1
         with:
           gradle-version: wrapper
           cache-overwrite-existing: true
@@ -139,7 +139,7 @@ jobs:
           version: "1.157.1"
 
       - name: Assume temporary AWS role
-        uses: aws-actions/configure-aws-credentials@8df5847569e6427dd6c4fb1cf565c83acfa8afa7 # v6.0.0
+        uses: aws-actions/configure-aws-credentials@e7f100cf4c008499ea8adda475de1042d6975c7b # v6.2.0
         with:
           role-to-assume: ${{ secrets.AWS_PRE_MERGE_ROLE_ARN }}
           aws-region: eu-west-2
