@@ -44,45 +44,44 @@ jobs:
           role-to-assume: ${{ secrets.GH_ACTIONS_ROLE_ARN }}
           aws-region: ${{ env.AWS_REGION }}
 
-      - name: Login to Amazon ECR
-        id: login-ecr
-        uses: aws-actions/amazon-ecr-login@261fc3d4806db1fa66a15cc11113c456db8870a7 # v2.1.0
-
-      - name: Install Cosign
-        uses: sigstore/cosign-installer@cad07c2e89fa2edd6e2d7bab4c1aa38e53f76003 # v4.1.1
+      - name: Traffic test image build and push (build)
+        uses: govuk-one-login/devplatform-upload-action-ecr@d839fc3ead8c9d9f18f7a8cceb7ab4a3eab18a58 # v1.7.0
         with:
-          cosign-release: "v3.0.5"
+          artifact-bucket-name: ""
+          container-sign-kms-key-arn: ${{ secrets.CONTAINER_SIGN_KMS_KEY }}
+          role-to-assume-arn: ${{ secrets.GH_ACTIONS_ROLE_ARN }}
+          ecr-repo-name: ${{ secrets.ECR_REPOSITORY_TRAFFIC_TEST_BUILD }}
+          dockerfile: acceptance-tests/Dockerfile
+          docker-build-path: .
+          docker-target: traffic_test_image
+          build-and-push-image-only: "true"
+          push-latest-tag: "true"
 
-      - name: Create shared signing config
-        run: cosign signing-config create --with-default-services=true --no-default-rekor=true --out signing.config
+      - name: Test image build and push (build)
+        uses: govuk-one-login/devplatform-upload-action-ecr@d839fc3ead8c9d9f18f7a8cceb7ab4a3eab18a58 # v1.7.0
+        with:
+          artifact-bucket-name: ""
+          container-sign-kms-key-arn: ${{ secrets.CONTAINER_SIGN_KMS_KEY }}
+          role-to-assume-arn: ${{ secrets.GH_ACTIONS_ROLE_ARN }}
+          ecr-repo-name: ${{ secrets.ECR_REPOSITORY_BUILD }}
+          dockerfile: acceptance-tests/Dockerfile
+          docker-build-path: .
+          docker-target: ac_test_image
+          build-and-push-image-only: "true"
+          push-latest-tag: "true"
 
-      - name: Build, tag, and push traffic test image to ECR
-        env:
-          CONTAINER_SIGN_KMS_KEY: ${{ secrets.CONTAINER_SIGN_KMS_KEY }}
-          ECR_REGISTRY: ${{ steps.login-ecr.outputs.registry }}
-          ECR_REPOSITORY_TRAFFIC_BUILD: ${{ secrets.ECR_REPOSITORY_TRAFFIC_TEST_BUILD }}
-          IMAGE_TAG: latest
-          DOCKER_TARGET: traffic_test_image
-        run: |
-          docker build -t $ECR_REGISTRY/$ECR_REPOSITORY_TRAFFIC_BUILD:$IMAGE_TAG -f acceptance-tests/Dockerfile --target $DOCKER_TARGET .
-          docker push $ECR_REGISTRY/$ECR_REPOSITORY_TRAFFIC_BUILD:$IMAGE_TAG
-          cosign sign --yes --signing-config signing.config --key awskms:///${CONTAINER_SIGN_KMS_KEY} $ECR_REGISTRY/$ECR_REPOSITORY_TRAFFIC_BUILD:$IMAGE_TAG
-
-      - name: Build, tag, and push testing images to Amazon ECR
-        env:
-          CONTAINER_SIGN_KMS_KEY: ${{ secrets.CONTAINER_SIGN_KMS_KEY }}
-          ECR_REGISTRY: ${{ steps.login-ecr.outputs.registry }}
-          ECR_REPOSITORY_BUILD: ${{ secrets.ECR_REPOSITORY_BUILD }}
-          ECR_REPOSITORY_STAGING: ${{ secrets.ECR_REPOSITORY_STAGING }}
-          IMAGE_TAG: latest
-          DOCKER_TARGET: ac_test_image
-        run: |
-          docker build -t $ECR_REGISTRY/$ECR_REPOSITORY_BUILD:$IMAGE_TAG -f acceptance-tests/Dockerfile --target $DOCKER_TARGET .
-          docker push $ECR_REGISTRY/$ECR_REPOSITORY_BUILD:$IMAGE_TAG
-          cosign sign --yes --signing-config signing.config --key awskms:///${CONTAINER_SIGN_KMS_KEY} $ECR_REGISTRY/$ECR_REPOSITORY_BUILD:$IMAGE_TAG
-          docker tag $ECR_REGISTRY/$ECR_REPOSITORY_BUILD:$IMAGE_TAG $ECR_REGISTRY/$ECR_REPOSITORY_STAGING:$IMAGE_TAG
-          docker push $ECR_REGISTRY/$ECR_REPOSITORY_STAGING:$IMAGE_TAG
-          cosign sign --yes --signing-config signing.config --key awskms:///${CONTAINER_SIGN_KMS_KEY} $ECR_REGISTRY/$ECR_REPOSITORY_STAGING:$IMAGE_TAG
+      - name: Test image build and push (staging)
+        uses: govuk-one-login/devplatform-upload-action-ecr@d839fc3ead8c9d9f18f7a8cceb7ab4a3eab18a58 # v1.7.0
+        with:
+          artifact-bucket-name: ""
+          container-sign-kms-key-arn: ${{ secrets.CONTAINER_SIGN_KMS_KEY }}
+          role-to-assume-arn: ${{ secrets.GH_ACTIONS_ROLE_ARN }}
+          ecr-repo-name: ${{ secrets.ECR_REPOSITORY_STAGING }}
+          dockerfile: acceptance-tests/Dockerfile
+          docker-build-path: .
+          docker-target: ac_test_image
+          build-and-push-image-only: "true"
+          push-latest-tag: "true"
 
       - name: SAM Validate
         run: sam validate --region ${{ env.AWS_REGION }} -t infrastructure/lambda/template.yaml --lint
