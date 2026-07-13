@@ -3,7 +3,7 @@
 	"services": [
 		{
 			"product": "Passport-CRI",
-			"component": "Passport-CRI API",
+			"component": "ipv-cri-uk-passport-api",
 			"promotionType": "securePipelines",
 			"checks": [
 				{
