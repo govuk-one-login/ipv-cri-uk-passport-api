@@ -1,5 +1,5 @@
 {
-	"$schema": "https://raw.githubusercontent.com/govuk-one-login/quality-gates/refs/tags/v0.15.0/schemas/schema.json",
+	"$schema": "https://raw.githubusercontent.com/govuk-one-login/quality-gates/refs/tags/v0.16.0/schemas/schema.json",
 	"services": [
 		{
 			"product": "Passport-CRI",
@@ -102,7 +102,8 @@
 					},
 					"checks": [
 						{
-							"name": "stack"
+							"name": "integration",
+							"scope": "component"
 						}
 					]
 				},
@@ -115,16 +116,18 @@
 					},
 					"checks": [
 						{
-							"name": "component"
+							"name": "integration",
+							"purpose": [
+								"regression"
+							],
+							"scope": "component"
 						},
 						{
-							"name": "integration"
-						},
-						{
-							"name": "regression"
-						},
-						{
-							"name": "stack"
+							"name": "integration",
+							"scope": "component",
+							"purpose": [
+								"regression"
+							]
 						}
 					]
 				},
@@ -137,10 +140,11 @@
 					},
 					"checks": [
 						{
-							"name": "regression"
-						},
-						{
-							"name": "smoke"
+							"name": "integration",
+							"purpose": [
+								"regression",
+								"smoke"
+							]
 						}
 					]
 				}
