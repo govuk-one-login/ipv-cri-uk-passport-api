@@ -29,15 +29,15 @@ mockito = "5.23.0"
 webcompere = "2.1.8"
 
 # Contract tests
-pact_provider = "4.6.19"
+pact_provider = "4.7.5"
 commons_io = "2.21.0"
 
 # AC tests
 cucumber = "7.34.3"
 selenium = "4.43.0"
-axe_core_selenium = "4.11.1"
+axe_core_selenium = "4.13.0"
 restassured =  "5.5.6"
-aws_cdk_lib = "2.133.0"
+aws_cdk_lib = "2.262.0"
 
 [libraries]
 # AWS SDK
