@@ -20,7 +20,7 @@ jobs:
       contents: read
     steps:
       - name: Check out repository code
-        uses: actions/checkout@v6
+        uses: actions/checkout@v7
 
       - name: Set up JDK
         uses: actions/setup-java@be666c2fcd27ec809703dec50e508c2fdc7f6654 # v5.2.0
@@ -28,7 +28,7 @@ jobs:
           java-version-file: '.sdkmanrc'
           distribution: corretto
 
-      - uses: gradle/actions/setup-gradle@0723195856401067f7a2779048b490ace7a47d7c # v5.0.2
+      - uses: gradle/actions/setup-gradle@9c971963bec38e04b3d30dcc455b5382be2fdbfb # v6.3.0
         with:
           gradle-version: wrapper
           cache-overwrite-existing: true
@@ -40,7 +40,7 @@ jobs:
           version: "1.157.1"
 
       - name: Assume temporary AWS role
-        uses: aws-actions/configure-aws-credentials@8df5847569e6427dd6c4fb1cf565c83acfa8afa7 # v6.0.0
+        uses: aws-actions/configure-aws-credentials@e6de054238d6b7531b4efff3b6587d9aade6a06c # v6.2.3
         with:
           role-to-assume: ${{ secrets.AWS_DEV_ROLE_ARN }}
           aws-region: ${{ env.AWS_REGION }}
@@ -81,7 +81,7 @@ jobs:
           sam build -s "${GITHUB_WORKSPACE}" -t infrastructure/lambda/template.yaml -b out
 
       - name: Deploy SAM app
-        uses: govuk-one-login/devplatform-upload-action@245bad4dc21702a5e665f1ca615108f6e70546d2 # v4.0.0
+        uses: govuk-one-login/devplatform-upload-action@ec09f4b1f8648fe21dd18a40a2d8e2fa94d0ad41 # v4.2.0
         with:
           artifact-bucket-name: "${{ secrets.DEV_ARTIFACT_SOURCE_BUCKET_NAME }}"
           signing-profile-name: "${{ secrets.DEV_SIGNING_PROFILE_NAME }}"
