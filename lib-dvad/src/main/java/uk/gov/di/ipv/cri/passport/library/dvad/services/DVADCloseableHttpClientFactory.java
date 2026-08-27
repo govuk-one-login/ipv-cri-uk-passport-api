@@ -18,8 +18,8 @@ import java.security.spec.InvalidKeySpecException;
 import java.util.Map;
 
 public class DVADCloseableHttpClientFactory {
-    public static final String MAP_KEY_TLS_CERT = "TLSCert-21-08-2026";
-    public static final String MAP_KEY_TLS_KEY = "TLSKey-21-08-2026";
+    public static final String MAP_KEY_TLS_CERT = "TLSCert-27-08-2026";
+    public static final String MAP_KEY_TLS_KEY = "TLSKey-27-08-2026";
     public static final String MAP_KEY_TLS_ROOT_CERT = "TLSRootCertificate";
     public static final String MAP_KEY_TLS_INT_CERT = "TLSIntermediateCertificate-24-09-2024";
 
