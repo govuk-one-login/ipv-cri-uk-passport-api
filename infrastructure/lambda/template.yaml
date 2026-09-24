@@ -1222,28 +1222,27 @@ Resources:
   ##  Passport API Gateway Alarms                                                       #
   #######################################################################################
 
-  PassportAPIGW5XXErrors:
+  PassportAPIGW5XXErrorsWarning:
     Type: AWS::CloudWatch::Alarm
     Condition: AlarmsEnabled
     Properties:
-      AlarmDescription: !Sub Passport ${Environment} API Gateway 5XX errors
+      AlarmDescription: !Sub Passport ${Environment} API Gateway 5XX error rate exceeded 5% for 3 consecutive minutes
       ActionsEnabled: true
       AlarmActions:
-        - !If [ IsProdEnvironment, !ImportValue build-notifications-PagerDutySNSTopicArn, !ImportValue build-notifications-CriticalAlertsTopicArn ]
+        - !ImportValue build-notifications-WarningAlertsTopicArn
       OKActions:
-        - !If [ IsProdEnvironment, !ImportValue build-notifications-PagerDutySNSTopicArn, !ImportValue build-notifications-CriticalAlertsTopicArn ]
+        - !ImportValue build-notifications-WarningAlertsTopicArn
       InsufficientDataActions: []
-      Dimensions: []
       DatapointsToAlarm: 3
       EvaluationPeriods: 3
-      Threshold: 1
+      Threshold: 5
       ComparisonOperator: GreaterThanThreshold
       TreatMissingData: notBreaching
       Metrics:
         - Id: e1
-          Label: Expression1
+          Label: PercentageFailure
           ReturnData: true
-          Expression: SUM(METRICS())
+          Expression: ((FILL(m1,0) + FILL(m2,0)) / (FILL(m3,0) + FILL(m4,0))) * 100
         - Id: m1
           ReturnData: false
           MetricStat:
@@ -1253,7 +1252,7 @@ Resources:
               Dimensions:
                 - Name: ApiName
                   Value: !Sub "${AWS::StackName}-PublicUKPassportApi"
-            Period: 300
+            Period: 60
             Stat: Sum
         - Id: m2
           ReturnData: false
@@ -1264,7 +1263,95 @@ Resources:
               Dimensions:
                 - Name: ApiName
                   Value: !Sub "${AWS::StackName}-PrivateUKPassportApi"
-            Period: 300
+            Period: 60
+            Stat: Sum
+        - Id: m3
+          ReturnData: false
+          MetricStat:
+            Metric:
+              Namespace: AWS/ApiGateway
+              MetricName: Count
+              Dimensions:
+                - Name: ApiName
+                  Value: !Sub "${AWS::StackName}-PublicUKPassportApi"
+            Period: 60
+            Stat: Sum
+        - Id: m4
+          ReturnData: false
+          MetricStat:
+            Metric:
+              Namespace: AWS/ApiGateway
+              MetricName: Count
+              Dimensions:
+                - Name: ApiName
+                  Value: !Sub "${AWS::StackName}-PrivateUKPassportApi"
+            Period: 60
+            Stat: Sum
+
+  PassportAPIGW5XXErrorsCritical:
+    Type: AWS::CloudWatch::Alarm
+    Condition: AlarmsEnabled
+    Properties:
+      AlarmDescription: !Sub Passport ${Environment} API Gateway 5XX error rate exceeded 20% for 3 consecutive minutes
+      ActionsEnabled: true
+      AlarmActions:
+        - !ImportValue build-notifications-CriticalAlertsTopicArn
+      OKActions:
+        - !ImportValue build-notifications-CriticalAlertsTopicArn
+      InsufficientDataActions: []
+      DatapointsToAlarm: 3
+      EvaluationPeriods: 3
+      Threshold: 20
+      ComparisonOperator: GreaterThanThreshold
+      TreatMissingData: notBreaching
+      Metrics:
+        - Id: e1
+          Label: PercentageFailure
+          ReturnData: true
+          Expression: ((FILL(m1,0) + FILL(m2,0)) / (FILL(m3,0) + FILL(m4,0))) * 100
+        - Id: m1
+          ReturnData: false
+          MetricStat:
+            Metric:
+              Namespace: AWS/ApiGateway
+              MetricName: 5XXError
+              Dimensions:
+                - Name: ApiName
+                  Value: !Sub "${AWS::StackName}-PublicUKPassportApi"
+            Period: 60
+            Stat: Sum
+        - Id: m2
+          ReturnData: false
+          MetricStat:
+            Metric:
+              Namespace: AWS/ApiGateway
+              MetricName: 5XXError
+              Dimensions:
+                - Name: ApiName
+                  Value: !Sub "${AWS::StackName}-PrivateUKPassportApi"
+            Period: 60
+            Stat: Sum
+        - Id: m3
+          ReturnData: false
+          MetricStat:
+            Metric:
+              Namespace: AWS/ApiGateway
+              MetricName: Count
+              Dimensions:
+                - Name: ApiName
+                  Value: !Sub "${AWS::StackName}-PublicUKPassportApi"
+            Period: 60
+            Stat: Sum
+        - Id: m4
+          ReturnData: false
+          MetricStat:
+            Metric:
+              Namespace: AWS/ApiGateway
+              MetricName: Count
+              Dimensions:
+                - Name: ApiName
+                  Value: !Sub "${AWS::StackName}-PrivateUKPassportApi"
+            Period: 60
             Stat: Sum
 
 ###################################################################
