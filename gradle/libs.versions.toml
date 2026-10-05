@@ -13,8 +13,7 @@ limeade = "1.2.4"
 nimbusds_oauth = "11.37"
 aspect_jrt = "1.9.25.1"
 aws_powertools = "2.10.0"
-jackson = "2.22.2"
-jackson_jr = "2.22.2"
+jackson = "2.22.3"
 
 # Lambdas Apache HTTP Client https://hc.apache.org/httpcomponents-client-4.5.x/current/httpclient/dependencies.html
 apache_httpcomponents_httpcore = "4.4.16"
@@ -31,6 +30,7 @@ webcompere = "2.1.8"
 # Contract tests
 pact_provider = "4.7.5"
 commons_io = "2.21.0"
+bouncycastle = "1.86" # overrides vulnerable version in Pact's plugin driver
 
 # AC tests
 cucumber = "7.34.3"
@@ -67,7 +67,7 @@ jackson-jsr310 = { module = "com.fasterxml.jackson.datatype:jackson-datatype-jsr
 jackson-dataformat-yaml = { module = "com.fasterxml.jackson.dataformat:jackson-dataformat-yaml" }
 
 # Smaller less heavy version of jackson ( #via aws-sdk-bom )
-jackson-jr-objects = { module = "com.fasterxml.jackson.jr:jackson-jr-objects", version.ref = "jackson_jr" }
+jackson-jr-objects = { module = "com.fasterxml.jackson.jr:jackson-jr-objects", version.ref = "jackson" }
 
 # OAuth
 nimbus-oauth = { module = "com.nimbusds:oauth2-oidc-sdk", version.ref = "nimbusds_oauth" }
@@ -106,6 +106,9 @@ webcompere-system-stubs-jupiter = { module = "uk.org.webcompere:system-stubs-jup
 pact-provider = { module = "au.com.dius.pact:provider", version.ref = "pact_provider" }
 pact-junit5 = { module = "au.com.dius.pact.provider:junit5", version.ref = "pact_provider" }
 commons-io = { module = "commons-io:commons-io", version.ref = "commons_io" }
+bouncycastle-bcprov = { module = "org.bouncycastle:bcprov-jdk18on", version.ref = "bouncycastle" }
+bouncycastle-bcpkix = { module = "org.bouncycastle:bcpkix-jdk18on", version.ref = "bouncycastle" }
+bouncycastle-bcutil = { module = "org.bouncycastle:bcutil-jdk18on", version.ref = "bouncycastle" }
 
 # Ac tests
 actest-cucumber-java = { module = "io.cucumber:cucumber-java", version.ref = "cucumber" }
