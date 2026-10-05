@@ -16,6 +16,7 @@ dependencies {
 			libs.aws.sdk.dynamodb,
 			libs.aws.sdk.dynamodb.enhanced,
 			libs.aws.sdk.sqs,
+			platform(libs.opentelemetry.bom.alpha),
 			platform(libs.jackson.bom),
 			libs.bundles.jackson,
 			libs.nimbus.oauth,

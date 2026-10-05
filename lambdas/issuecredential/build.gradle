@@ -1,7 +1,7 @@
 plugins {
-	id "java"
-	id "idea"
-	id "jacoco"
+	alias(libs.plugins.idea)
+	alias(libs.plugins.java)
+	alias(libs.plugins.jacoco)
 }
 
 dependencies {
