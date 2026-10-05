@@ -31,4 +31,11 @@ dependencies {
 			platform(libs.junit.platform.bom),
 			libs.bundles.unit.testing,
 			libs.bundles.pact
+
+	constraints {
+		// TODO: remove this forced version of bouncy castle on pact tests when the pact provider is updated
+		testImplementation libs.bouncycastle.bcprov
+		testImplementation libs.bouncycastle.bcpkix
+		testImplementation libs.bouncycastle.bcutil
+	}
 }
