@@ -28,8 +28,5 @@ dependencies {
 	testImplementation testFixtures(project(":lib")), testFixtures(this.project),
 			platform(libs.junit.platform.bom),
 			libs.bundles.unit.testing,
-			platform(libs.aws.sdk.bom),
-			libs.aws.lambda.java.core,
-			platform(libs.jackson.bom),
-			libs.bundles.jackson
+			libs.aws.lambda.java.core
 }

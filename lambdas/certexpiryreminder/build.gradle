@@ -1,7 +1,7 @@
 plugins {
-	id "java"
-	id "idea"
-	id "jacoco"
+	alias(libs.plugins.idea)
+	alias(libs.plugins.java)
+	alias(libs.plugins.jacoco)
 }
 
 dependencies {
@@ -24,8 +24,5 @@ dependencies {
 	testImplementation testFixtures(project(":lib")),
 			platform(libs.junit.platform.bom),
 			libs.bundles.unit.testing,
-			platform(libs.aws.sdk.bom),
-			libs.aws.lambda.java.core,
-			platform(libs.jackson.bom),
-			libs.bundles.jackson
+			libs.aws.lambda.java.core
 }

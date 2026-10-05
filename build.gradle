@@ -128,6 +128,10 @@ subprojects {
 		}
 
 		dependencies {
+			// ensure powertools uses our project specified jackson/aws versions
+			aspect platform(libs.aws.sdk.bom)
+			aspect platform(libs.jackson.bom)
+
 			mockitoAgent platform(libs.mockito.bom)
 			mockitoAgent(libs.mockito.core) {
 				transitive = false
