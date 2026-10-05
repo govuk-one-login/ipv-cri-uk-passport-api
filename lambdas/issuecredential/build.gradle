@@ -33,9 +33,16 @@ dependencies {
 			libs.bundles.pact
 
 	constraints {
-		// TODO: remove this forced version of bouncy castle on pact tests when the pact provider is updated
-		testImplementation libs.bouncycastle.bcprov
-		testImplementation libs.bouncycastle.bcpkix
-		testImplementation libs.bouncycastle.bcutil
+		// TODO: remove this forced version of bouncycastle when the pact provider is updated
+		def reason = 'override vulnerable bouncycastle version present in pact provider to 1.86'
+		testImplementation(libs.bouncycastle.bcprov) {
+			because reason
+		}
+		testImplementation(libs.bouncycastle.bcpkix) {
+			because reason
+		}
+		testImplementation(libs.bouncycastle.bcutil) {
+			because reason
+		}
 	}
 }
