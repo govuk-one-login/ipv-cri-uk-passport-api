@@ -13,6 +13,7 @@ limeade = "1.2.4"
 nimbusds_oauth = "11.37"
 aspect_jrt = "1.9.25.1"
 aws_powertools = "2.10.0"
+log4j = "2.26.1"
 jackson = "2.22.3"
 
 # Lambdas Apache HTTP Client https://hc.apache.org/httpcomponents-client-4.5.x/current/httpclient/dependencies.html
@@ -85,6 +86,8 @@ powertools-logging-log4j = { module = "software.amazon.lambda:powertools-logging
 powertools-metrics = { module = "software.amazon.lambda:powertools-metrics", version.ref = "aws_powertools" }
 powertools-parameters-ssm = { module = "software.amazon.lambda:powertools-parameters-ssm", version.ref = "aws_powertools" }
 powertools-parameters-secrets = { module = "software.amazon.lambda:powertools-parameters-secrets", version.ref = "aws_powertools" }
+
+log4j-bom = { module = "org.apache.logging.log4j:log4j-bom", version.ref = "log4j" }
 
 # Apache HTTP
 apache-httpcomponents-httpcore = { module = "org.apache.httpcomponents:httpcore", version.ref = "apache_httpcomponents_httpcore" }

@@ -128,7 +128,11 @@ subprojects {
 		}
 
 		dependencies {
-			// ensure powertools uses our project specified jackson/aws versions
+			// align jackson/aws sdk/log4j/opentelemetry versions in every module
+			implementation platform(libs.aws.sdk.bom)
+			implementation platform(libs.jackson.bom)
+			implementation platform(libs.log4j.bom)
+			implementation platform(libs.opentelemetry.bom.alpha)
 			aspect platform(libs.aws.sdk.bom)
 			aspect platform(libs.jackson.bom)
 
@@ -142,6 +146,15 @@ subprojects {
 			testImplementation libs.bundles.unit.testing
 
 			testRuntimeOnly "org.junit.platform:junit-platform-launcher"
+		}
+
+		plugins.withId('java-test-fixtures') {
+			dependencies {
+				testFixturesImplementation platform(libs.aws.sdk.bom)
+				testFixturesImplementation platform(libs.jackson.bom)
+				testFixturesImplementation platform(libs.log4j.bom)
+				testFixturesImplementation platform(libs.opentelemetry.bom.alpha)
+			}
 		}
 
 		// Use a common log4j2.xml for all subprojects

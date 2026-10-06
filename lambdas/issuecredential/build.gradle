@@ -13,7 +13,6 @@ dependencies {
 			project(":lib"),
 			libs.limeade,
 			libs.cri.common.lib,
-			platform(libs.aws.sdk.bom),
 			libs.aws.sdk.lambda,
 			libs.aws.sdk.dynamodb.enhanced,
 			libs.aws.sdk.kms,
@@ -21,15 +20,11 @@ dependencies {
 			libs.aws.sdk.crt.client,
 			libs.aws.lambda.java.core,
 			libs.aws.lambda.java.events,
-			platform(libs.jackson.bom),
 			libs.bundles.jackson,
-			platform(libs.opentelemetry.bom.alpha),
 			libs.opentelemetry.aws.sdk,
 			libs.nimbus.oauth
 
 	testImplementation testFixtures(project(":lib")),
-			platform(libs.junit.platform.bom),
-			libs.bundles.unit.testing,
 			libs.bundles.pact
 
 	constraints {
