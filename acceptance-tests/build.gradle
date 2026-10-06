@@ -13,7 +13,17 @@ configurations {
 }
 
 dependencies {
-	implementation libs.aspectjrt,
+	// the Dockerfile builds this without the root build.gradle so we need to declare BOMs here as well
+	testImplementation platform(libs.aws.sdk.bom),
+			platform(libs.jackson.bom),
+			platform(libs.log4j.bom),
+			platform(libs.opentelemetry.bom.alpha),
+			platform(libs.junit.platform.bom),
+			libs.bundles.unit.testing,
+			libs.bundles.actest.cucumber,
+			libs.actest.rest.assured,
+			libs.actest.cucumber.junit,
+			libs.aspectjrt,
 			libs.powertools.logging.log4j,
 			libs.aws.lambda.java.core,
 			libs.aws.lambda.java.events,
@@ -21,14 +31,7 @@ dependencies {
 			libs.bundles.jackson,
 			libs.jackson.dataformat.yaml,
 			libs.nimbus.oauth,
-			platform(libs.junit.platform.bom),
-			libs.bundles.unit.testing,
 			libs.aws.cdk.lib
-
-	implementation libs.bundles.actest.cucumber
-
-	testImplementation libs.actest.rest.assured,
-			libs.actest.cucumber.junit
 }
 
 test {
@@ -114,5 +117,3 @@ tasks.register('smokeTestStaging', JavaExec) {
 tasks.withType(JavaCompile).configureEach {
 	options.compilerArgs << "-Xlint" << "-Xlint:-processing"
 }
-
-apply plugin: 'java'
