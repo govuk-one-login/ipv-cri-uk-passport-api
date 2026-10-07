@@ -1,125 +1,136 @@
 {
-	"$schema": "https://raw.githubusercontent.com/govuk-one-login/quality-gates/refs/tags/v0.4.0/schemas/schema.json",
+	"$schema": "https://raw.githubusercontent.com/govuk-one-login/quality-gates/refs/tags/v0.19.0/schemas/schema.json",
 	"services": [
 		{
-			"quality-gates": [
+			"product": "Passport-CRI",
+			"component": "ipv-cri-uk-passport-api",
+			"promotionType": "securePipelines",
+			"automated": [
 				{
-					"check-types": [
-						"code style and linting",
-						"secret scanning"
-					],
-					"config": {
-						"file": ".github/workflows/check-pr.yml",
-						"name": "pre-commit",
-						"path": "jobs.pre-commit"
-					},
 					"phase": "pre-merge",
-					"provider": "GitHub"
+					"provider": "GitHub",
+					"checks": [
+						{
+							"name": "code style and linting"
+						},
+						{
+							"name": "secret scanning"
+						}
+					],
+					"file": ".github/workflows/check-pr.yml",
+					"path": "$.jobs.pre-commit"
 				},
 				{
-					"check-types": [
-						"code style and linting"
-					],
-					"config": {
-						"file": ".github/workflows/check-pr.yml",
-						"name": "Run Java build check",
-						"path": "jobs.java-build-check"
-					},
 					"phase": "pre-merge",
-					"provider": "GitHub"
+					"provider": "GitHub",
+					"checks": [
+						{
+							"name": "code style and linting"
+						}
+					],
+					"file": ".github/workflows/check-pr.yml",
+					"path": "$.jobs.java-build-check"
 				},
 				{
-					"check-types": [
-						"code style and linting"
-					],
-					"config": {
-						"file": ".github/workflows/check-pr.yml",
-						"name": "Run Java style check",
-						"path": "jobs.java-style-check"
-					},
 					"phase": "pre-merge",
-					"provider": "GitHub"
+					"provider": "GitHub",
+					"checks": [
+						{
+							"name": "code style and linting"
+						}
+					],
+					"file": ".github/workflows/check-pr.yml",
+					"path": "$.jobs.java-style-check"
 				},
 				{
-					"check-types": [
-						"unit"
-					],
-					"config": {
-						"file": ".github/workflows/check-pr.yml",
-						"name": "Run Unit tests",
-						"path": "jobs.unit-tests"
-					},
 					"phase": "pre-merge",
-					"provider": "GitHub"
+					"provider": "GitHub",
+					"checks": [
+						{
+							"name": "unit"
+						}
+					],
+					"file": ".github/workflows/check-pr.yml",
+					"path": "$.jobs.unit-tests"
 				},
 				{
-					"check-types": [
-						"code style and linting",
-						"unit test coverage",
-						"vulnerability detection"
-					],
-					"config": {
-						"file": ".github/workflows/check-pr.yml",
-						"name": "Sonar Scan",
-						"path": "jobs.sonar-scan"
-					},
 					"phase": "pre-merge",
-					"provider": "GitHub"
+					"provider": "GitHub",
+					"checks": [
+						{
+							"name": "code style and linting"
+						},
+						{
+							"name": "unit test coverage"
+						},
+						{
+							"name": "vulnerability detection"
+						}
+					],
+					"file": ".github/workflows/check-pr.yml",
+					"path": "$.jobs.sonar-scan"
 				},
 				{
-					"check-types": [
-						"contract"
-					],
-					"config": {
-						"file": ".github/workflows/check-pr.yml",
-						"name": "Run Pact tests",
-						"path": "jobs.pact-tests"
-					},
 					"phase": "pre-merge",
-					"provider": "GitHub"
+					"provider": "GitHub",
+					"checks": [
+						{
+							"name": "contract"
+						}
+					],
+					"file": ".github/workflows/check-pr.yml",
+					"path": "$.jobs.pact-tests"
 				},
 				{
-					"check-types": [
-						"stack"
-					],
-					"config": {
-						"file": ".github/workflows/check-pr.yml",
-						"name": "Run Infra tests",
-						"path": "jobs.infra-tests"
-					},
 					"phase": "pre-merge",
-					"provider": "GitHub"
+					"provider": "GitHub",
+					"checks": [
+						{
+							"name": "integration",
+							"scope": "component"
+						}
+					],
+					"file": ".github/workflows/check-pr.yml",
+					"path": "$.jobs.infra-tests"
 				},
 				{
-					"check-types": [
-						"component",
-						"integration",
-						"regression",
-						"stack"
-					],
-					"config": {
-						"file": ".github/workflows/check-pr.yml",
-						"name": "Run pre-merge integration tests",
-						"path": "jobs.pre-merge-integration-tests"
-					},
 					"phase": "pre-merge",
-					"provider": "GitHub"
+					"provider": "GitHub",
+					"checks": [
+						{
+							"name": "integration",
+							"purpose": [
+								"regression"
+							],
+							"scope": "component"
+						},
+						{
+							"name": "integration",
+							"scope": "component",
+							"purpose": [
+								"regression"
+							]
+						}
+					],
+					"file": ".github/workflows/check-pr.yml",
+					"path": "$.jobs.pre-merge-integration-tests"
 				},
 				{
-					"check-types": [
-						"regression",
-						"smoke"
-					],
-					"config": {
-						"file": ".github/workflows/smoke-test-build.yml",
-						"name": "smoke",
-						"path": "jobs.smoke"
-					},
 					"phase": "pre-merge",
-					"provider": "GitHub"
+					"provider": "GitHub",
+					"checks": [
+						{
+							"name": "integration",
+							"purpose": [
+								"regression",
+								"smoke"
+							]
+						}
+					],
+					"file": ".github/workflows/smoke-test-build.yml",
+					"path": "$.jobs.smoke"
 				}
-			],
-			"service-tag": "ipv-cri-passport"
+			]
 		}
 	]
 }
