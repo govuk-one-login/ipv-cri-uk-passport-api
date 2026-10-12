@@ -37,7 +37,7 @@ bouncycastle = "1.86" # overrides vulnerable version in Pact's plugin driver
 cucumber = "8.0.4"
 selenium = "4.50.0"
 axe_core_selenium = "4.13.0"
-restassured =  "6.0.1"
+restassured =  "6.1.0"
 aws_cdk_lib = "2.262.0"
 
 [libraries]
