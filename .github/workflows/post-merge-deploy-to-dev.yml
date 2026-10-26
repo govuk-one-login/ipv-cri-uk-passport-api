@@ -34,7 +34,7 @@ jobs:
           cache-overwrite-existing: true
 
       - name: Setup SAM
-        uses: aws-actions/setup-sam@89ddb14d60e682855e3fea4be85b3c56485de310 # v3
+        uses: aws-actions/setup-sam@341eee193f458fa5aae5d52c94b0c5cf3a1c5a52 # v3
         with:
           use-installer: true
           version: "1.157.1"
@@ -46,7 +46,7 @@ jobs:
           aws-region: ${{ env.AWS_REGION }}
 
       - name: Traffic test image build and push (dev)
-        uses: govuk-one-login/devplatform-upload-action-ecr@d839fc3ead8c9d9f18f7a8cceb7ab4a3eab18a58 # v1.7.0
+        uses: govuk-one-login/devplatform-upload-action-ecr@256c057b61bb6795fccf00a439a895c678525863 # v1.7.1
         with:
           artifact-bucket-name: ""
           container-sign-kms-key-arn: ${{ secrets.CONTAINER_SIGN_KMS_KEY_DEV }}
@@ -59,7 +59,7 @@ jobs:
           push-latest-tag: "true"
 
       - name: Test image build and push (dev)
-        uses: govuk-one-login/devplatform-upload-action-ecr@d839fc3ead8c9d9f18f7a8cceb7ab4a3eab18a58 # v1.7.0
+        uses: govuk-one-login/devplatform-upload-action-ecr@256c057b61bb6795fccf00a439a895c678525863 # v1.7.1
         with:
           artifact-bucket-name: ""
           container-sign-kms-key-arn: ${{ secrets.CONTAINER_SIGN_KMS_KEY_DEV }}
@@ -81,7 +81,7 @@ jobs:
           sam build -s "${GITHUB_WORKSPACE}" -t infrastructure/lambda/template.yaml -b out
 
       - name: Deploy SAM app
-        uses: govuk-one-login/devplatform-upload-action@7076683de6e38a0ecdfbcd273b510a47c7b9489c # v4.4.0
+        uses: govuk-one-login/devplatform-upload-action@6677f824e2e0899e207870cfc8224858d1dd6fac # v4.4.1
         with:
           artifact-bucket-name: "${{ secrets.DEV_ARTIFACT_SOURCE_BUCKET_NAME }}"
           signing-profile-name: "${{ secrets.DEV_SIGNING_PROFILE_NAME }}"
