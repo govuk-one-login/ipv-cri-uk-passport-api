@@ -163,6 +163,14 @@ jobs:
           export API_GATEWAY_KEY="${APIGW_API_KEY}"
           AC_TEST_ONLY=true ./gradlew acceptance-tests:cucumber -P tags=@pre-merge
 
+      - name: Upload Cucumber Report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: cucumber-report-${{ github.run_number }}
+          path: acceptance-tests/build/test-results/cucumber.html
+          retention-days: 7
+
       - name: Delete pre-merge test stack
         if: always()
         run: |
