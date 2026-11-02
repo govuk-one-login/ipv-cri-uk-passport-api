@@ -38,7 +38,7 @@ jobs:
           distribution: corretto
           cache: gradle
 
-      - uses: gradle/actions/setup-gradle@3f5f9adaf7d9fecd50b5935e54106014257a94e6 # v6.4.0
+      - uses: gradle/actions/setup-gradle@8da46b539cd8fe6ab27ca75128919a18d757604c # v6.4.1
         with:
           gradle-version: wrapper
           cache-overwrite-existing: true
@@ -116,7 +116,7 @@ jobs:
           java-version-file: '.sdkmanrc'
           distribution: corretto
 
-      - uses: gradle/actions/setup-gradle@3f5f9adaf7d9fecd50b5935e54106014257a94e6 # v6.4.0
+      - uses: gradle/actions/setup-gradle@8da46b539cd8fe6ab27ca75128919a18d757604c # v6.4.1
         with:
           gradle-version: wrapper
           cache-overwrite-existing: true
@@ -133,7 +133,7 @@ jobs:
           key: ${{ runner.os }}-build-${{ github.sha }}
 
       - name: Setup SAM
-        uses: aws-actions/setup-sam@d78e1a4a9656d3b223e59b80676a797f20093133 # v2
+        uses: aws-actions/setup-sam@341eee193f458fa5aae5d52c94b0c5cf3a1c5a52 # v2
         with:
           use-installer: true
           version: "1.157.1"
