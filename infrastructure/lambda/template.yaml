@@ -86,10 +86,6 @@ Conditions:
   AlarmsEnabled: !Equals
     - !Ref DeploymentType
     - "pipeline"
-# Don't send logs in dev to avoid overwhelming the destination with debug
-  LogSendingEnabled: !And
-    - !Not [!Equals [!Ref Environment, "dev"]]
-    - !Condition IsDeployedFromPipeline
   IsProdEnvironment: !Equals
     - !Ref Environment
     - production
@@ -320,14 +316,6 @@ Resources:
       RetentionInDays: !Ref LogGroupRetentionInDays
       KmsKeyId: !GetAtt LoggingKmsKey.Arn
 
-  PublicUKPassportAPILogGroupSubscriptionFilter:
-    Type: AWS::Logs::SubscriptionFilter
-    Condition: LogSendingEnabled
-    Properties:
-      DestinationArn: "arn:aws:logs:eu-west-2:885513274347:destination:csls_cw_logs_destination_prodpython"
-      FilterPattern: ""
-      LogGroupName: !Ref PublicUKPassportAPILogGroup
-
   PrivateUKPassportAPI:
     Type: AWS::Serverless::Api
     Properties:
@@ -403,14 +391,6 @@ Resources:
       LogGroupName: !Sub /aws/apigateway/${AWS::StackName}-${PrivateUKPassportAPI}-private-AccessLogs
       RetentionInDays: !Ref LogGroupRetentionInDays
       KmsKeyId: !GetAtt LoggingKmsKey.Arn
-
-  PrivateUKPassportAPILogGroupSubscriptionFilter:
-    Type: AWS::Logs::SubscriptionFilter
-    Condition: LogSendingEnabled
-    Properties:
-      DestinationArn: "arn:aws:logs:eu-west-2:885513274347:destination:csls_cw_logs_destination_prodpython"
-      FilterPattern: ""
-      LogGroupName: !Ref PrivateUKPassportAPILogGroup
 
 ####################################################################
 #                                                                  #
@@ -530,14 +510,6 @@ Resources:
       LogGroupName: !Sub "/aws/lambda/${CheckPassportFunction}"
       RetentionInDays: !Ref LogGroupRetentionInDays
 
-  CheckPassportFunctionLogGroupSubscriptionFilterCsls:
-    Type: AWS::Logs::SubscriptionFilter
-    Condition: LogSendingEnabled
-    Properties:
-      DestinationArn: "arn:aws:logs:eu-west-2:885513274347:destination:csls_cw_logs_destination_prodpython"
-      FilterPattern: ""
-      LogGroupName: !Ref CheckPassportFunctionLogGroup
-
   CheckPassportFunctionPermission:
     Type: AWS::Lambda::Permission
     Properties:
@@ -645,14 +617,6 @@ Resources:
     Properties:
       LogGroupName: !Sub "/aws/lambda/${IssueCredentialFunction}"
       RetentionInDays: !Ref LogGroupRetentionInDays
-
-  IssueCredentialFunctionLogGroupSubscriptionFilterCsls:
-    Type: AWS::Logs::SubscriptionFilter
-    Condition: LogSendingEnabled
-    Properties:
-      DestinationArn: "arn:aws:logs:eu-west-2:885513274347:destination:csls_cw_logs_destination_prodpython"
-      FilterPattern: ""
-      LogGroupName: !Ref IssueCredentialFunctionLogGroup
 
   IssueCredentialFunctionPermission:
     Type: AWS::Lambda::Permission
