@@ -12,7 +12,7 @@ cri_common_lib = "9.2.3"
 limeade = "1.2.4"
 nimbusds_oauth = "11.37"
 aspect_jrt = "1.9.25.1"
-aws_powertools = "2.10.0"
+aws_powertools = "2.11.0"
 log4j = "2.26.1"
 jackson = "2.22.3"
 
