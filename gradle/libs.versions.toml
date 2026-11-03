@@ -29,15 +29,15 @@ mockito = "5.24.0"
 webcompere = "2.1.8"
 
 # Contract tests
-pact_provider = "4.7.5"
+pact_provider = "4.7.6"
 commons_io = "2.22.0"
 bouncycastle = "1.86" # overrides vulnerable version in Pact's plugin driver
 
 # AC tests
 cucumber = "8.0.4"
-selenium = "4.50.0"
-axe_core_selenium = "4.13.0"
-restassured =  "6.0.1"
+selenium = "4.52.0"
+axe_core_selenium = "4.14.0"
+restassured =  "6.3.0"
 aws_cdk_lib = "2.262.0"
 
 [libraries]
