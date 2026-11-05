@@ -41,15 +41,7 @@ test {
 	systemProperty "cucumber.filter.tags", System.getProperty("cucumber.filter.tags")
 }
 
-//*************************************//
-//                                     //
-//    Test tasks                       //
-//                                     //
-//*************************************//
-
 tasks.register("infra-test", Test) {
-	testClassesDirs = sourceSets.test.output.classesDirs
-	classpath = sourceSets.test.runtimeClasspath
 	useJUnitPlatform {
 		includeTags "InfraTest"
 	}
@@ -59,6 +51,12 @@ tasks.register("infra-test", Test) {
 		exceptionFormat "full"
 	}
 }
+
+//*************************************//
+//                                     //
+//    Test tasks                       //
+//                                     //
+//*************************************//
 
 tasks.register('cucumber', JavaExec) {
 	dependsOn assemble, testClasses
