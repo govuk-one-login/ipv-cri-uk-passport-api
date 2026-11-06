@@ -20,6 +20,7 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
 
+import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
@@ -1121,8 +1122,9 @@ class LambdaTemplateTest {
     }
 
     @Test
-    @DisplayName("All AWS::Logs::LogGroup resources should contain a RetentionInDays")
-    void allLogGroupResourcesShouldContainRetentionInDays() {
+    @DisplayName(
+            "All AWS::Logs::LogGroup resources should set RetentionInDays from the EnvironmentConfiguration mapping")
+    void allLogGroupResourcesShouldSetRetentionInDaysFromEnvironmentConfigurationMapping() {
         Map<String, Map<String, Object>> logGroupProperties =
                 getAllResourceProperties("AWS::Logs::LogGroup");
 
@@ -1130,29 +1132,58 @@ class LambdaTemplateTest {
                 logGroupProperties.isEmpty(),
                 "Expected at least one AWS::Logs::LogGroup resource in the template.");
 
-        boolean allLogGroupsSatisfyCondition = true;
+        List<String> expectedRetentionInDays =
+                List.of("EnvironmentConfiguration", "Environment", "logGroupRetentionInDays");
+
         StringBuilder failureMessages = new StringBuilder();
 
         for (Map.Entry<String, Map<String, Object>> entry : logGroupProperties.entrySet()) {
             String logicalId = entry.getKey();
-            Map<String, Object> properties = entry.getValue();
+            Object retentionInDays = entry.getValue().get("RetentionInDays");
 
-            Optional<String> retentionInDays =
-                    getProperty(properties, "RetentionInDays", String.class);
-
-            if (retentionInDays.isEmpty()) {
-                allLogGroupsSatisfyCondition = false;
+            if (!expectedRetentionInDays.equals(retentionInDays)) {
                 failureMessages.append(
                         String.format(
-                                "LogGroup resource '%s' does not have a 'RetentionInDays' property or it's not an Integer.%n",
-                                logicalId));
+                                "LogGroup resource '%s' has RetentionInDays '%s', expected !FindInMap %s.%n",
+                                logicalId, retentionInDays, expectedRetentionInDays));
             }
         }
 
         assertTrue(
-                allLogGroupsSatisfyCondition,
-                "One or more AWS::Logs::LogGroup resources failed the RetentionInDays existence check:\n"
+                failureMessages.isEmpty(),
+                "One or more AWS::Logs::LogGroup resources do not set RetentionInDays from the EnvironmentConfiguration mapping:\n"
                         + failureMessages);
+    }
+
+    @Test
+    @DisplayName(
+            "EnvironmentConfiguration should set logGroupRetentionInDays to 365 in production and 30 in all other environments")
+    void environmentConfigurationShouldSetLogGroupRetentionInDays() {
+        Map<String, Map<String, Object>> mappings =
+                cloudFormationTemplate.findMappings("EnvironmentConfiguration");
+
+        assertTrue(
+                mappings.containsKey("EnvironmentConfiguration"),
+                "Expected an EnvironmentConfiguration mapping in the template.");
+
+        Map<String, Object> retentionByEnvironment = new HashMap<>();
+        for (Map.Entry<String, Object> entry :
+                mappings.get("EnvironmentConfiguration").entrySet()) {
+            @SuppressWarnings("unchecked") // Each mapping entry is a map of key to value
+            Map<String, Object> environmentConfiguration = (Map<String, Object>) entry.getValue();
+            retentionByEnvironment.put(
+                    entry.getKey(), environmentConfiguration.get("logGroupRetentionInDays"));
+        }
+
+        assertEquals(
+                Map.of(
+                        "dev", 30,
+                        "build", 30,
+                        "staging", 30,
+                        "integration", 30,
+                        "production", 365),
+                retentionByEnvironment,
+                "EnvironmentConfiguration logGroupRetentionInDays should be 365 in production and 30 in all other environments.");
     }
 
     // Lambda - Permission Resource Tests
