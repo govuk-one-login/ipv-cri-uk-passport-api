@@ -1155,6 +1155,135 @@ class LambdaTemplateTest {
                         + failureMessages);
     }
 
+    // Logs - Subscription Filter Resource Tests
+
+    @Test
+    @DisplayName(
+            "All AWS::Logs::SubscriptionFilter resources should contain Condition: LogSendingEnabled")
+    void allSubscriptionFilterResourcesShouldContainLogSendingEnabledCondition() {
+        Map<String, Map<String, Object>> subscriptionFilterResources =
+                getAllResources("AWS::Logs::SubscriptionFilter");
+
+        assertFalse(
+                subscriptionFilterResources.isEmpty(),
+                "Expected at least one AWS::Logs::SubscriptionFilter resource in the template.");
+
+        boolean allSubscriptionFiltersSatisfyCondition = true;
+        StringBuilder failureMessages = new StringBuilder();
+
+        for (Map.Entry<String, Map<String, Object>> entry :
+                subscriptionFilterResources.entrySet()) {
+            String logicalId = entry.getKey();
+            Map<String, Object> resourceDefinition = entry.getValue();
+
+            Optional<String> condition = getTopLevelProperty(resourceDefinition);
+
+            if (condition.isPresent()) {
+                String conditionValue = condition.get();
+                if (!"LogSendingEnabled".equals(conditionValue)) {
+                    allSubscriptionFiltersSatisfyCondition = false;
+                    failureMessages.append(
+                            String.format(
+                                    "SubscriptionFilter resource '%s' has Condition '%s' but expected 'LogSendingEnabled'.%n",
+                                    logicalId, conditionValue));
+                }
+            } else {
+                allSubscriptionFiltersSatisfyCondition = false;
+                failureMessages.append(
+                        String.format(
+                                "SubscriptionFilter resource '%s' does not have a 'Condition' property or it's not a String.%n",
+                                logicalId));
+            }
+        }
+
+        assertTrue(
+                allSubscriptionFiltersSatisfyCondition,
+                "One or more AWS::Logs::SubscriptionFilter resources failed the Condition check:\n"
+                        + failureMessages);
+    }
+
+    @Test
+    @DisplayName("All AWS::Logs::SubscriptionFilter resources should contain a LogGroupName")
+    void allSubscriptionFilterResourcesShouldContainLogGroupName() {
+        Map<String, Map<String, Object>> logGroupProperties =
+                getAllResourceProperties("AWS::Logs::SubscriptionFilter");
+
+        assertFalse(
+                logGroupProperties.isEmpty(),
+                "Expected at least one AWS::Logs::SubscriptionFilter resource in the template.");
+
+        boolean allLogGroupsSatisfyCondition = true;
+        StringBuilder failureMessages = new StringBuilder();
+
+        for (Map.Entry<String, Map<String, Object>> entry : logGroupProperties.entrySet()) {
+            String logicalId = entry.getKey();
+            Map<String, Object> properties = entry.getValue();
+
+            Optional<String> logGroupName = getProperty(properties, "LogGroupName", String.class);
+
+            if (logGroupName.isEmpty()) {
+                allLogGroupsSatisfyCondition = false;
+                failureMessages.append(
+                        String.format(
+                                "LogGroup resource '%s' does not have a 'LogGroupName' property or it's not a String.%n",
+                                logicalId));
+            }
+        }
+
+        assertTrue(
+                allLogGroupsSatisfyCondition,
+                "One or more AWS::Logs::SubscriptionFilter resources failed the LogGroupName existence check:\n"
+                        + failureMessages);
+    }
+
+    @Test
+    @DisplayName(
+            "All AWS::Logs::SubscriptionFilter resources should contain DestinationArn starting with 'arn:aws:logs:eu-west-2:'")
+    void allSubscriptionFilterResourcesShouldContainDestinationArnWithPrefix() {
+        Map<String, Map<String, Object>> subscriptionFilterProperties =
+                getAllResourceProperties("AWS::Logs::SubscriptionFilter");
+
+        assertFalse(
+                subscriptionFilterProperties.isEmpty(),
+                "Expected at least one AWS::Logs::SubscriptionFilter resource in the template.");
+
+        boolean allSubscriptionFiltersSatisfyCondition = true;
+        StringBuilder failureMessages = new StringBuilder();
+
+        String expectedPrefix = "arn:aws:logs:eu-west-2:";
+
+        for (Map.Entry<String, Map<String, Object>> entry :
+                subscriptionFilterProperties.entrySet()) {
+            String logicalId = entry.getKey();
+            Map<String, Object> properties = entry.getValue();
+
+            Optional<String> destinationArn =
+                    getProperty(properties, "DestinationArn", String.class);
+
+            if (destinationArn.isPresent()) {
+                String destinationArnValue = destinationArn.get();
+                if (!destinationArnValue.startsWith(expectedPrefix)) {
+                    allSubscriptionFiltersSatisfyCondition = false;
+                    failureMessages.append(
+                            String.format(
+                                    "SubscriptionFilter resource '%s' has DestinationArn '%s' which does not start with '%s'.%n",
+                                    logicalId, destinationArnValue, expectedPrefix));
+                }
+            } else {
+                allSubscriptionFiltersSatisfyCondition = false;
+                failureMessages.append(
+                        String.format(
+                                "SubscriptionFilter resource '%s' does not have a 'DestinationArn' property or it's not a String.%n",
+                                logicalId));
+            }
+        }
+
+        assertTrue(
+                allSubscriptionFiltersSatisfyCondition,
+                "One or more AWS::Logs::SubscriptionFilter resources failed the DestinationArn prefix check:\n"
+                        + failureMessages);
+    }
+
     // Lambda - Permission Resource Tests
 
     @Test
