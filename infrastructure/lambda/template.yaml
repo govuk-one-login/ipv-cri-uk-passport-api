@@ -73,10 +73,6 @@ Parameters:
     Description: "Mock TXMA SQS Queue"
     Type: String
     Default: "false"
-  LogGroupRetentionInDays:
-    Description: "Retention for all log groups"
-    Type: Number
-    Default: "365"
 
 Conditions:
   IsDeployedFromPipeline: !Equals
@@ -173,18 +169,23 @@ Mappings:
     dev:
       dynatraceSecretArn: arn:aws:secretsmanager:eu-west-2:216552277552:secret:DynatraceNonProductionVariables
       dynatraceLayer: arn:aws:lambda:eu-west-2:216552277552:layer:Dynatrace_OneAgent_1_327_51_20251205-162230_with_collector_java_arm:1
+      logGroupRetentionInDays: 30
     build:
       dynatraceSecretArn: arn:aws:secretsmanager:eu-west-2:216552277552:secret:DynatraceNonProductionVariables
       dynatraceLayer: arn:aws:lambda:eu-west-2:216552277552:layer:Dynatrace_OneAgent_1_327_51_20251205-162230_with_collector_java_arm:1
+      logGroupRetentionInDays: 30
     staging:
       dynatraceSecretArn: arn:aws:secretsmanager:eu-west-2:216552277552:secret:DynatraceNonProductionVariables
       dynatraceLayer: arn:aws:lambda:eu-west-2:216552277552:layer:Dynatrace_OneAgent_1_327_51_20251205-162230_with_collector_java_arm:1
+      logGroupRetentionInDays: 30
     integration:
       dynatraceSecretArn: arn:aws:secretsmanager:eu-west-2:216552277552:secret:DynatraceNonProductionVariables
       dynatraceLayer: arn:aws:lambda:eu-west-2:216552277552:layer:Dynatrace_OneAgent_1_327_51_20251205-162230_with_collector_java_arm:1
+      logGroupRetentionInDays: 30
     production:
       dynatraceSecretArn: arn:aws:secretsmanager:eu-west-2:216552277552:secret:DynatraceProductionVariables
       dynatraceLayer: arn:aws:lambda:eu-west-2:216552277552:layer:Dynatrace_OneAgent_1_327_51_20251205-162230_with_collector_java_arm:1
+      logGroupRetentionInDays: 365
 
   MemorySizeMapping:
     Environment:
@@ -313,7 +314,7 @@ Resources:
     Type: AWS::Logs::LogGroup
     Properties:
       LogGroupName: !Sub /aws/apigateway/${AWS::StackName}-${PublicUKPassportAPI}-public-AccessLogs
-      RetentionInDays: !Ref LogGroupRetentionInDays
+      RetentionInDays: !FindInMap [ EnvironmentConfiguration, !Ref Environment, logGroupRetentionInDays ]
       KmsKeyId: !GetAtt LoggingKmsKey.Arn
 
   PrivateUKPassportAPI:
@@ -389,7 +390,7 @@ Resources:
     Type: AWS::Logs::LogGroup
     Properties:
       LogGroupName: !Sub /aws/apigateway/${AWS::StackName}-${PrivateUKPassportAPI}-private-AccessLogs
-      RetentionInDays: !Ref LogGroupRetentionInDays
+      RetentionInDays: !FindInMap [ EnvironmentConfiguration, !Ref Environment, logGroupRetentionInDays ]
       KmsKeyId: !GetAtt LoggingKmsKey.Arn
 
 ####################################################################
@@ -508,7 +509,7 @@ Resources:
     Type: AWS::Logs::LogGroup
     Properties:
       LogGroupName: !Sub "/aws/lambda/${CheckPassportFunction}"
-      RetentionInDays: !Ref LogGroupRetentionInDays
+      RetentionInDays: !FindInMap [ EnvironmentConfiguration, !Ref Environment, logGroupRetentionInDays ]
 
   CheckPassportFunctionPermission:
     Type: AWS::Lambda::Permission
@@ -616,7 +617,7 @@ Resources:
     Type: AWS::Logs::LogGroup
     Properties:
       LogGroupName: !Sub "/aws/lambda/${IssueCredentialFunction}"
-      RetentionInDays: !Ref LogGroupRetentionInDays
+      RetentionInDays: !FindInMap [ EnvironmentConfiguration, !Ref Environment, logGroupRetentionInDays ]
 
   IssueCredentialFunctionPermission:
     Type: AWS::Lambda::Permission
@@ -694,7 +695,7 @@ Resources:
     Type: AWS::Logs::LogGroup
     Properties:
       LogGroupName: !Sub "/aws/lambda/${CertExpiryReminderFunction}"
-      RetentionInDays: !Ref LogGroupRetentionInDays
+      RetentionInDays: !FindInMap [ EnvironmentConfiguration, !Ref Environment, logGroupRetentionInDays ]
 
   CertExpiryReminderFunctionPermission:
     Type: AWS::Lambda::Permission
