@@ -4,7 +4,6 @@ on:
   schedule:
     # Every weekday at 5:00AM, 9:00AM, 12:00PM and 2:00PM
     - cron: "0 5,9,12,14 * * 1-5"
-  push:
 
 concurrency:
   group: smoke-test-build
